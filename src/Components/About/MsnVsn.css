@@ -1,0 +1,156 @@
+.mv{
+  width:100%;
+  padding:10px 20px 50px 0px;
+  background:#f8fafc;
+  box-sizing:border-box;
+}
+
+.mv-container{
+  max-width:1200px;
+  margin:auto;
+}
+
+/* header */
+
+.mv-header{
+  text-align:center;
+  margin-bottom:70px;
+}
+
+.mv-header h2{
+  font-size:40px;
+  font-weight:700;
+  color:#0f172a;
+  margin-bottom:15px;
+}
+
+.mv-header span{
+  color:#00bcd4;
+}
+
+.mv-header p{
+  max-width:700px;
+  margin:auto;
+  font-size:17px;
+  line-height:1.7;
+  color:#475569;
+}
+
+/* grid */
+
+.mv-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:40px;
+}
+
+/* card */
+
+.mv-card{
+  position:relative;
+  height:320px;
+  border-radius:20px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  transform:translateY(80px);
+  opacity:0;
+
+  transition:all .8s ease;
+}
+
+/* animation */
+
+.mv-card.show{
+  transform:translateY(0);
+  opacity:1;
+}
+
+/* background images */
+
+.mission{
+  background-image:url("https://images.unsplash.com/photo-1521791136064-7986c2920216");
+  background-size:cover;
+  background-position:center;
+}
+
+.vision{
+  background-image:url("https://images.unsplash.com/photo-1504384308090-c894fdcc538d");
+  background-size:cover;
+  background-position:center;
+}
+
+/* overlay */
+
+.mv-overlay{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    135deg,
+    rgba(0,0,0,0.6),
+    rgba(0,188,212,0.55)
+  );
+}
+
+/* content */
+
+.mv-content{
+  position:relative;
+  text-align:center;
+  color:white;
+  padding:40px;
+  z-index:2;
+}
+
+.mv-content h3{
+  font-size:32px;
+  margin-bottom:15px;
+  font-weight:700;
+}
+
+.mv-content p{
+  font-size:16px;
+  line-height:1.7;
+  max-width:420px;
+  margin:auto;
+}
+
+/* hover effect */
+
+.mv-card:hover{
+  transform:scale(1.04);
+}
+
+/* responsive */
+
+@media(max-width:900px){
+
+  .mv-grid{
+    grid-template-columns:1fr;
+  }
+
+  .mv-card{
+    height:300px;
+  }
+
+}
+
+/* mobile */
+
+@media(max-width:600px){
+
+  .mv-header h2{
+    font-size:28px;
+  }
+
+  .mv-header p{
+    font-size:15px;
+  }
+
+  .mv-content h3{
+    font-size:24px;
+  }
+
+}

@@ -1,0 +1,152 @@
+.contact{
+width:100%;
+padding:0px 20px 40px 20px ;
+background:#f8fafc;
+box-sizing:border-box;
+margin-top: -50px;
+}
+
+/* TOP HEADING */
+
+.contact-heading{
+text-align:center;
+max-width:700px;
+margin:0 auto 60px auto;
+}
+
+.contact-heading h2{
+font-size:38px;
+color:#0f172a;
+margin-bottom:12px;
+}
+
+.contact-heading p{
+font-size:17px;
+color:#64748b;
+line-height:1.7;
+}
+
+/* CONTAINER */
+
+.contact-container{
+max-width:1200px;
+margin:auto;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:60px;
+}
+
+/* LEFT CONTENT */
+
+.contact-info{
+flex:1;
+}
+
+.contact-info h3{
+font-size:28px;
+margin-bottom:15px;
+color:#0f172a;
+}
+
+.contact-info p{
+font-size:16px;
+line-height:1.7;
+color:#475569;
+margin-bottom:25px;
+}
+
+.contact-info ul{
+list-style:none;
+padding:0;
+}
+
+.contact-info li{
+font-size:15px;
+margin-bottom:12px;
+color:#334155;
+}
+
+/* FORM */
+
+.contact-form{
+flex:1;
+background:white;
+padding:40px;
+border-radius:14px;
+box-shadow:0 12px 35px rgba(0,0,0,0.08);
+}
+
+.contact-form form{
+display:flex;
+flex-direction:column;
+gap:18px;
+}
+
+.contact-form input,
+.contact-form textarea{
+width:100%;
+padding:14px;
+border:1px solid #e2e8f0;
+border-radius:8px;
+font-size:15px;
+outline:none;
+transition:.3s;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus{
+border-color:#00bcd4;
+box-shadow:0 0 0 3px rgba(0,188,212,0.15);
+}
+
+.contact-form textarea{
+height:120px;
+resize:none;
+}
+
+/* BUTTON */
+
+.contact-form button{
+padding:15px;
+border:none;
+background:#00bcd4;
+color:white;
+font-size:16px;
+font-weight:600;
+border-radius:8px;
+cursor:pointer;
+transition:.3s;
+}
+
+.contact-form button:hover{
+background:#0097a7;
+transform:translateY(-2px);
+}
+
+.contact-form button:disabled{
+background:#94a3b8;
+cursor:not-allowed;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:900px){
+
+.contact-container{
+flex-direction:column;
+}
+
+.contact-info{
+text-align:center;
+}
+
+.contact-form{
+width:80%;
+}
+
+.contact-heading h2{
+font-size:30px;
+}
+
+}

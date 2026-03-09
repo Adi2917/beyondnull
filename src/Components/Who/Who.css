@@ -1,0 +1,116 @@
+.who{
+  width:100%;
+  padding:20px 20px;
+  background:#ffffff;
+  box-sizing:border-box;
+}
+
+.who-container{
+  max-width:1200px;
+  margin:auto;
+}
+
+/* header */
+
+.who-header{
+  text-align:center;
+  margin-bottom:60px;
+}
+
+.who-header h2{
+  font-size:40px;
+  font-weight:700;
+  color:#0f172a;
+  margin-bottom:15px;
+}
+
+.who-header span{
+  color:#00bcd4;
+}
+
+.who-header p{
+  max-width:700px;
+  margin:auto;
+  font-size:17px;
+  line-height:1.7;
+  color:#475569;
+}
+
+/* cards */
+
+.who-cards{
+  display:flex;
+  gap:30px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+/* card */
+
+.who-card{
+  flex:1;
+  min-width:260px;
+  max-width:350px;
+  background:#f8fafc;
+  padding:35px 30px;
+  border-radius:14px;
+  text-align:center;
+  transition:0.3s;
+}
+
+.who-card:hover{
+  transform:translateY(-8px);
+  box-shadow:0 15px 40px rgba(0,0,0,0.08);
+}
+
+/* icon */
+
+.who-icon{
+  font-size:30px;
+  color:#00bcd4;
+  margin-bottom:20px;
+}
+
+/* title */
+
+.who-card h3{
+  font-size:20px;
+  margin-bottom:12px;
+  color:#0f172a;
+}
+
+/* text */
+
+.who-card p{
+  font-size:15px;
+  color:#64748b;
+  line-height:1.6;
+}
+
+/* tablet */
+
+@media(max-width:900px){
+
+  .who-header h2{
+    font-size:32px;
+  }
+
+}
+
+/* mobile */
+
+@media(max-width:600px){
+
+  .who{
+    padding:70px 20px;
+  }
+
+  .who-header h2{
+    font-size:26px;
+  }
+
+  .who-header p{
+    font-size:15px;
+  }
+
+}
