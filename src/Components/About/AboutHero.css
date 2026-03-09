@@ -5,6 +5,7 @@ padding:120px 20px 80px;
 position:relative;
 display:flex;
 align-items:center;
+min-height: 100vh;
 justify-content:center;
 background-image:url("https://images.unsplash.com/photo-1518770660439-4636190af475");
 background-size:cover;
