@@ -15,15 +15,15 @@ const AboutHero = () => {
         </h1>
 
         <p>
-          Beyond Null is a modern web development and digital marketing agency
-          focused on building high-performance websites, scalable software,
-          and innovative digital solutions that help businesses grow online.
+          Beyond Null is a modern web development and digital marketing
+          agency focused on building high-performance websites,
+          scalable software, and powerful digital platforms.
         </p>
 
         <p>
-          Our approach combines strategy, design, and engineering to deliver
-          reliable platforms, powerful user experiences, and long-term
-          digital growth for startups and businesses.
+          Our team combines strategy, design, and engineering to build
+          reliable products that help startups and businesses grow
+          faster in the digital world.
         </p>
 
       </div>
