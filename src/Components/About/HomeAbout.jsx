@@ -18,17 +18,23 @@ const HomeAbout = () => {
         <div className="about-left">
 
           <h2 className="about-heading">
-            About <span>BeyondNull</span>
+            About <span>Beyond Null</span>
           </h2>
 
           <p className="about-text">
-            BeyondNull helps businesses grow with innovative software,
-            smart digital solutions, and powerful marketing strategies.
-            We focus on building technology and digital experiences that
-            create real value and long-term growth.
+            Beyond Null is a professional web development and digital marketing 
+            agency that helps businesses grow online with modern technology and 
+            smart digital solutions. We specialize in website development, app 
+            development, social media marketing, SEO services, and Google My 
+            Business optimization to create powerful digital experiences that 
+            drive long-term business growth.
           </p>
 
-          <button className="about-button" onClick={goToAbout}>
+          <button 
+            className="about-button" 
+            onClick={goToAbout}
+            aria-label="Learn more about Beyond Null web development and digital marketing agency"
+          >
             Read More →
           </button>
 
@@ -39,7 +45,8 @@ const HomeAbout = () => {
 
           <img
             src="https://images.unsplash.com/photo-1552664730-d307ca884978"
-            alt="about"
+            alt="Team working on web development and digital marketing strategy"
+            loading="lazy"
           />
 
         </div>

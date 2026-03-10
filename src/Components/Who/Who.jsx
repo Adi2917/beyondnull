@@ -11,14 +11,15 @@ const Who = () => {
 
         <div className="who-header">
           <h2>
-            Building Digital <span>Growth & Innovation</span>
+            Web Development & Digital <span>Growth Innovation</span>
           </h2>
 
           <p>
-            At BeyondNull, we combine technology, creativity, and strategy
-            to help businesses grow faster in the digital world. Our focus
-            is not just building products, but creating impactful solutions
-            that deliver real results.
+            Beyond Null is a modern web development and digital marketing 
+            agency focused on helping businesses grow online. We combine 
+            technology, creativity, and strategy to build powerful software, 
+            high-performance websites, and result-driven digital marketing 
+            solutions that help brands stand out in the competitive digital world.
           </p>
         </div>
 
@@ -27,16 +28,16 @@ const Who = () => {
 
           <div className="who-card">
 
-            <div className="who-icon">
+            <div className="who-icon" aria-label="Innovative web development solutions">
               <FaRocket />
             </div>
 
-            <h3>Innovation First</h3>
+            <h3>Innovation Driven Development</h3>
 
             <p>
-              We build forward-thinking software and digital solutions
-              designed to help businesses move faster and stay ahead
-              in a competitive market.
+              We create innovative web development solutions, modern websites,
+              and scalable digital platforms designed to help businesses move 
+              faster and stay ahead in the digital marketplace.
             </p>
 
           </div>
@@ -44,16 +45,17 @@ const Who = () => {
 
           <div className="who-card">
 
-            <div className="who-icon">
+            <div className="who-icon" aria-label="Smart digital marketing strategies">
               <FaLightbulb />
             </div>
 
-            <h3>Smart Solutions</h3>
+            <h3>Smart Digital Solutions</h3>
 
             <p>
-              From powerful software to digital marketing strategies,
-              we create intelligent solutions tailored for modern
-              businesses and startups.
+              From website development to digital marketing strategies, 
+              we design smart solutions including social media marketing, 
+              SEO services, and brand growth strategies for startups 
+              and modern businesses.
             </p>
 
           </div>
@@ -61,16 +63,16 @@ const Who = () => {
 
           <div className="who-card">
 
-            <div className="who-icon">
+            <div className="who-icon" aria-label="Business growth and digital scaling">
               <FaChartLine />
             </div>
 
-            <h3>Growth Focused</h3>
+            <h3>Growth Focused Strategy</h3>
 
             <p>
-              Every project we build is focused on long-term growth,
-              helping brands scale, reach more customers, and create
-              real digital impact.
+              Our mission is to help businesses scale through technology, 
+              powerful digital marketing campaigns, and strategic online 
+              growth solutions that bring measurable results.
             </p>
 
           </div>

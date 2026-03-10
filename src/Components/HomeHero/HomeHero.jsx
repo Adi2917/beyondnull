@@ -18,15 +18,22 @@ const HomeHero = () => {
       <div className="hero-content">
 
         <h1 className="hero-title">
-          Elevate Your Digital Presence <br />
-          With <span>BeyondNull</span>
+          Web Development & Digital Marketing Agency <br />
+          <span>Beyond Null</span>
         </h1>
 
         <p className="hero-description">
-          We build powerful software, smart digital solutions, and result-driven marketing strategies that help businesses grow faster and stand out in the modern digital world.
+          Beyond Null is a professional web development and digital marketing agency 
+          offering website development, app development, social media marketing, 
+          Google My Business optimization, and complete digital marketing solutions 
+          to help businesses grow faster in the modern digital world.
         </p>
 
-        <button className="hero-btn" onClick={goToServices}>
+        <button 
+          className="hero-btn" 
+          onClick={goToServices}
+          aria-label="Explore Web Development and Digital Marketing Services"
+        >
           Explore Services
         </button>
 

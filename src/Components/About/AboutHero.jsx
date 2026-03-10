@@ -10,20 +10,20 @@ const AboutHero = () => {
       <div className="about-container">
 
         <h1>
-          Building Digital Solutions
-          <span> That Empower Businesses</span>
+          Web Development & Digital Solutions
+          <span> That Empower Modern Businesses</span>
         </h1>
 
         <p>
-          BeyondNull focuses on building modern digital products,
-          scalable software systems, and innovative technology
-          solutions that help businesses grow in the digital era.
+          Beyond Null is a modern web development and digital marketing agency
+          focused on building high-performance websites, scalable software,
+          and innovative digital solutions that help businesses grow online.
         </p>
 
         <p>
-          Our approach combines strategy, design, and engineering
-          to create reliable platforms that deliver performance,
-          scalability, and long-term business impact.
+          Our approach combines strategy, design, and engineering to deliver
+          reliable platforms, powerful user experiences, and long-term
+          digital growth for startups and businesses.
         </p>
 
       </div>

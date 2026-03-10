@@ -33,14 +33,14 @@ const Why = () => {
         <div className="why-header">
 
           <h2>
-            The <span>BeyondNull</span> Advantage
+            Why Choose <span>Beyond Null</span> for Web Development & Digital Marketing
           </h2>
 
           <p>
-            We focus on delivering powerful digital solutions that help
-            businesses innovate, scale, and grow faster. Our approach
-            combines technology, strategy, and creativity to create
-            real impact in the digital world.
+            Beyond Null is a modern web development and digital marketing agency
+            focused on helping businesses grow online. We deliver powerful website
+            development, app development, SEO services, and social media marketing
+            strategies that help brands scale faster and build a strong digital presence.
           </p>
 
         </div>
@@ -49,46 +49,50 @@ const Why = () => {
         <div className="why-grid">
 
           <div className="why-card">
-            <div className="why-icon">
+            <div className="why-icon" aria-label="Modern web development technology">
               <FaCode />
             </div>
-            <h3>Modern Technology</h3>
+            <h3>Modern Web Development</h3>
             <p>
-              We build scalable platforms using modern technologies
-              designed for performance, security, and future growth.
+              We build scalable and high-performance websites using modern
+              web development technologies designed for speed, security,
+              and long-term business growth.
             </p>
           </div>
 
           <div className="why-card">
-            <div className="why-icon">
+            <div className="why-icon" aria-label="Data driven digital marketing strategies">
               <FaChartBar />
             </div>
-            <h3>Data Driven Growth</h3>
+            <h3>Data Driven Digital Marketing</h3>
             <p>
-              Our strategies are based on real insights and analytics
-              that help businesses achieve measurable results.
+              Our digital marketing strategies are powered by analytics
+              and insights that help businesses improve online visibility,
+              attract more customers, and achieve measurable growth.
             </p>
           </div>
 
           <div className="why-card">
-            <div className="why-icon">
+            <div className="why-icon" aria-label="Trusted business partnership">
               <FaHandshake />
             </div>
-            <h3>Trusted Partnership</h3>
+            <h3>Trusted Business Partnership</h3>
             <p>
-              We collaborate closely with clients to create digital
-              solutions aligned with their long-term vision.
+              We work closely with our clients to create customized
+              web development and digital marketing solutions aligned
+              with their long-term business goals.
             </p>
           </div>
 
           <div className="why-card">
-            <div className="why-icon">
+            <div className="why-icon" aria-label="Fast website development delivery">
               <FaClock />
             </div>
-            <h3>Fast Execution</h3>
+            <h3>Fast & Reliable Delivery</h3>
             <p>
-              Speed and quality are our priorities. We deliver powerful
-              digital solutions without compromising performance.
+              Our team focuses on fast execution without compromising
+              quality, delivering powerful digital solutions that
+              help businesses launch and grow quickly.
             </p>
           </div>
 
