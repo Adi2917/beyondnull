@@ -11,7 +11,7 @@ const AboutEnd = () => {
           <h2>Ready to Grow Your Business With Us?</h2>
 
           <p>
-            At Markspacify, we help brands transform their digital presence 
+            At Beyond Null, we help brands transform their digital presence 
             through creative strategies, innovative marketing, and powerful 
             branding solutions. Our mission is to help your business stand 
             out in the digital world and achieve real growth.

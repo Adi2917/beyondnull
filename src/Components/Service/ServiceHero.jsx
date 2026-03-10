@@ -21,7 +21,7 @@ const ServiceHero = () => {
         <div className="service-hero-right">
 
           <p>
-            At Markspacify, we provide powerful digital marketing services
+            At BeyondNull, we provide powerful digital marketing services
             designed to help businesses grow and build a strong presence in
             the digital world.
           </p>
