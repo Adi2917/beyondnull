@@ -1,0 +1,34 @@
+.modalOverlay{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.4);
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:1000;
+}
+
+.modalCard{
+background:white;
+padding:30px;
+border-radius:10px;
+max-width:380px;
+width:90%;
+box-shadow:0 10px 30px rgba(0,0,0,0.15);
+}
+
+.modalCard input{
+width:100%;
+padding:10px;
+margin-bottom:10px;
+border:1px solid #ddd;
+border-radius:6px;
+}
+
+.modalActions{
+display:flex;
+justify-content:space-between;
+}

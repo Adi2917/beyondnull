@@ -1,56 +1,108 @@
-import { useState } from "react"
+import { useState,useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { FaEye,FaEyeSlash } from "react-icons/fa"
+import logo from "../assets/logo.png"
 import "./AdminLogin.css"
+
+import { supabase } from "../services/supabaseClient"
+import ForgetPinModal from "../Components/ForgetPinModal"
 
 function AdminLogin(){
 
-const [mobile,setMobile] = useState("")
+const navigate = useNavigate()
+
+const [phone,setPhone] = useState("")
 const [pin,setPin] = useState("")
+const [showPin,setShowPin] = useState(false)
 
-function handleLogin(){
+const [showForget,setShowForget] = useState(false)
 
-if(mobile === "7485875137" && pin === "112233"){
+useEffect(()=>{
 
-alert("Login Successful")
+const logged = localStorage.getItem("adminLogged")
 
-}else{
-
-alert("Invalid Mobile or PIN")
-
+if(logged){
+navigate("/admin-dashboard")
 }
+
+},[])
+
+const handleLogin = async (e)=>{
+
+e.preventDefault()
+
+const {data,error} = await supabase
+.from("admins")
+.select("*")
+.eq("phone",phone)
+.eq("pin",pin)
+.single()
+
+if(error){
+alert("Invalid phone or PIN")
+return
+}
+
+localStorage.setItem("adminLogged","true")
+
+navigate("/admin-dashboard")
 
 }
 
 return(
 
-<div className="admin-login">
+<div className="adminLogin">
 
-<div className="login-card">
+<div className="loginCard">
+
+<img src={logo} alt="logo"/>
 
 <h2>Admin Login</h2>
 
-<input
-type="text"
-placeholder="Mobile Number"
-value={mobile}
-onChange={(e)=>setMobile(e.target.value)}
-/>
+<form onSubmit={handleLogin}>
 
 <input
-type="password"
+type="tel"
+placeholder="Admin Phone"
+maxLength="10"
+value={phone}
+onChange={(e)=>setPhone(e.target.value)}
+/>
+
+<div className="pinBox">
+
+<input
+type={showPin ? "text":"password"}
 placeholder="6 Digit PIN"
+maxLength="6"
 value={pin}
 onChange={(e)=>setPin(e.target.value)}
 />
 
-<button onClick={handleLogin}>
+<span onClick={()=>setShowPin(!showPin)}>
+{showPin ? <FaEyeSlash/> : <FaEye/>}
+</span>
+
+</div>
+
+<button type="submit">
 Login
 </button>
 
-<p className="forget">
-Forget PIN?
+</form>
+
+<p
+className="forgetPin"
+onClick={()=>setShowForget(true)}
+>
+Forgot PIN?
 </p>
 
 </div>
+
+{showForget &&
+<ForgetPinModal close={()=>setShowForget(false)}/>
+}
 
 </div>
 

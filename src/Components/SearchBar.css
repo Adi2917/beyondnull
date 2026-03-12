@@ -1,0 +1,22 @@
+.searchBar{
+
+width:100%;
+
+padding:12px;
+
+border-radius:8px;
+
+border:1px solid #d1d5db;
+
+outline:none;
+
+font-size:14px;
+
+}
+.searchBar{
+width:260px;
+padding:10px;
+border-radius:6px;
+border:1px solid #ddd;
+outline:none;
+}

@@ -1,0 +1,42 @@
+.clientCard{
+
+display:flex;
+align-items:center;
+
+gap:14px;
+
+padding:14px;
+
+border-radius:12px;
+
+background:white;
+
+box-shadow:0 6px 16px rgba(0,0,0,0.06);
+
+cursor:pointer;
+
+transition:all .25s ease;
+
+}
+
+.clientCard:hover{
+
+transform:translateY(-3px);
+box-shadow:0 10px 22px rgba(0,0,0,0.08);
+
+}
+
+.clientCard-info h4{
+
+margin:0;
+font-size:16px;
+
+}
+
+.clientCard-info p{
+
+margin:0;
+font-size:13px;
+color:#777;
+
+}

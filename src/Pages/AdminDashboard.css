@@ -1,0 +1,160 @@
+.dashboard{
+padding:40px;
+min-height:100vh;
+background:linear-gradient(135deg,#eef2ff,#f8fafc);
+font-family:Inter,Segoe UI;
+}
+
+/* HEADER */
+
+.dashboard-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:30px;
+}
+
+.logoBox{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.logoBox img{
+width:40px;
+}
+
+.logoBox h2{
+font-weight:600;
+}
+
+.headerBtns button{
+margin-left:10px;
+padding:10px 16px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+display:flex;
+align-items:center;
+gap:6px;
+background:white;
+box-shadow:0 4px 12px rgba(0,0,0,0.08);
+transition:0.2s;
+}
+
+.headerBtns button:hover{
+transform:translateY(-2px);
+}
+
+/* STATS */
+
+.statsGrid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:20px;
+margin-bottom:30px;
+}
+
+.statCard{
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 8px 20px rgba(0,0,0,0.08);
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+.statCard h3{
+margin:0;
+font-size:22px;
+}
+
+.statCard p{
+margin:0;
+font-size:13px;
+color:#666;
+}
+
+/* SEARCH */
+
+.dashboard-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+flex-wrap:wrap;
+gap:10px;
+}
+
+.addClientBtn{
+background:#2563eb;
+color:white;
+border:none;
+padding:12px 18px;
+border-radius:8px;
+cursor:pointer;
+display:flex;
+align-items:center;
+gap:6px;
+font-weight:500;
+box-shadow:0 6px 14px rgba(37,99,235,0.3);
+transition:0.2s;
+}
+
+.addClientBtn:hover{
+transform:translateY(-2px);
+}
+
+/* CLIENT GRID */
+
+.clientGrid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+gap:20px;
+}
+
+/* TEXT */
+
+.total{
+margin-top:20px;
+font-weight:600;
+color:#333;
+}
+
+.empty{
+text-align:center;
+margin-top:80px;
+font-size:16px;
+color:#777;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:900px){
+
+.dashboard{
+padding:25px;
+}
+
+}
+
+@media(max-width:600px){
+
+.dashboard-header{
+flex-direction:column;
+align-items:flex-start;
+gap:15px;
+}
+
+.dashboard-top{
+flex-direction:column;
+align-items:stretch;
+}
+
+.addClientBtn{
+width:100%;
+justify-content:center;
+}
+
+}
