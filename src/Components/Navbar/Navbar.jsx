@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { FaWhatsapp, FaPhone } from "react-icons/fa"
 import { HiOutlineMenuAlt3, HiOutlineX } from "react-icons/hi"
-import logo from "../../assets/logo.png"
+import logo from "../../assets/logo2.png"
 import "./Navbar.css"
 
 function Navbar() {
@@ -44,7 +44,6 @@ function Navbar() {
           <Link to="/about">About</Link>
           <Link to="/services">Services</Link>
           <Link to="/contact">Contact</Link>
-          <Link to="/admin">Admin</Link>
 
           <div className="nav-icons">
             <motion.a 

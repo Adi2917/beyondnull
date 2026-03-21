@@ -1,84 +1,83 @@
 import React from "react";
+import { motion } from "framer-motion";
+import { FaPhoneAlt, FaEnvelope, FaWhatsapp, FaArrowRight } from "react-icons/fa";
 import "./ContactMiddle.css";
-import { FaPhoneAlt, FaEnvelope, FaWhatsapp, FaInstagram, FaLinkedin } from "react-icons/fa";
 
 const ContactMiddle = () => {
   return (
-    <section className="contact-middle">
-
+    <section className="contact-middle-premium">
       <div className="contact-middle-container">
-
-        <div className="contact-heading">
-          <h2>Connect With Us</h2>
-          <p>
-            We believe great projects start with great conversations. 
-            Reach out and let's build something amazing together.
-          </p>
-        </div>
-
-        {/* CONTACT CARDS */}
-
-        <div className="contact-cards">
-
-          <div className="contact-card">
-            <FaPhoneAlt className="card-icon" />
-            <h3>Call Us</h3>
-            <p>Speak directly with us for quick discussions.</p>
-            <span>6205475866</span>
-          </div>
-
-          <div className="contact-card">
-            <FaEnvelope className="card-icon" />
-            <h3>Email</h3>
-            <p>Send us your ideas and project details.</p>
-            <span>beyondnull@gmail.com</span>
-          </div>
-
-          <div className="contact-card">
-            <FaWhatsapp className="card-icon" />
-            <h3>WhatsApp</h3>
-            <p>Quick chat for instant responses.</p>
-            <span>Chat Anytime</span>
-          </div>
-
-        </div>
-
-        {/* PROCESS SECTION */}
-
-        <div className="contact-process">
-
-          <h2>Our Simple Process</h2>
-
-          <div className="process-grid">
-
-            <div className="process-step">
-              <div className="step-number">01</div>
-              <h4>Send Inquiry</h4>
-              <p>Tell us about your idea or project requirement.</p>
-            </div>
-
-            <div className="process-step">
-              <div className="step-number">02</div>
-              <h4>Discussion</h4>
-              <p>We discuss the best approach and solutions.</p>
-            </div>
-
-            <div className="process-step">
-              <div className="step-number">03</div>
-              <h4>Execution</h4>
-              <p>Our team starts building your vision.</p>
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* SOCIAL CONNECT */}
-
         
+        {/* HEADING AREA */}
+        <div className="contact-heading-elite">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            Direct <span className="gold-text">Channels</span>
+          </motion.h2>
+          <p>Skip the formal queues. Reach out to the core team directly through these channels.</p>
+        </div>
+
+        {/* CONTACT CARDS - 3D GLASS STYLE */}
+        <div className="contact-cards-grid">
+          {[
+            { icon: <FaPhoneAlt />, title: "Call Us", desc: "For urgent strategic calls.", detail: "6205475866" },
+            { icon: <FaEnvelope />, title: "Email", desc: "For project briefs & docs.", detail: "beyondnull@gmail.com" },
+            { icon: <FaWhatsapp />, title: "WhatsApp", desc: "For instant quick updates.", detail: "Chat Anytime" }
+          ].map((item, index) => (
+            <motion.div 
+              className="contact-card-premium" 
+              key={index}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              whileHover={{ y: -10 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <div className="card-icon-box">{item.icon}</div>
+              <h3>{item.title}</h3>
+              <p>{item.desc}</p>
+              <span className="contact-detail-text">{item.detail}</span>
+              <div className="card-bg-blur"></div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* PROCESS SECTION - TIMELINE DESIGN */}
+        <div className="contact-process-elite">
+          <div className="process-header">
+            <h2>The <span className="gold-text">Workflow</span></h2>
+            <p>From initial talk to final deployment, we keep it transparent.</p>
+          </div>
+
+          <div className="process-timeline-grid">
+            {[
+              { num: "01", title: "Send Inquiry", desc: "Tell us about your project vision." },
+              { num: "02", title: "Discussion", desc: "We map out the strategy & tech stack." },
+              { num: "03", title: "Execution", desc: "Our team builds and scales your idea." }
+            ].map((step, index) => (
+              <motion.div 
+                className="process-step-premium" 
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.2 }}
+              >
+                <div className="step-number-glow">{step.num}</div>
+                <div className="step-content">
+                  <h4>{step.title}</h4>
+                  <p>{step.desc}</p>
+                </div>
+                {index !== 2 && <FaArrowRight className="process-arrow-icon" />}
+              </motion.div>
+            ))}
+          </div>
+        </div>
 
       </div>
-
     </section>
   );
 };

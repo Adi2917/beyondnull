@@ -6,7 +6,7 @@ import {
 } from "react-icons/fa"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
-import logo from "../../assets/logo.png"
+import logo from "../../assets/logo2.png"
 import "./Footer.css"
 
 function Footer() {
