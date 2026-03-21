@@ -1,116 +1,162 @@
-/* prevent horizontal scroll */
-
+/* Prevent horizontal scroll */
 body {
   overflow-x: hidden;
+  background-color: #050505;
 }
 
-/* hero section */
-
+/* HERO SECTION */
 .hero {
   width: 100%;
   min-height: 100vh;
-  background-image: url("https://images.unsplash.com/photo-1498050108023-c5249f4df085");
-  background-size: cover;
-  background-position: center;
+  background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 20px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
-/* overlay */
+/* 3D BACKGROUND BLOBS (Urne wala effect) */
+.hero-visuals {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
 
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+}
+
+.yellow-blob {
+  width: 400px;
+  height: 400px;
+  background: #ffcc00;
+  top: -10%;
+  right: -5%;
+}
+
+.dark-blob {
+  width: 350px;
+  height: 350px;
+  background: #ff4081; /* Subtle contrast color */
+  bottom: 5%;
+  left: -5%;
+  opacity: 0.2;
+}
+
+/* OVERLAY */
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(0,0,0,0.85),
-    rgba(0,0,0,0.55)
-  );
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1;
 }
 
-/* content */
-
+/* CONTENT CONTAINER */
 .hero-content {
   position: relative;
-  max-width: 850px;
+  max-width: 1000px;
   text-align: center;
   color: white;
   z-index: 2;
+  perspective: 1000px;
 }
 
-/* title */
-
+/* TITLE STYLE */
 .hero-title {
-  font-size: 60px;
-  font-weight: 800;
-  line-height: 1.2;
+  font-size: 65px;
+  font-weight: 900;
+  line-height: 1.1;
   margin-bottom: 25px;
+  text-transform: uppercase;
+  letter-spacing: -1px;
 }
 
-.hero-title span {
-  color: #00e5ff;
+.highlight-text {
+  color: #ffcc00;
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 75px;
+  font-style: italic;
+  filter: drop-shadow(0 0 10px rgba(255, 204, 0, 0.5));
 }
 
-/* description */
-
+/* DESCRIPTION STYLE */
 .hero-description {
-  font-size: 19px;
-  line-height: 1.7;
-  color: #e4e4e4;
-  margin-bottom: 40px;
+  font-size: 20px;
+  line-height: 1.8;
+  color: #cccccc;
+  max-width: 800px;
+  margin: 0 auto 40px;
+  font-weight: 300;
 }
 
-/* button */
-
+/* PREMIUM BUTTON */
 .hero-btn {
-  padding: 15px 40px;
-  font-size: 16px;
-  font-weight: 600;
+  padding: 18px 50px;
+  font-size: 17px;
+  font-weight: 700;
   border: none;
-  border-radius: 35px;
-  background: linear-gradient(135deg,#00e5ff,#00bcd4);
-  color: black;
+  border-radius: 5px; /* Boxy premium look */
+  background: #ffcc00;
+  color: #000;
   cursor: pointer;
-  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 5px 0px #b89200; /* 3D bottom shadow */
+  transition: all 0.2s ease;
 }
 
-.hero-btn:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0,229,255,0.5);
+.hero-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0px #b89200;
 }
 
-/* tablet */
+/* SCROLL INDICATOR */
+.scroll-indicator {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+}
 
+.mouse {
+  width: 25px;
+  height: 45px;
+  border: 2px solid #ffcc00;
+  border-radius: 20px;
+  position: relative;
+}
+
+.mouse::before {
+  content: "";
+  width: 4px;
+  height: 8px;
+  background: #ffcc00;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 2px;
+}
+
+/* RESPONSIVE DESIGN */
 @media (max-width: 900px) {
-
-  .hero-title {
-    font-size: 42px;
-  }
-
-  .hero-description {
-    font-size: 17px;
-  }
-
+  .hero-title { font-size: 45px; }
+  .highlight-text { font-size: 55px; }
+  .hero-description { font-size: 18px; }
 }
-
-/* mobile */
 
 @media (max-width: 600px) {
-
-  .hero-title {
-    font-size: 30px;
-  }
-
-  .hero-description {
-    font-size: 15px;
-  }
-
-  .hero-btn {
-    padding: 13px 30px;
-  }
-
+  .hero-title { font-size: 32px; }
+  .highlight-text { font-size: 40px; }
+  .hero-description { font-size: 16px; }
+  .hero-btn { padding: 15px 35px; width: 100%; }
 }

@@ -1,185 +1,184 @@
 import React, { useState } from "react";
 import "./ContactForm.css";
 import Swal from "sweetalert2";
+import { motion } from "framer-motion"; // Optional: For smooth reveal
 
 const ContactForm = () => {
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    message: ""
+  });
 
-const [form,setForm] = useState({
-name:"",
-phone:"",
-email:"",
-message:""
-});
+  const [loading, setLoading] = useState(false);
 
-const [loading,setLoading] = useState(false);
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-const handleChange = (e)=>{
-setForm({...form,[e.target.name]:e.target.value});
-};
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-const handleSubmit = async (e)=>{
-e.preventDefault();
+    // Logic remains 100% same as your code
+    if (!/^[0-9]{10}$/.test(form.phone)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Phone Number",
+        text: "Please enter a valid 10 digit phone number",
+        background: "#111",
+        color: "#fff",
+        confirmButtonColor: "#ffcc00"
+      });
+      return;
+    }
 
-/* phone validation */
+    if (form.email !== "" && !/\S+@\S+\.\S+/.test(form.email)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Email",
+        text: "Please enter a valid email address",
+        background: "#111",
+        color: "#fff",
+        confirmButtonColor: "#ffcc00"
+      });
+      return;
+    }
 
-if(!/^[0-9]{10}$/.test(form.phone)){
-Swal.fire({
-icon:"error",
-title:"Invalid Phone Number",
-text:"Please enter a valid 10 digit phone number"
-});
-return;
-}
+    setLoading(true);
 
-/* email validation */
+    const data = new FormData();
+    data.append("name", form.name);
+    data.append("phone", form.phone);
+    data.append("email", form.email);
+    data.append("message", form.message);
 
-if(form.email !== "" && !/\S+@\S+\.\S+/.test(form.email)){
-Swal.fire({
-icon:"error",
-title:"Invalid Email",
-text:"Please enter a valid email address"
-});
-return;
-}
+    try {
+      await fetch("https://script.google.com/macros/s/AKfycbyoFTbbPRaFVBe41FLmQAadNFCE0JvkMNK0PmmsyqB7NguqVhJdEUHBMfKhsSPt4hzQ/exec", {
+        method: "POST",
+        body: data,
+        mode: "no-cors"
+      });
 
-setLoading(true);
+      setForm({ name: "", phone: "", email: "", message: "" });
+      setLoading(false);
 
-const data = new FormData();
-data.append("name",form.name);
-data.append("phone",form.phone);
-data.append("email",form.email);
-data.append("message",form.message);
+      Swal.fire({
+        icon: "success",
+        title: "Message Sent Successfully",
+        text: "Our team will contact you soon",
+        confirmButtonColor: "#ffcc00",
+        background: "#111",
+        color: "#fff"
+      });
 
-try{
+    } catch (err) {
+      setLoading(false);
+      Swal.fire({
+        icon: "error",
+        title: "Submission Failed",
+        text: "Please try again",
+        background: "#111",
+        color: "#fff"
+      });
+    }
+  };
 
-await fetch("https://script.google.com/macros/s/AKfycbyoFTbbPRaFVBe41FLmQAadNFCE0JvkMNK0PmmsyqB7NguqVhJdEUHBMfKhsSPt4hzQ/exec",{
-method:"POST",
-body:data,
-mode:"no-cors"
-});
+  return (
+    <section className="contact">
+      <div className="contact-wrapper-main">
+        
+        <div className="contact-heading">
+          <motion.h2 initial={{opacity:0}} whileInView={{opacity:1}}>
+            Let's Build Something <span className="yellow-gradient">Amazing Together</span>
+          </motion.h2>
+          <p>
+            Have a project idea or business requirement? 
+            Send us a message and our team will connect with you shortly.
+          </p>
+        </div>
 
-/* reset form fast */
+        <div className="contact-container">
+          {/* LEFT INFO SIDE */}
+          <div className="contact-info">
+            <div className="info-badge">BeyondNull Ecosystem</div>
+            <h3>Grow Your Digital Empire</h3>
+            <p>
+              We don't just build websites; we create digital assets that 
+              generate revenue. Join hands with the fastest-growing agency.
+            </p>
 
-setForm({
-name:"",
-phone:"",
-email:"",
-message:""
-});
+            <ul className="premium-list">
+              <li><span className="dot"></span> Custom Software Development</li>
+              <li><span className="dot"></span> Digital Marketing Strategy</li>
+              <li><span className="dot"></span> High-Performance Web Apps</li>
+              <li><span className="dot"></span> Business Scaling Solutions</li>
+            </ul>
+          </div>
 
-setLoading(false);
+          {/* RIGHT FORM SIDE */}
+          <div className="contact-form-card">
+            <div className="form-glass-layer">
+              <form onSubmit={handleSubmit}>
+                <div className="input-group">
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder=" "
+                    required
+                    value={form.name}
+                    onChange={handleChange}
+                  />
+                  <label>Your Full Name</label>
+                </div>
 
-Swal.fire({
-icon:"success",
-title:"Message Sent Successfully",
-text:"Our team will contact you soon",
-confirmButtonColor:"#00bcd4"
-});
+                <div className="input-group">
+                  <input
+                    type="text"
+                    name="phone"
+                    placeholder=" "
+                    required
+                    value={form.phone}
+                    onChange={handleChange}
+                  />
+                  <label>Phone Number</label>
+                </div>
 
-}catch(err){
+                <div className="input-group">
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder=" "
+                    value={form.email}
+                    onChange={handleChange}
+                  />
+                  <label>Email Address (Optional)</label>
+                </div>
 
-setLoading(false);
+                <div className="input-group">
+                  <textarea
+                    name="message"
+                    placeholder=" "
+                    required
+                    value={form.message}
+                    onChange={handleChange}
+                  />
+                  <label>Tell us about your project...</label>
+                </div>
 
-Swal.fire({
-icon:"error",
-title:"Submission Failed",
-text:"Please try again"
-});
-
-}
-
-};
-
-return(
-
-<section className="contact">
-
-<div className="contact-heading">
-
-<h2>Let's Build Something Amazing Together</h2>
-
-<p>
-Have a project idea or business requirement?  
-Send us a message and our team will connect with you shortly.
-</p>
-
-</div>
-
-<div className="contact-container">
-
-<div className="contact-info">
-
-<h3>Grow With BeyondNull</h3>
-
-<p>
-We build powerful digital solutions and scalable
-software to help businesses grow faster in the
-modern digital world.
-</p>
-
-<ul>
-
-<li>✔ Custom Software Development</li>
-<li>✔ Digital Marketing</li>
-<li>✔ Web Applications</li>
-<li>✔ Business Growth Strategies</li>
-
-</ul>
-
-</div>
-
-<div className="contact-form">
-
-<form onSubmit={handleSubmit}>
-
-<input
-type="text"
-name="name"
-placeholder="Your Name"
-required
-value={form.name}
-onChange={handleChange}
-/>
-
-<input
-type="text"
-name="phone"
-placeholder="Phone Number"
-required
-value={form.phone}
-onChange={handleChange}
-/>
-
-<input
-type="email"
-name="email"
-placeholder="Email (optional)"
-value={form.email}
-onChange={handleChange}
-/>
-
-<textarea
-name="message"
-placeholder="Tell us about your project..."
-required
-value={form.message}
-onChange={handleChange}
-/>
-
-<button type="submit" disabled={loading}>
-{loading ? "Sending Message..." : "Send Message"}
-</button>
-
-</form>
-
-</div>
-
-</div>
-
-</section>
-
-);
-
+                <button type="submit" className="submit-btn-3d" disabled={loading}>
+                  <span className="btn-text">
+                    {loading ? "Initializing..." : "Send Message"}
+                  </span>
+                  <div className="btn-glow"></div>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default ContactForm;

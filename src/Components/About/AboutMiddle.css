@@ -1,166 +1,141 @@
-.about-middle{
-width:100%;
-padding:50px 20px;
-background:#f8fafc;
-box-sizing:border-box;
+.about-middle {
+  width: 100%;
+  padding: 100px 20px;
+  background: #0a0a0a; /* Matte Black */
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-/* container */
-
-.about-middle-container{
-
-max-width:1100px;
-margin:auto;
-
-display:grid;
-grid-template-columns:1fr 1fr;
-grid-template-rows:1fr 1fr;
-
-position:relative;
-
-text-align:center;
+.about-middle-container {
+  max-width: 1200px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  position: relative;
+  text-align: center;
 }
 
-/* block */
-
-.about-box{
-
-padding:70px 40px;
-
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-
-transition:all .35s ease;
-
+/* THE GLOWING CROSS */
+.glow-line {
+  position: absolute;
+  background: linear-gradient(90deg, transparent, #ffcc00, transparent);
+  z-index: 1;
+  opacity: 0.2;
 }
 
-/* hover */
-
-.about-box:hover{
-
-transform:translateY(-5px);
-
+.vertical-line {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, transparent, #ffcc00, transparent);
 }
 
-/* heading */
-
-.about-box h3{
-
-font-size:24px;
-
-color:#1e3a8a;   /* theme blue */
-
-margin-bottom:15px;
-
-font-weight:600;
-
+.horizontal-line {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
 }
 
-/* text */
-
-.about-box p{
-
-font-size:16px;
-
-line-height:1.8;
-
-max-width:420px;
-
-color:#475569;
-
+/* ABOUT BOXES */
+.about-box {
+  padding: 80px 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 2;
 }
 
-/* cross lines */
-
-.vertical-line{
-
-position:absolute;
-
-top:0;
-bottom:0;
-
-left:50%;
-
-width:2px;
-
-background:#c7d2fe;
-
-transform:translateX(-50%);
+/* Decorative Numbering */
+.box-number {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffcc00;
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+  opacity: 0.6;
 }
 
-.horizontal-line{
-
-position:absolute;
-
-left:0;
-right:0;
-
-top:50%;
-
-height:2px;
-
-background:#c7d2fe;
-
-transform:translateY(-50%);
+.about-box h3 {
+  font-size: 26px;
+  color: #ffffff;
+  margin-bottom: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-/* tablet */
-
-@media(max-width:900px){
-
-.about-box{
-padding:50px 30px;
+.about-box p {
+  font-size: 16px;
+  line-height: 1.8;
+  max-width: 400px;
+  color: #a0a0a0;
+  transition: 0.3s;
 }
 
+/* HOVER EFFECT */
+.about-box:hover {
+  background: rgba(255, 204, 0, 0.02);
 }
 
-/* mobile */
-
-@media(max-width:700px){
-
-.about-middle-container{
-
-grid-template-columns:1fr;
-
+.about-box:hover h3 {
+  color: #ffcc00;
+  text-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
 }
 
-.vertical-line,
-.horizontal-line{
-
-display:none;
-
+.about-box:hover p {
+  color: #eeeeee;
 }
 
-/* mobile divider line */
-
-.about-box{
-
-border-bottom:1px solid #c7d2fe;
-
-padding:35px 20px;
-
+/* TABLET FIX */
+@media(max-width: 900px) {
+  .about-box {
+    padding: 60px 30px;
+  }
+  .about-box h3 {
+    font-size: 22px;
+  }
 }
 
-.about-box:last-child{
+/* MOBILE VIEW - STACKED */
+@media(max-width: 700px) {
+  .about-middle-container {
+    grid-template-columns: 1fr;
+  }
 
-border-bottom:none;
+  .vertical-line, .horizontal-line {
+    display: none;
+  }
 
-}
+  .about-box {
+    border-bottom: 1px solid rgba(255, 204, 0, 0.1);
+    padding: 50px 20px;
+  }
 
-.about-box h3{
+  .about-box:last-child {
+    border-bottom: none;
+  }
 
-font-size:20px;
-
-}
-
-.about-box p{
-
-font-size:15px;
-
-line-height:1.7;
-
-}
-
+  /* Glow dots for mobile dividers */
+  .about-box::after {
+    content: "";
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: #ffcc00;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #ffcc00;
+  }
+  
+  .about-box:last-child::after { display: none; }
 }

@@ -1,116 +1,135 @@
-.who{
-  width:100%;
-  padding:20px 20px;
-  background:#ffffff;
-  box-sizing:border-box;
+.who {
+  width: 100%;
+  padding: 100px 20px;
+  background: #0f0f0f; /* Pure Dark Agency Look */
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
 }
 
-.who-container{
-  max-width:1200px;
-  margin:auto;
+.who-container {
+  max-width: 1200px;
+  margin: auto;
 }
 
-/* header */
-
-.who-header{
-  text-align:center;
-  margin-bottom:60px;
+/* HEADER SECTION */
+.who-header {
+  text-align: center;
+  margin-bottom: 80px;
 }
 
-.who-header h2{
-  font-size:40px;
-  font-weight:700;
-  color:#0f172a;
-  margin-bottom:15px;
+.who-title {
+  font-size: 45px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: -1px;
 }
 
-.who-header span{
-  color:#00bcd4;
+.yellow-glow {
+  color: #ffcc00;
+  text-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
 }
 
-.who-header p{
-  max-width:700px;
-  margin:auto;
-  font-size:17px;
-  line-height:1.7;
-  color:#475569;
+.who-subtitle {
+  max-width: 800px;
+  margin: auto;
+  font-size: 18px;
+  line-height: 1.8;
+  color: #a0a0a0;
 }
 
-/* cards */
-
-.who-cards{
-  display:flex;
-  gap:30px;
-  justify-content:center;
-  flex-wrap:wrap;
+/* CARDS GRID */
+.who-cards {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  flex-wrap: wrap;
+  perspective: 1500px; /* Essential for 3D effect */
 }
 
-/* card */
-
-.who-card{
-  flex:1;
-  min-width:260px;
-  max-width:350px;
-  background:#f8fafc;
-  padding:35px 30px;
-  border-radius:14px;
-  text-align:center;
-  transition:0.3s;
+/* INDIVIDUAL CARD */
+.who-card {
+  flex: 1;
+  min-width: 300px;
+  max-width: 380px;
+  background: rgba(255, 255, 255, 0.03); /* Glassmorphism Base */
+  padding: 50px 35px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: border 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
-.who-card:hover{
-  transform:translateY(-8px);
-  box-shadow:0 15px 40px rgba(0,0,0,0.08);
+/* 3D ICON WRAPPER */
+.who-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 30px;
+  background: #1a1a1a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  border: 2px solid #ffcc00;
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
 }
 
-/* icon */
-
-.who-icon{
-  font-size:30px;
-  color:#00bcd4;
-  margin-bottom:20px;
+.icon-inner {
+  font-size: 35px;
+  color: #ffcc00;
+  filter: drop-shadow(0 0 10px #ffcc00);
 }
 
-/* title */
-
-.who-card h3{
-  font-size:20px;
-  margin-bottom:12px;
-  color:#0f172a;
+/* CARD TEXT */
+.who-card h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #ffffff;
 }
 
-/* text */
-
-.who-card p{
-  font-size:15px;
-  color:#64748b;
-  line-height:1.6;
+.who-card p {
+  font-size: 16px;
+  color: #888;
+  line-height: 1.7;
 }
 
-/* tablet */
-
-@media(max-width:900px){
-
-  .who-header h2{
-    font-size:32px;
-  }
-
+/* PREMIUM SHINE EFFECT ON HOVER */
+.card-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 204, 0, 0.05),
+    transparent
+  );
+  transition: 0.5s;
 }
 
-/* mobile */
+.who-card:hover .card-shine {
+  left: 100%;
+}
 
-@media(max-width:600px){
+/* RESPONSIVE */
+@media(max-width: 900px) {
+  .who-title { font-size: 34px; }
+  .who-card { padding: 40px 25px; }
+}
 
-  .who{
-    padding:70px 20px;
-  }
-
-  .who-header h2{
-    font-size:26px;
-  }
-
-  .who-header p{
-    font-size:15px;
-  }
-
+@media(max-width: 600px) {
+  .who { padding: 60px 20px; }
+  .who-title { font-size: 28px; }
+  .who-subtitle { font-size: 15px; }
+  .who-cards { gap: 20px; }
 }

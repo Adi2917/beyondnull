@@ -2,11 +2,8 @@ import React, { useEffect } from "react";
 import "./MsnVsn.css";
 
 const MsnVsn = () => {
-
   useEffect(() => {
-
     const cards = document.querySelectorAll(".mv-card");
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -17,78 +14,55 @@ const MsnVsn = () => {
       },
       { threshold: 0.25 }
     );
-
-    cards.forEach((card) => {
-      observer.observe(card);
-    });
-
+    cards.forEach((card) => observer.observe(card));
   }, []);
 
   return (
-
     <section className="mv">
-
       <div className="mv-container">
-
+        
         <div className="mv-header">
-
-          <h2>
-            Our <span>Purpose & Direction</span>
-          </h2>
-
+          <h2>Our <span className="yellow-text">Purpose & Direction</span></h2>
           <p>
             At BeyondNull, we believe technology should empower businesses
-            to innovate, grow, and transform the digital future. Our
-            approach combines creativity, strategy, and modern technology
-            to deliver meaningful digital experiences.
+            to innovate, grow, and transform the digital future. We bridge 
+            the gap between complex code and human-centric design.
           </p>
-
         </div>
 
-
         <div className="mv-grid">
-
-          <div className="mv-card mission">
-
+          {/* MISSION CARD */}
+          <div className="mv-card mission slide-left">
             <div className="mv-overlay"></div>
-
             <div className="mv-content">
+              <div className="mv-icon-tag">01</div>
               <h3>Mission</h3>
-
               <p>
-                Our mission is to deliver powerful digital solutions that
-                help businesses innovate, scale, and succeed in the
-                rapidly evolving digital landscape. We focus on building
-                technology that creates real value and long-term impact.
+                To deliver elite digital solutions that help businesses 
+                innovate, scale, and dominate in the evolving digital landscape. 
+                We focus on technology that creates real-world ROI and long-term impact.
               </p>
             </div>
-
           </div>
 
-
-          <div className="mv-card vision">
-
+          {/* VISION CARD */}
+          <div className="mv-card vision slide-right">
             <div className="mv-overlay"></div>
-
             <div className="mv-content">
+              <div className="mv-icon-tag">02</div>
               <h3>Vision</h3>
-
               <p>
-                Our vision is to become a global digital innovation partner,
-                empowering organizations with cutting-edge technology,
-                intelligent platforms, and transformative digital
-                strategies that shape the future.
+                To become a global powerhouse for digital innovation, 
+                empowering organizations with cutting-edge platforms, 
+                AI-driven insights, and transformative strategies that shape 
+                the future of the internet.
               </p>
             </div>
-
           </div>
-
         </div>
 
       </div>
-
     </section>
-
   );
 };
 
