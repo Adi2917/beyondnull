@@ -35,3 +35,6 @@ do update set pin = excluded.pin;
 -- Supabase Auth and proper policies before data can be read/written.
 alter table public.admins disable row level security;
 alter table public.clients disable row level security;
+
+-- Verify admins were created.
+select phone from public.admins order by phone;

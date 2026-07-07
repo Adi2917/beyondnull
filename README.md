@@ -60,6 +60,21 @@ Supabase Dashboard -> SQL Editor -> New query -> Run
 
 This creates the `admins` and `clients` tables and inserts the two admin numbers with PIN `112233`.
 
+Important: run this SQL in the same Supabase project used by the app. The project ref in the app URL is:
+
+```text
+wrvwpqxrmxgbaslkvspr
+```
+
+If you created a different Supabase project, update these environment variables in your hosting dashboard:
+
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+```
+
+Or update `src/services/supabaseClient.js` with the new Project URL and anon public key.
+
 ## Commands
 
 ```bash

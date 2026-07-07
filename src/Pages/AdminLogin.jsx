@@ -31,14 +31,33 @@ const handleLogin = async (e)=>{
 
 e.preventDefault()
 
+const cleanPhone = phone.trim()
+const cleanPin = pin.trim()
+
+if(!/^[0-9]{10}$/.test(cleanPhone)){
+alert("Enter valid 10 digit admin phone")
+return
+}
+
+if(!/^[0-9]{6}$/.test(cleanPin)){
+alert("Enter valid 6 digit PIN")
+return
+}
+
 const {data,error} = await supabase
 .from("admins")
 .select("*")
-.eq("phone",phone)
-.eq("pin",pin)
-.single()
+.eq("phone",cleanPhone)
+.eq("pin",cleanPin)
+.maybeSingle()
 
 if(error){
+console.log("Admin login error:", error)
+alert(`Login setup error: ${error.message}`)
+return
+}
+
+if(!data){
 alert("Invalid phone or PIN")
 return
 }
