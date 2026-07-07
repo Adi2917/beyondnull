@@ -34,7 +34,7 @@ Supabase
 Project URL used by the app:
 
 ```text
-https://wrvwpqxrmxgbaslkvspr.supabase.co
+https://anovwnwddqlhljkymrvw.supabase.co
 ```
 
 Tables used by the app:
@@ -63,7 +63,7 @@ This creates the `admins` and `clients` tables and inserts the two admin numbers
 Important: run this SQL in the same Supabase project used by the app. The project ref in the app URL is:
 
 ```text
-wrvwpqxrmxgbaslkvspr
+anovwnwddqlhljkymrvw
 ```
 
 If you created a different Supabase project, update these environment variables in your hosting dashboard:
