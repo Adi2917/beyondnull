@@ -1,16 +1,69 @@
-# React + Vite
+# BeyondNull
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite website and admin panel for BeyondNull.
 
-Currently, two official plugins are available:
+## Admin Access
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Admin login page:
 
-## React Compiler
+```text
+/admin
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Admin numbers:
 
-## Expanding the ESLint configuration
+```text
+7485875137
+6205475866
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Admin PIN:
+
+```text
+112233
+```
+
+## Database
+
+Database provider:
+
+```text
+Supabase
+```
+
+Project URL used by the app:
+
+```text
+https://wrvwpqxrmxgbaslkvspr.supabase.co
+```
+
+Tables used by the app:
+
+```text
+admins
+clients
+```
+
+## Supabase Setup
+
+If the Supabase project has no tables, open:
+
+```text
+supabase-setup.sql
+```
+
+Then run the full SQL in:
+
+```text
+Supabase Dashboard -> SQL Editor -> New query -> Run
+```
+
+This creates the `admins` and `clients` tables and inserts the two admin numbers with PIN `112233`.
+
+## Commands
+
+```bash
+npm install
+npm run dev
+npm run build
+```
