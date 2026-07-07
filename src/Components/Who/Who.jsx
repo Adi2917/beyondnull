@@ -50,7 +50,7 @@ const Who = () => {
             Digital agency systems for <span className="yellow-glow">modern brands</span>
           </h2>
           <p className="who-subtitle">
-            From Bangalore, we combine engineering, creative direction, and performance marketing into one polished growth platform.
+            We combine engineering, creative direction, and performance marketing into one polished growth platform.
           </p>
         </motion.div>
 

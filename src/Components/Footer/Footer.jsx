@@ -7,7 +7,7 @@ import {
 import { FaEnvelope, FaLocationDot, FaPhone } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import logo from "../../assets/logo2.png";
+import BrandLogo from "../BrandLogo";
 import "./Footer.css";
 
 function Footer() {
@@ -16,14 +16,10 @@ function Footer() {
       <div className="footer-container">
         <div className="footer-brand">
           <motion.div className="footer-logo" whileHover={{ scale: 1.05, rotateY: 8 }}>
-            <img src={logo} alt="BeyondNull Tech and Digital Solutions" />
-            <h2>
-              <span>Beyond</span>
-              <strong>Null</strong>
-            </h2>
+            <BrandLogo />
           </motion.div>
           <p className="footer-desc">
-            BeyondNull is a Bangalore-based web development and digital marketing agency building websites, apps, SEO systems, campaigns, and digital growth assets.
+            BeyondNull is a web development and digital marketing studio building websites, apps, SEO systems, campaigns, and digital growth assets.
           </p>
         </div>
 
@@ -41,7 +37,7 @@ function Footer() {
           <h3>Get In Touch</h3>
           <p className="contact-item"><FaPhone /> +91 6205475866</p>
           <p className="contact-item"><FaEnvelope /> beyondnull@gmail.com</p>
-          <p className="contact-item"><FaLocationDot /> Bangalore, India</p>
+          <p className="contact-item"><FaLocationDot /> India</p>
           <p className="agency-tags">Web Dev - App Dev - SEO - Marketing</p>
         </div>
 

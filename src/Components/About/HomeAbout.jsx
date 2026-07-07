@@ -26,7 +26,7 @@ const HomeAbout = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <h2 className="about-heading">
-            Bangalore's creative tech partner for <span className="yellow-text">digital growth</span>
+            Your creative tech partner for <span className="yellow-text">digital growth</span>
           </h2>
 
           <p className="about-text">

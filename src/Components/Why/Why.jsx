@@ -63,7 +63,7 @@ const Why = () => {
           </motion.h2>
 
           <p>
-            We connect design, development, and marketing into one reliable growth workflow for ambitious brands in Bangalore and beyond.
+            We connect design, development, and marketing into one reliable growth workflow for ambitious brands.
           </p>
         </div>
 

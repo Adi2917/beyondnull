@@ -1,7 +1,7 @@
 import { useState,useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { FaEye,FaEyeSlash } from "react-icons/fa"
-import logo from "../assets/logo.png"
+import BrandLogo from "../Components/BrandLogo"
 import "./AdminLogin.css"
 
 import { supabase } from "../services/supabaseClient"
@@ -55,9 +55,10 @@ return(
 
 <div className="loginCard">
 
-<img src={logo} alt="logo"/>
+<BrandLogo />
 
-<h2>Admin Login</h2>
+<h2>Admin Control Center</h2>
+<p className="loginSubtext">Manage clients, services, profiles, and business records from one secure dashboard.</p>
 
 <form onSubmit={handleLogin}>
 

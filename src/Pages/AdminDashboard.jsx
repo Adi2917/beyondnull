@@ -1,6 +1,6 @@
 import { useEffect,useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { FaPlus,FaSignOutAlt,FaHome,FaUsers } from "react-icons/fa"
+import { FaPlus,FaSignOutAlt,FaHome,FaUsers,FaSearch,FaCalendarAlt } from "react-icons/fa"
 import { supabase } from "../services/supabaseClient"
 
 import ClientCard from "../Components/ClientCard"
@@ -8,7 +8,7 @@ import SearchBar from "../Components/SearchBar"
 import AddClientModal from "../Components/AddClientModal"
 import ConfirmDeleteModal from "../Components/ConfirmDeleteModal"
 
-import logo from "../assets/logo.png"
+import BrandLogo from "../Components/BrandLogo"
 
 import "./AdminDashboard.css"
 
@@ -69,9 +69,12 @@ return(
 
 <div className="logoBox">
 
-<img src={logo} alt="logo"/>
+<BrandLogo />
 
-<h2>BeyondNull Admin</h2>
+<div>
+<h2>Admin Studio</h2>
+<p>Client management and project control</p>
+</div>
 
 </div>
 
@@ -110,17 +113,29 @@ return(
 
 <div className="statCard">
 
+<FaSearch/>
+
+<div>
+
 <h3>{filtered.length}</h3>
 
 <p>Search Result</p>
 
 </div>
 
+</div>
+
 <div className="statCard">
+
+<FaCalendarAlt/>
+
+<div>
 
 <h3>{new Date().getFullYear()}</h3>
 
 <p>Active Year</p>
+
+</div>
 
 </div>
 

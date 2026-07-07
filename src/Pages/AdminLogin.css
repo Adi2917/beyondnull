@@ -1,67 +1,97 @@
-.adminLogin{
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#f1f5f9;
+.adminLogin {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(232, 76, 97, 0.14), transparent 28%),
+    radial-gradient(circle at 82% 72%, rgba(24, 169, 120, 0.14), transparent 30%),
+    linear-gradient(135deg, #fffaf4, #ffffff 48%, #f7efe6);
 }
 
-.loginCard{
-background:white;
-padding:35px;
-border-radius:12px;
-width:100%;
-max-width:380px;
-text-align:center;
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
+.loginCard {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  padding: 42px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(77, 51, 35, 0.12);
+  box-shadow: 0 28px 90px rgba(77, 51, 35, 0.14);
+  backdrop-filter: blur(18px);
 }
 
-.loginCard img{
-width:60px;
-margin-bottom:10px;
+.loginCard .brandLogo {
+  justify-content: center;
+  margin-bottom: 24px;
 }
 
-.loginCard input{
-width:100%;
-padding:11px;
-margin-bottom:12px;
-border-radius:6px;
-border:1px solid #ddd;
+.loginCard h2 {
+  margin: 0 0 10px;
+  font-size: 30px;
+  color: var(--bn-text);
 }
 
-.pinBox{
-position:relative;
+.loginSubtext {
+  margin: 0 0 28px;
+  color: var(--bn-muted);
+  line-height: 1.65;
+  font-size: 14px;
 }
 
-.pinBox span{
-position:absolute;
-right:10px;
-top:10px;
-cursor:pointer;
+.loginCard input {
+  width: 100%;
+  padding: 14px 15px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(77, 51, 35, 0.14);
+  background: rgba(255, 255, 255, 0.78);
+  outline: none;
+  color: var(--bn-text);
+  transition: 0.25s;
 }
 
-.loginCard button{
-width:100%;
-padding:11px;
-border:none;
-border-radius:6px;
-background:#2563eb;
-color:white;
-cursor:pointer;
+.loginCard input:focus {
+  border-color: rgba(121, 87, 213, 0.4);
+  box-shadow: 0 0 0 4px rgba(121, 87, 213, 0.08);
 }
 
-.forgetPin{
-margin-top:10px;
-font-size:14px;
-color:#2563eb;
-cursor:pointer;
+.pinBox {
+  position: relative;
 }
 
-@media(max-width:500px){
-
-.loginCard{
-margin:10px;
-padding:25px;
+.pinBox span {
+  position: absolute;
+  right: 14px;
+  top: 13px;
+  cursor: pointer;
+  color: var(--bn-purple);
 }
 
+.loginCard button {
+  width: 100%;
+  padding: 15px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, var(--bn-red), var(--bn-purple));
+  color: #fff;
+  cursor: pointer;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 10px 0 rgba(77, 51, 35, 0.14), 0 22px 50px rgba(121, 87, 213, 0.2);
+}
+
+.forgetPin {
+  margin-top: 18px;
+  font-size: 14px;
+  color: var(--bn-purple);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+@media(max-width:500px) {
+  .loginCard {
+    padding: 30px 22px;
+  }
 }

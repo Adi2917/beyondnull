@@ -101,7 +101,7 @@ const ContactForm = () => {
         <div className="contact-container">
           {/* LEFT INFO SIDE */}
           <div className="contact-info">
-            <div className="info-badge">BeyondNull Bangalore</div>
+            <div className="info-badge">BeyondNull Studio</div>
             <h3>Grow Your Digital Presence</h3>
             <p>
               We create websites, apps, campaigns, and local growth assets that help your audience find you and trust you faster.

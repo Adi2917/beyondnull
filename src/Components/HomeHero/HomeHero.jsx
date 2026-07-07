@@ -40,7 +40,7 @@ const HomeHero = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <FaLocationDot /> Bangalore based digital agency
+          <FaLocationDot /> Digital growth studio
         </motion.div>
 
         <motion.h1 

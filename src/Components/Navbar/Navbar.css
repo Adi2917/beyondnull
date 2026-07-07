@@ -26,27 +26,6 @@
   perspective: 1000px;
 }
 
-.logo img {
-  width: 56px;
-  filter: drop-shadow(0 12px 18px rgba(121, 87, 213, 0.16));
-}
-
-.brand-text {
-  font-size: 25px;
-  font-weight: 900;
-  display: flex;
-  text-transform: uppercase;
-  color: var(--bn-brown-dark);
-}
-
-.brand-text strong {
-  margin-left: 5px;
-  color: transparent;
-  background: linear-gradient(120deg, var(--bn-red), var(--bn-purple), var(--bn-green));
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
 .menu {
   display: flex;
   align-items: center;
@@ -130,14 +109,6 @@
 
   .nav-wrapper {
     padding: 0 18px;
-  }
-
-  .logo img {
-    width: 48px;
-  }
-
-  .brand-text {
-    font-size: 20px;
   }
 
   .menu {

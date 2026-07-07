@@ -29,7 +29,7 @@ const ServiceHero = () => {
         >
           <div className="glass-content-card">
             <p className="lead-text">
-              From Bangalore, BeyondNull builds complete digital systems for brands that need stronger visibility, better websites, and measurable growth.
+              BeyondNull builds complete digital systems for brands that need stronger visibility, better websites, and measurable growth.
             </p>
             <p>
               Our team combines creativity, strategy, and technology to deliver websites, apps, SEO, social media, ads, Google Business Profile optimization, and performance campaigns.

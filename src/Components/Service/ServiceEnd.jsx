@@ -88,7 +88,7 @@ const ServiceEnd = () => {
           { num: "120+", label: "Projects Done" },
           { num: "80+", label: "Happy Clients" },
           { num: "5+", label: "Expert Members" },
-          { num: "Bangalore", label: "Current City" }
+          { num: "360", label: "Growth System" }
         ].map((stat, i) => (
           <div className="stat-item" key={i}>
             <h3 className="stat-num">{stat.num}</h3>

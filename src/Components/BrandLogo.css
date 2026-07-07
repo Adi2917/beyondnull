@@ -1,0 +1,97 @@
+.brandLogo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--bn-brown-dark, #4d3323);
+}
+
+.brandLogo-mark {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.2) 34%, transparent 35%),
+    linear-gradient(135deg, #e84c61, #7957d5 52%, #18a978);
+  box-shadow: 0 16px 34px rgba(121, 87, 213, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transform: rotate(-6deg);
+}
+
+.brandLogo-mark::before,
+.brandLogo-mark::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  inset: 12px 7px;
+  transform: rotate(36deg);
+}
+
+.brandLogo-mark::after {
+  inset: 8px 14px;
+  transform: rotate(-38deg);
+  border-color: rgba(255, 255, 255, 0.48);
+}
+
+.brandLogo-orbit {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: 9px;
+  right: 10px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.18);
+}
+
+.brandLogo-core {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: -0.5px;
+}
+
+.brandLogo-text {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 24px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -0.3px;
+}
+
+.brandLogo-text strong {
+  font-weight: 950;
+}
+
+.brandLogo-text span {
+  font-weight: 950;
+  color: transparent;
+  background: linear-gradient(120deg, #e84c61, #7957d5, #18a978);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.brandLogo.compact .brandLogo-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+}
+
+@media (max-width: 600px) {
+  .brandLogo-mark {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+  }
+
+  .brandLogo-text {
+    font-size: 20px;
+  }
+}
