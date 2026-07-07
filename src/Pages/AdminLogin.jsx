@@ -55,6 +55,14 @@ return(
 
 <div className="loginCard">
 
+<button
+type="button"
+className="adminExitBtn"
+onClick={()=>navigate("/")}
+>
+Exit to Website
+</button>
+
 <BrandLogo />
 
 <h2>Admin Control Center</h2>

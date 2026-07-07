@@ -20,6 +20,22 @@
   border: 1px solid rgba(77, 51, 35, 0.12);
   box-shadow: 0 28px 90px rgba(77, 51, 35, 0.14);
   backdrop-filter: blur(18px);
+  position: relative;
+}
+
+.adminExitBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: auto !important;
+  padding: 9px 12px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  color: var(--bn-brown-dark) !important;
+  border: 1px solid var(--bn-border);
+  box-shadow: 0 10px 24px rgba(77, 51, 35, 0.08) !important;
+  font-size: 11px;
+  letter-spacing: 0.8px;
 }
 
 .loginCard .brandLogo {
