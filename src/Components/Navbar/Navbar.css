@@ -64,6 +64,18 @@
   width: 100%;
 }
 
+.admin-nav-link {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(121, 87, 213, 0.1);
+  border: 1px solid rgba(121, 87, 213, 0.18);
+  color: var(--bn-purple) !important;
+}
+
+.admin-nav-link::after {
+  display: none;
+}
+
 .nav-icons {
   display: flex;
   align-items: center;
@@ -172,6 +184,12 @@
     font-size: 14px;
     position: relative;
     z-index: 2;
+  }
+
+  .menu > a.admin-nav-link {
+    background: linear-gradient(135deg, var(--bn-red), var(--bn-purple));
+    color: #fff !important;
+    border-color: transparent;
   }
 
   .menu > a::after {

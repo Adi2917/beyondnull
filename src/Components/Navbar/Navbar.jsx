@@ -38,6 +38,7 @@ function Navbar() {
           <Link to="/about">About</Link>
           <Link to="/services">Services</Link>
           <Link to="/contact">Contact</Link>
+          <Link to="/admin" className="admin-nav-link">Admin</Link>
 
           <div className="nav-icons">
             <span className="city-chip">

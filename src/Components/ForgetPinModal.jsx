@@ -17,18 +17,34 @@ alert("PIN not match")
 return
 }
 
-if(pin.length !== 6){
+if(!/^[0-9]{6}$/.test(pin)){
 alert("PIN must be 6 digits")
+return
+}
+
+if(!/^[0-9]{10}$/.test(phone)){
+alert("Enter valid 10 digit admin phone")
+return
+}
+
+const {data:admin,error:findError} = await supabase
+.from("admins")
+.select("id")
+.eq("phone",phone)
+.maybeSingle()
+
+if(findError || !admin){
+alert("Admin not found")
 return
 }
 
 const {error} = await supabase
 .from("admins")
 .update({pin:pin})
-.eq("phone",phone)
+.eq("id",admin.id)
 
 if(error){
-alert("Admin not found")
+alert("PIN update failed")
 return
 }
 
