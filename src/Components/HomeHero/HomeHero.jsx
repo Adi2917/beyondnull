@@ -93,6 +93,22 @@ const HomeHero = () => {
         transition={{ duration: 0.9, delay: 0.25 }}
       >
         <div className="orbit-ring"></div>
+        <motion.div
+          className="hero-photo-card"
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <img
+            src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=900&auto=format&fit=crop"
+            alt="Digital agency team building websites and marketing campaigns"
+            loading="eager"
+          />
+          <div className="hero-photo-overlay">
+            <span>Websites</span>
+            <span>SEO</span>
+            <span>Campaigns</span>
+          </div>
+        </motion.div>
         <motion.div className="dashboard-card" animate={{ y: [0, -12, 0] }} transition={{ duration: 4, repeat: Infinity }}>
           <div className="dash-top">
             <span></span><span></span><span></span>

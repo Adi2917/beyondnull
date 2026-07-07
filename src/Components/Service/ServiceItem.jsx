@@ -41,7 +41,7 @@ const services = [
   },
   {
     title: "Social Media Management",
-    image: "https://images.unsplash.com/photo-1507209696998-3c532be9b2b5?w=800",
+    image: "https://images.unsplash.com/photo-1611926653458-09294b3142bf?w=800",
     points: [
       "Daily content posting",
       "Account profile optimization",
@@ -89,7 +89,7 @@ const services = [
   },
   {
     title: "Google My Business",
-    image: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800",
+    image: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800",
     points: [
       "GMB profile optimization",
       "Local SEO ranking",

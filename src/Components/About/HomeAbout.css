@@ -6,6 +6,18 @@
   overflow: hidden;
 }
 
+.homeAbout::before {
+  content: "";
+  position: absolute;
+  right: -120px;
+  top: 80px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: rgba(121, 87, 213, 0.08);
+  filter: blur(10px);
+}
+
 .bg-watermark {
   position: absolute;
   top: 8%;
@@ -137,14 +149,52 @@
 
 @media (max-width: 600px) {
   .homeAbout {
-    padding: 80px 20px;
+    padding: 72px 18px 86px;
+    background: linear-gradient(180deg, #ffffff 0%, #fffaf4 100%);
+  }
+
+  .bg-watermark {
+    top: 6%;
+    left: -12%;
+    font-size: 22vw;
+  }
+
+  .about-wrapper {
+    gap: 42px;
+  }
+
+  .about-heading {
+    font-size: clamp(30px, 9vw, 38px);
+    line-height: 1.08;
+    margin-bottom: 18px;
   }
 
   .about-text {
-    font-size: 16px;
+    font-size: 15px;
+    line-height: 1.75;
+    margin-bottom: 28px;
+  }
+
+  .about-button {
+    width: 100%;
+    padding: 15px 24px;
+    font-size: 13px;
+  }
+
+  .about-right img {
+    transform: none;
+    border-radius: 22px;
+  }
+
+  .glow-border {
+    top: -10px;
+    right: -10px;
+    border-radius: 22px;
   }
 
   .experience-badge {
     left: 12px;
+    bottom: -18px;
+    padding: 13px 18px;
   }
 }
