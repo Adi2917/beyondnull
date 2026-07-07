@@ -1,6 +1,6 @@
 .contact-middle-premium {
   padding: 100px 8%;
-  background: #080808; /* Theme dark color */
+  background: #ffffff;
   position: relative;
 }
 
@@ -9,99 +9,92 @@
   margin: auto;
 }
 
-/* HEADING */
 .contact-heading-elite {
   text-align: center;
-  margin-bottom: 70px;
+  margin-bottom: 68px;
 }
 
 .contact-heading-elite h2 {
-  font-size: 48px;
-  font-weight: 800;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: -1px;
-}
-
-.gold-text {
-  color: #ffcc00;
+  font-size: clamp(34px, 5vw, 52px);
+  font-weight: 950;
+  color: var(--bn-text);
 }
 
 .contact-heading-elite p {
-  color: #888;
+  color: var(--bn-muted);
   font-size: 18px;
   margin-top: 10px;
 }
 
-/* CARDS GRID */
 .contact-cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
-  margin-bottom: 120px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  margin-bottom: 105px;
 }
 
 .contact-card-premium {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 50px 30px;
-  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--bn-border);
+  padding: 38px 22px;
+  border-radius: var(--bn-radius);
   text-align: center;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 50px rgba(77, 51, 35, 0.08);
 }
 
 .contact-card-premium:hover {
-  border-color: #ffcc00;
-  box-shadow: 0 15px 35px rgba(255, 204, 0, 0.1);
+  border-color: rgba(121, 87, 213, 0.24);
+  box-shadow: var(--bn-shadow-strong);
 }
 
 .card-icon-box {
-  font-size: 35px;
-  color: #ffcc00;
-  margin-bottom: 25px;
-  filter: drop-shadow(0 0 10px rgba(255, 204, 0, 0.4));
+  font-size: 32px;
+  color: var(--bn-purple);
+  margin-bottom: 22px;
 }
 
+.contact-card-premium:nth-child(2) .card-icon-box { color: var(--bn-red); }
+.contact-card-premium:nth-child(3) .card-icon-box { color: var(--bn-green); }
+.contact-card-premium:nth-child(4) .card-icon-box { color: var(--bn-brown); }
+
 .contact-card-premium h3 {
-  color: #fff;
-  font-size: 24px;
-  margin-bottom: 15px;
+  color: var(--bn-text);
+  font-size: 22px;
+  margin-bottom: 12px;
 }
 
 .contact-card-premium p {
-  color: #aaa;
+  color: var(--bn-muted);
   font-size: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .contact-detail-text {
-  color: #ffcc00;
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: 1px;
+  color: var(--bn-purple);
+  font-weight: 850;
+  font-size: 16px;
 }
 
-/* PROCESS SECTION */
 .contact-process-elite {
   padding-top: 50px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--bn-border);
 }
 
 .process-header {
   text-align: center;
-  margin-bottom: 70px;
+  margin-bottom: 64px;
 }
 
 .process-header h2 {
   font-size: 40px;
-  color: #fff;
-  font-weight: 800;
+  color: var(--bn-text);
+  font-weight: 950;
 }
 
 .process-header p {
-  color: #777;
+  color: var(--bn-muted);
   font-size: 18px;
 }
 
@@ -120,43 +113,59 @@
 
 .step-number-glow {
   font-size: 40px;
-  font-weight: 900;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(255, 204, 0, 0.4);
+  font-weight: 950;
+  color: rgba(121, 87, 213, 0.16);
   line-height: 1;
 }
 
 .process-step-premium:hover .step-number-glow {
-  color: #ffcc00;
-  -webkit-text-stroke: 0px;
-  text-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
+  color: var(--bn-purple);
 }
 
 .step-content h4 {
-  color: #fff;
+  color: var(--bn-text);
   font-size: 22px;
   margin-bottom: 8px;
 }
 
 .step-content p {
-  color: #888;
+  color: var(--bn-muted);
   font-size: 15px;
   line-height: 1.6;
 }
 
 .process-arrow-icon {
-  color: rgba(255, 204, 0, 0.3);
+  color: rgba(121, 87, 213, 0.28);
   font-size: 24px;
 }
 
-/* RESPONSIVE */
+@media (max-width: 1150px) {
+  .contact-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 1000px) {
-  .contact-cards-grid { grid-template-columns: 1fr; }
-  .process-timeline-grid { grid-template-columns: 1fr; gap: 50px; }
-  .process-arrow-icon { display: none; }
+  .process-timeline-grid {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+
+  .process-arrow-icon {
+    display: none;
+  }
 }
 
 @media (max-width: 600px) {
-  .contact-heading-elite h2 { font-size: 34px; }
-  .process-header h2 { font-size: 30px; }
+  .contact-middle-premium {
+    padding: 80px 20px;
+  }
+
+  .contact-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .process-header h2 {
+    font-size: 30px;
+  }
 }

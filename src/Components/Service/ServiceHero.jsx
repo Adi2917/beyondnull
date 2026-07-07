@@ -5,13 +5,9 @@ import "./ServiceHero.css";
 const ServiceHero = () => {
   return (
     <section className="service-hero">
-      <div className="service-overlay"></div>
-      
-      {/* Background Decorative Element */}
       <div className="service-hero-accent"></div>
 
       <div className="service-hero-container">
-        {/* LEFT SIDE: Big Bold Title */}
         <motion.div 
           className="service-hero-left"
           initial={{ opacity: 0, x: -100 }}
@@ -19,13 +15,12 @@ const ServiceHero = () => {
           transition={{ duration: 0.8 }}
         >
           <h1>
-            Our <br />
+            Digital <br />
             <span className="yellow-glow-text">Services</span>
           </h1>
           <div className="title-underline"></div>
         </motion.div>
 
-        {/* RIGHT SIDE: Content Box */}
         <motion.div 
           className="service-hero-right"
           initial={{ opacity: 0, x: 100 }}
@@ -34,19 +29,15 @@ const ServiceHero = () => {
         >
           <div className="glass-content-card">
             <p className="lead-text">
-              At BeyondNull, we provide powerful digital marketing and 
-              tech solutions designed to scale your legacy.
+              From Bangalore, BeyondNull builds complete digital systems for brands that need stronger visibility, better websites, and measurable growth.
             </p>
             <p>
-              Our team combines creativity, strategy, and technology to deliver
-              solutions that drive real business growth. From branding and
-              website development to SEO and performance campaigns, we focus 
-              on converting your audience into loyal customers.
+              Our team combines creativity, strategy, and technology to deliver websites, apps, SEO, social media, ads, Google Business Profile optimization, and performance campaigns.
             </p>
             <div className="service-tags">
               <span>#WebDev</span>
+              <span>#SEO</span>
               <span>#Marketing</span>
-              <span>#Growth</span>
             </div>
           </div>
         </motion.div>

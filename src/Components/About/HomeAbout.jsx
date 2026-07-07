@@ -26,26 +26,21 @@ const HomeAbout = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <h2 className="about-heading">
-            About <span className="yellow-text">Beyond Null</span>
+            Bangalore's creative tech partner for <span className="yellow-text">digital growth</span>
           </h2>
 
           <p className="about-text">
-            Beyond Null is a professional web development and digital marketing 
-            agency that helps businesses grow online with modern technology and 
-            smart digital solutions. We specialize in website development, app 
-            development, social media marketing, SEO services, and Google My 
-            Business optimization to create powerful digital experiences that 
-            drive long-term business growth.
+            Beyond Null is a web development and digital marketing agency built for brands that need more than a basic online presence. We blend websites, apps, SEO, ads, social media, design, and local discovery into one growth-focused digital system.
           </p>
 
           <motion.button 
             className="about-button" 
             onClick={goToAbout}
             aria-label="Learn more about Beyond Null"
-            whileHover={{ scale: 1.05, backgroundColor: "#ffcc00", color: "#000" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Read More →
+            Read More
           </motion.button>
         </motion.div>
 
@@ -70,7 +65,7 @@ const HomeAbout = () => {
               animate={{ y: [0, -15, 0] }}
               transition={{ duration: 3, repeat: Infinity }}
             >
-              <span>Digital</span> Experts
+              <span>Digital</span> Studio
             </motion.div>
           </div>
         </motion.div>

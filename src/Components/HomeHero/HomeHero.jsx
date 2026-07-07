@@ -1,7 +1,7 @@
-import React from "react";
 import "./HomeHero.css";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { FaChartLine, FaCode, FaLocationDot, FaRocket } from "react-icons/fa6";
 
 const HomeHero = () => {
   const navigate = useNavigate();
@@ -12,10 +12,9 @@ const HomeHero = () => {
 
   return (
     <section className="hero">
-      {/* 3D Animated Background Elements */}
       <div className="hero-visuals">
         <motion.div 
-          className="blob yellow-blob"
+          className="blob red-blob"
           animate={{ 
             y: [0, 50, 0], 
             rotate: [0, 90, 0],
@@ -24,7 +23,7 @@ const HomeHero = () => {
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div 
-          className="blob dark-blob"
+          className="blob purple-blob"
           animate={{ 
             y: [0, -60, 0], 
             rotate: [0, -45, 0],
@@ -34,23 +33,23 @@ const HomeHero = () => {
         />
       </div>
 
-      <div className="hero-overlay"></div>
-
       <div className="hero-content">
+        <motion.div
+          className="hero-kicker"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <FaLocationDot /> Bangalore based digital agency
+        </motion.div>
+
         <motion.h1 
           className="hero-title"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          Web Development & Digital Marketing Agency <br />
-          <motion.span 
-            className="highlight-text"
-            animate={{ textShadow: ["0 0 10px #ffcc00", "0 0 25px #ffcc00", "0 0 10px #ffcc00"] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            Beyond Null
-          </motion.span>
+          Build a sharper digital business with <span className="highlight-text">Beyond Null</span>
         </motion.h1>
 
         <motion.p 
@@ -59,33 +58,58 @@ const HomeHero = () => {
           whileInView={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 1 }}
         >
-          Beyond Null is a professional web development and digital marketing agency 
-          offering website development, app development, social media marketing, 
-          Google My Business optimization, and complete digital marketing solutions 
-          to help businesses grow faster in the modern digital world.
+          We design websites, apps, brand systems, SEO, social campaigns, ads, and local growth engines for modern businesses that want a premium digital presence.
         </motion.p>
 
-        <motion.button 
-          className="hero-btn" 
-          onClick={goToServices}
-          aria-label="Explore Web Development and Digital Marketing Services"
-          whileHover={{ scale: 1.1, boxShadow: "0px 0px 20px #ffcc00" }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          Explore Services
-        </motion.button>
+        <div className="hero-actions">
+          <motion.button 
+            className="hero-btn" 
+            onClick={goToServices}
+            aria-label="Explore Web Development and Digital Marketing Services"
+            whileHover={{ scale: 1.04, y: -3 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            Explore Services
+          </motion.button>
+
+          <motion.button
+            className="hero-btn ghost"
+            onClick={() => navigate("/contact")}
+            whileHover={{ scale: 1.04, y: -3 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Start a Project
+          </motion.button>
+        </div>
       </div>
 
-      {/* Scroll Down Indicator */}
-      <motion.div 
-        className="scroll-indicator"
-        animate={{ y: [0, 15, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
+      <motion.div
+        className="hero-3d-stage"
+        initial={{ opacity: 0, scale: 0.9, rotateY: -18 }}
+        animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+        transition={{ duration: 0.9, delay: 0.25 }}
       >
-        <div className="mouse"></div>
+        <div className="orbit-ring"></div>
+        <motion.div className="dashboard-card" animate={{ y: [0, -12, 0] }} transition={{ duration: 4, repeat: Infinity }}>
+          <div className="dash-top">
+            <span></span><span></span><span></span>
+          </div>
+          <div className="dash-line wide"></div>
+          <div className="dash-grid">
+            <div><FaCode /><strong>Web</strong></div>
+            <div><FaChartLine /><strong>SEO</strong></div>
+            <div><FaRocket /><strong>Ads</strong></div>
+          </div>
+          <div className="dash-bars">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </motion.div>
+        <div className="cube cube-red"></div>
+        <div className="cube cube-green"></div>
+        <div className="cube cube-brown"></div>
       </motion.div>
     </section>
   );

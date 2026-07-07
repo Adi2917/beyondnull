@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FaPhoneAlt, FaEnvelope, FaWhatsapp, FaArrowRight } from "react-icons/fa";
+import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
+import { FaArrowRight, FaEnvelope, FaLocationDot } from "react-icons/fa6";
 import "./ContactMiddle.css";
 
 const ContactMiddle = () => {
@@ -17,15 +18,16 @@ const ContactMiddle = () => {
           >
             Direct <span className="gold-text">Channels</span>
           </motion.h2>
-          <p>Skip the formal queues. Reach out to the core team directly through these channels.</p>
+          <p>Talk to the core team directly for website, app, SEO, ads, and digital growth work.</p>
         </div>
 
         {/* CONTACT CARDS - 3D GLASS STYLE */}
         <div className="contact-cards-grid">
           {[
-            { icon: <FaPhoneAlt />, title: "Call Us", desc: "For urgent strategic calls.", detail: "6205475866" },
-            { icon: <FaEnvelope />, title: "Email", desc: "For project briefs & docs.", detail: "beyondnull@gmail.com" },
-            { icon: <FaWhatsapp />, title: "WhatsApp", desc: "For instant quick updates.", detail: "Chat Anytime" }
+            { icon: <FaPhoneAlt />, title: "Call Us", desc: "For project and strategy calls.", detail: "+91 6205475866" },
+            { icon: <FaEnvelope />, title: "Email", desc: "For briefs, docs, and proposals.", detail: "beyondnull@gmail.com" },
+            { icon: <FaWhatsapp />, title: "WhatsApp", desc: "For instant quick updates.", detail: "Chat Anytime" },
+            { icon: <FaLocationDot />, title: "Current City", desc: "Available for Bangalore businesses.", detail: "Bangalore" }
           ].map((item, index) => (
             <motion.div 
               className="contact-card-premium" 
@@ -71,7 +73,7 @@ const ContactMiddle = () => {
                   <h4>{step.title}</h4>
                   <p>{step.desc}</p>
                 </div>
-                {index !== 2 && <FaArrowRight className="process-arrow-icon" />}
+              {index !== 2 && <FaArrowRight className="process-arrow-icon" />}
               </motion.div>
             ))}
           </div>

@@ -26,9 +26,9 @@ const ContactForm = () => {
         icon: "error",
         title: "Invalid Phone Number",
         text: "Please enter a valid 10 digit phone number",
-        background: "#111",
-        color: "#fff",
-        confirmButtonColor: "#ffcc00"
+        background: "#fffaf4",
+        color: "#211b18",
+        confirmButtonColor: "#7957d5"
       });
       return;
     }
@@ -38,9 +38,9 @@ const ContactForm = () => {
         icon: "error",
         title: "Invalid Email",
         text: "Please enter a valid email address",
-        background: "#111",
-        color: "#fff",
-        confirmButtonColor: "#ffcc00"
+        background: "#fffaf4",
+        color: "#211b18",
+        confirmButtonColor: "#7957d5"
       });
       return;
     }
@@ -67,9 +67,9 @@ const ContactForm = () => {
         icon: "success",
         title: "Message Sent Successfully",
         text: "Our team will contact you soon",
-        confirmButtonColor: "#ffcc00",
-        background: "#111",
-        color: "#fff"
+        confirmButtonColor: "#7957d5",
+        background: "#fffaf4",
+        color: "#211b18"
       });
 
     } catch (err) {
@@ -78,8 +78,8 @@ const ContactForm = () => {
         icon: "error",
         title: "Submission Failed",
         text: "Please try again",
-        background: "#111",
-        color: "#fff"
+        background: "#fffaf4",
+        color: "#211b18"
       });
     }
   };
@@ -90,7 +90,7 @@ const ContactForm = () => {
         
         <div className="contact-heading">
           <motion.h2 initial={{opacity:0}} whileInView={{opacity:1}}>
-            Let's Build Something <span className="yellow-gradient">Amazing Together</span>
+            Let's Build Something <span className="yellow-gradient">Powerful Together</span>
           </motion.h2>
           <p>
             Have a project idea or business requirement? 
@@ -101,11 +101,10 @@ const ContactForm = () => {
         <div className="contact-container">
           {/* LEFT INFO SIDE */}
           <div className="contact-info">
-            <div className="info-badge">BeyondNull Ecosystem</div>
-            <h3>Grow Your Digital Empire</h3>
+            <div className="info-badge">BeyondNull Bangalore</div>
+            <h3>Grow Your Digital Presence</h3>
             <p>
-              We don't just build websites; we create digital assets that 
-              generate revenue. Join hands with the fastest-growing agency.
+              We create websites, apps, campaigns, and local growth assets that help your audience find you and trust you faster.
             </p>
 
             <ul className="premium-list">

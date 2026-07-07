@@ -1,73 +1,73 @@
-/* --- MAIN SECTION --- */
 .service-items-premium {
-  padding: 120px 8%;
-  background: #0a0a0a; /* Dark background sync with theme */
+  padding: 110px 8%;
+  background: #ffffff;
   position: relative;
   overflow: hidden;
 }
 
-/* --- HEADER --- */
+.service-items-premium::before {
+  content: "";
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  top: 12%;
+  right: -180px;
+  border-radius: 50%;
+  background: rgba(121, 87, 213, 0.09);
+  filter: blur(14px);
+}
+
 .service-header-dark {
   text-align: center;
   max-width: 800px;
-  margin: 0 auto 80px;
+  margin: 0 auto 72px;
   position: relative;
   z-index: 5;
 }
 
 .service-header-dark h2 {
-  font-size: 50px;
-  color: #ffffff;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -1px;
-}
-
-.gold-glow {
-  color: #ffcc00;
-  text-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
+  font-size: clamp(34px, 5vw, 54px);
+  color: var(--bn-text);
+  font-weight: 950;
+  line-height: 1.06;
 }
 
 .service-header-dark p {
-  color: #888;
+  color: var(--bn-muted);
   font-size: 18px;
   line-height: 1.8;
   margin-top: 15px;
 }
 
-/* --- GRID SYSTEM --- */
 .services-grid-modern {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
-  align-items: start; /* Don't stretch collapsed cards */
+  align-items: start;
   position: relative;
   z-index: 5;
 }
 
-/* --- CARD DESIGN (Collapsed) --- */
 .service-card-premium {
-  background: rgba(255, 255, 255, 0.03); /* Glassmorphism Base */
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--bn-border);
+  border-radius: var(--bn-radius);
   overflow: hidden;
   transition: border-color 0.4s ease, box-shadow 0.4s ease;
   position: relative;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 50px rgba(77, 51, 35, 0.08);
 }
 
 .service-card-premium:hover {
-  border-color: rgba(255, 204, 0, 0.3);
+  border-color: rgba(121, 87, 213, 0.25);
+  box-shadow: var(--bn-shadow);
 }
 
-/* ACTIVE CARD (Expanded) */
 .active-card {
-  background: rgba(255, 204, 0, 0.02); /* Very subtle yellow bg */
-  border-color: #ffcc00 !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(24, 169, 120, 0.35) !important;
+  box-shadow: var(--bn-shadow-strong);
 }
 
-/* IMAGE SECTION */
 .card-image-wrapper {
   position: relative;
   height: 220px;
@@ -82,43 +82,38 @@
 }
 
 .service-card-premium:hover .card-image-wrapper img {
-  transform: scale(1.1); /* Zoom effect on hover */
+  transform: scale(1.08);
 }
 
-/* Overlay gradient for images */
 .card-overlay-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent 30%, #0a0a0a);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 38%, rgba(255, 250, 244, 0.95));
   z-index: 2;
 }
 
-/* CONTENT AREA */
 .card-content-area {
-  padding: 30px;
+  padding: 28px;
   position: relative;
   z-index: 3;
 }
 
 .card-content-area h3 {
-  font-size: 24px;
-  color: #ffffff;
-  margin-bottom: 20px;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-size: 23px;
+  color: var(--bn-text);
+  margin-bottom: 18px;
+  font-weight: 850;
 }
 
-/* --- POINTS LIST (Expanded) --- */
 .service-points-list {
   list-style: none;
-  padding: 0;
-  margin-bottom: 25px;
-  border-left: 2px solid rgba(255, 204, 0, 0.2);
-  padding-left: 20px;
+  padding: 0 0 0 18px;
+  margin-bottom: 24px;
+  border-left: 2px solid rgba(24, 169, 120, 0.2);
 }
 
 .service-points-list li {
-  color: #bbbbbb;
+  color: var(--bn-muted);
   font-size: 15px;
   margin-bottom: 12px;
   display: flex;
@@ -127,44 +122,41 @@
 }
 
 .bullet-gold {
-  width: 6px;
-  height: 6px;
-  background: #ffcc00;
+  width: 7px;
+  height: 7px;
+  background: var(--bn-green);
   border-radius: 50%;
-  box-shadow: 0 0 10px #ffcc00;
-  flex-shrink: 0; /* Bullet should not shrink */
+  box-shadow: 0 0 0 5px rgba(24, 169, 120, 0.1);
+  flex-shrink: 0;
 }
 
-/* --- PREMIUM BUTTON --- */
 .cta-button-service {
   position: relative;
   width: 100%;
-  padding: 16px;
-  background: transparent;
-  border: 1px solid rgba(255, 204, 0, 0.5);
-  color: #ffcc00;
-  border-radius: 12px;
-  font-weight: 700;
+  padding: 15px;
+  background: #fff;
+  border: 1px solid rgba(121, 87, 213, 0.22);
+  color: var(--bn-purple);
+  border-radius: 14px;
+  font-weight: 850;
   text-transform: uppercase;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   overflow: hidden;
   transition: 0.3s;
 }
 
 .cta-button-service:hover {
-  background: #ffcc00;
-  color: #000;
+  background: linear-gradient(135deg, var(--bn-purple), var(--bn-green));
+  color: #fff;
 }
 
-/* Button style when expanded */
 .cta-button-service.less {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border-color: transparent;
+  background: rgba(24, 169, 120, 0.1);
+  color: var(--bn-green);
+  border-color: rgba(24, 169, 120, 0.22);
 }
 
-/* RESPONSIVE DESIGN */
 @media (max-width: 1100px) {
   .services-grid-modern {
     grid-template-columns: repeat(2, 1fr);
@@ -175,20 +167,17 @@
   .service-items-premium {
     padding: 80px 20px;
   }
+
   .services-grid-modern {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 22px;
   }
-  .service-header-dark h2 {
-    font-size: 34px;
-  }
+
   .service-header-dark p {
     font-size: 16px;
   }
+
   .card-image-wrapper {
-    height: 180px;
-  }
-  .card-content-area h3 {
-    font-size: 20px;
+    height: 190px;
   }
 }

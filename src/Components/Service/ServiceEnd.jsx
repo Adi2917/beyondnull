@@ -31,7 +31,7 @@ const ServiceEnd = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            Why Brands Trust <span className="gold-text">BeyondNull</span>
+            Why brands trust <span className="gold-text">BeyondNull</span>
           </motion.h2>
 
           <motion.p
@@ -40,9 +40,7 @@ const ServiceEnd = () => {
              viewport={{ once: true }}
              transition={{ delay: 0.2 }}
           >
-            We don't just provide services; we engineer growth. Our approach 
-            combines high-end creativity with data-driven strategy to scale 
-            your digital legacy.
+            We turn ideas into polished digital assets, then support them with marketing systems that keep bringing new opportunities.
           </motion.p>
         </div>
 
@@ -64,9 +62,9 @@ const ServiceEnd = () => {
       <div className="service-end-grid">
         {[
           { icon: <FaRocket />, title: "Growth Focused", desc: "Strategies designed to scale revenue." },
-          { icon: <FaUsers />, title: "Client First", desc: "Custom goals for every unique project." },
+          { icon: <FaUsers />, title: "Client First", desc: "Custom goals for every project." },
           { icon: <FaChartLine />, title: "Result Driven", desc: "Measurable data-backed campaigns." },
-          { icon: <FaLightbulb />, title: "Elite Creativity", desc: "Out-of-the-box ideas for your brand." }
+          { icon: <FaLightbulb />, title: "Creative Systems", desc: "Strong ideas shaped for your brand." }
         ].map((item, index) => (
           <motion.div 
             className="service-end-card-glass" 
@@ -90,7 +88,7 @@ const ServiceEnd = () => {
           { num: "120+", label: "Projects Done" },
           { num: "80+", label: "Happy Clients" },
           { num: "5+", label: "Expert Members" },
-          { num: "24/7", label: "Elite Support" }
+          { num: "Bangalore", label: "Current City" }
         ].map((stat, i) => (
           <div className="stat-item" key={i}>
             <h3 className="stat-num">{stat.num}</h3>

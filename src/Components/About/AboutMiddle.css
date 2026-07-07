@@ -1,7 +1,7 @@
 .about-middle {
   width: 100%;
   padding: 100px 20px;
-  background: #0a0a0a; /* Matte Black */
+  background: #ffffff;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -11,17 +11,19 @@
   margin: auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
   position: relative;
   text-align: center;
+  border: 1px solid var(--bn-border);
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: var(--bn-shadow);
+  background: rgba(255, 255, 255, 0.78);
 }
 
-/* THE GLOWING CROSS */
 .glow-line {
   position: absolute;
-  background: linear-gradient(90deg, transparent, #ffcc00, transparent);
+  background: linear-gradient(90deg, transparent, rgba(121, 87, 213, 0.35), transparent);
   z-index: 1;
-  opacity: 0.2;
 }
 
 .vertical-line {
@@ -30,7 +32,7 @@
   left: 50%;
   width: 1px;
   transform: translateX(-50%);
-  background: linear-gradient(to bottom, transparent, #ffcc00, transparent);
+  background: linear-gradient(to bottom, transparent, rgba(121, 87, 213, 0.28), transparent);
 }
 
 .horizontal-line {
@@ -41,101 +43,60 @@
   transform: translateY(-50%);
 }
 
-/* ABOUT BOXES */
 .about-box {
-  padding: 80px 50px;
+  padding: 72px 46px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.35s ease;
   z-index: 2;
 }
 
-/* Decorative Numbering */
 .box-number {
-  font-size: 14px;
-  font-weight: 800;
-  color: #ffcc00;
-  margin-bottom: 20px;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--bn-green);
+  margin-bottom: 18px;
   letter-spacing: 2px;
-  opacity: 0.6;
 }
 
 .about-box h3 {
-  font-size: 26px;
-  color: #ffffff;
-  margin-bottom: 20px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-size: 25px;
+  color: var(--bn-text);
+  margin-bottom: 18px;
+  font-weight: 850;
 }
 
 .about-box p {
   font-size: 16px;
   line-height: 1.8;
-  max-width: 400px;
-  color: #a0a0a0;
-  transition: 0.3s;
+  max-width: 410px;
+  color: var(--bn-muted);
 }
 
-/* HOVER EFFECT */
 .about-box:hover {
-  background: rgba(255, 204, 0, 0.02);
+  background: rgba(121, 87, 213, 0.06);
+  transform: translateY(-4px);
 }
 
-.about-box:hover h3 {
-  color: #ffcc00;
-  text-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
-}
-
-.about-box:hover p {
-  color: #eeeeee;
-}
-
-/* TABLET FIX */
-@media(max-width: 900px) {
-  .about-box {
-    padding: 60px 30px;
-  }
-  .about-box h3 {
-    font-size: 22px;
-  }
-}
-
-/* MOBILE VIEW - STACKED */
 @media(max-width: 700px) {
   .about-middle-container {
     grid-template-columns: 1fr;
   }
 
-  .vertical-line, .horizontal-line {
+  .vertical-line,
+  .horizontal-line {
     display: none;
   }
 
   .about-box {
-    border-bottom: 1px solid rgba(255, 204, 0, 0.1);
-    padding: 50px 20px;
+    border-bottom: 1px solid var(--bn-border);
+    padding: 48px 22px;
   }
 
   .about-box:last-child {
     border-bottom: none;
   }
-
-  /* Glow dots for mobile dividers */
-  .about-box::after {
-    content: "";
-    position: absolute;
-    bottom: -3px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    background: #ffcc00;
-    border-radius: 50%;
-    box-shadow: 0 0 10px #ffcc00;
-  }
-  
-  .about-box:last-child::after { display: none; }
 }

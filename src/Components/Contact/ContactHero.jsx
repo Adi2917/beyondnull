@@ -21,12 +21,12 @@ const ContactHero = () => {
           </div>
 
           <h1 className="contact-title-massive">
-            Let’s Start a <br />
+            Let's Start a <br />
             <span className="gold-shimmer">Conversation</span>
           </h1>
 
           <p className="contact-description-premium">
-            Have a project idea or want to collaborate? We’re always open to
+            Have a project idea or want to collaborate? We're always open to
             discussing new opportunities, creative ideas, and elite partnerships 
             that drive real-world impact.
           </p>

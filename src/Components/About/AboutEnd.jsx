@@ -25,7 +25,7 @@ const AboutEnd = () => {
           </p>
 
           <p>
-            Whether you’re a startup looking to build your identity or an 
+            Whether you're a startup looking to build your identity or an 
             established brand aiming to scale, our team is here to guide you 
             with the right digital strategy and execution.
           </p>

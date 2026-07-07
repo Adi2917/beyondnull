@@ -1,8 +1,8 @@
 .footer {
-  background: #080808; /* Dark Premium Theme */
-  padding: 80px 0 0 0;
-  border-top: 1px solid rgba(255, 204, 0, 0.1);
-  color: #fff;
+  background: linear-gradient(180deg, #ffffff, #f7efe6);
+  padding: 80px 0 0;
+  border-top: 1px solid var(--bn-border);
+  color: var(--bn-text);
   position: relative;
 }
 
@@ -11,58 +11,57 @@
   margin: auto;
   display: grid;
   grid-template-columns: 1.5fr 1fr 1.2fr 1fr;
-  gap: 50px;
-  padding: 0 25px 60px 25px;
+  gap: 46px;
+  padding: 0 25px 58px;
 }
 
-/* BRANDING */
 .footer-logo {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+  perspective: 1000px;
 }
 
 .footer-logo img {
-  width: 45px;
-  filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.3));
+  width: 46px;
+  filter: drop-shadow(0 12px 18px rgba(121, 87, 213, 0.16));
 }
 
 .footer-logo h2 {
   font-size: 26px;
-  letter-spacing: 1px;
+  letter-spacing: 0;
+  color: var(--bn-brown-dark);
 }
 
-.footer-logo span { color: #fff; }
-
-.yellow-glow {
-  color: #ffcc00;
+.footer-logo strong {
   margin-left: 5px;
-  text-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+  color: transparent;
+  background: linear-gradient(120deg, var(--bn-red), var(--bn-purple), var(--bn-green));
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 .footer-desc {
-  color: #888;
+  color: var(--bn-muted);
   font-size: 14px;
   line-height: 1.8;
-  max-width: 300px;
+  max-width: 330px;
 }
 
-/* HEADINGS */
 .footer h3 {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 25px;
-  color: #ffcc00;
+  font-size: 16px;
+  font-weight: 900;
+  margin-bottom: 22px;
+  color: var(--bn-brown-dark);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-/* QUICK LINKS */
 .footer-links a {
   display: block;
   text-decoration: none;
-  color: #bbb;
+  color: var(--bn-muted);
   margin-bottom: 12px;
   font-size: 15px;
   transition: 0.3s;
@@ -70,74 +69,79 @@
 }
 
 .footer-links a:hover {
-  color: #ffcc00;
-  padding-left: 8px; /* Smooth slide effect */
+  color: var(--bn-purple);
+  padding-left: 8px;
 }
 
-/* CONTACT */
 .contact-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #bbb;
-  margin-bottom: 15px;
+  color: var(--bn-muted);
+  margin-bottom: 14px;
   font-size: 14px;
 }
 
-.contact-item span { color: #ffcc00; }
+.contact-item svg {
+  color: var(--bn-purple);
+  flex-shrink: 0;
+}
 
 .agency-tags {
   font-size: 12px;
-  color: #555;
-  font-style: italic;
-  margin-top: 20px;
+  color: var(--bn-brown);
+  font-weight: 800;
+  margin-top: 18px;
 }
 
-/* SOCIAL ICONS */
 .social-icons {
   display: flex;
-  gap: 20px;
+  gap: 14px;
 }
 
 .social-icons a {
-  font-size: 24px;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+  font-size: 22px;
+  color: var(--bn-purple);
+  background: rgba(255, 255, 255, 0.72);
   width: 45px;
   height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  transition: 0.4s;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  transition: 0.35s;
+  border: 1px solid var(--bn-border);
+  box-shadow: 0 12px 30px rgba(77, 51, 35, 0.08);
 }
+
+.social-icons a:nth-child(1) { color: var(--bn-red); }
+.social-icons a:nth-child(3) { color: #0a66c2; }
+.social-icons a:nth-child(4) { color: var(--bn-green); }
 
 .social-icons a:hover {
-  background: rgba(255, 204, 0, 0.1);
-  border-color: #ffcc00;
-  box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
+  background: #fff;
+  transform: translateY(-4px);
+  box-shadow: var(--bn-shadow);
 }
 
-/* COPYRIGHT BOTTOM */
 .footer-bottom {
-  background: #000;
-  padding: 30px 20px;
+  background: rgba(255, 255, 255, 0.72);
+  border-top: 1px solid var(--bn-border);
+  padding: 26px 20px;
   text-align: center;
 }
 
 .bottom-content p {
-  color: #666;
+  color: var(--bn-muted);
   font-size: 13px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .bottom-content p span {
-  color: #ffcc00;
-  font-weight: 600;
+  color: var(--bn-purple);
+  font-weight: 850;
 }
 
-/* RESPONSIVE */
 @media(max-width: 1000px) {
   .footer-container {
     grid-template-columns: repeat(2, 1fr);
@@ -150,11 +154,21 @@
     grid-template-columns: 1fr;
     text-align: center;
   }
-  .footer-logo, .social-icons, .footer-links a {
+
+  .footer-logo,
+  .social-icons,
+  .footer-links a,
+  .contact-item {
     justify-content: center;
     margin-left: auto;
     margin-right: auto;
   }
-  .footer-links a:hover { padding-left: 0; }
-  .footer-desc { margin: auto; }
+
+  .footer-links a:hover {
+    padding-left: 0;
+  }
+
+  .footer-desc {
+    margin: auto;
+  }
 }

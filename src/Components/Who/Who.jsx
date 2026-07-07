@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FaRocket, FaLightbulb, FaChartLine } from "react-icons/fa";
+import { FaChartLine, FaCode, FaMagnifyingGlassChart } from "react-icons/fa6";
 import "./Who.css";
 
 const Who = () => {
@@ -16,21 +16,21 @@ const Who = () => {
 
   const cards = [
     {
-      icon: <FaRocket />,
-      title: "Innovation Driven Development",
-      desc: "We create innovative web development solutions, modern websites, and scalable digital platforms designed to help businesses move faster.",
+      icon: <FaCode />,
+      title: "Web & App Engineering",
+      desc: "Responsive websites, web apps, landing pages, and product interfaces designed for speed, clarity, and conversion.",
       aria: "Innovative web development solutions"
     },
     {
-      icon: <FaLightbulb />,
-      title: "Smart Digital Solutions",
-      desc: "From website development to digital marketing strategies, we design smart solutions including social media, SEO, and brand growth.",
+      icon: <FaMagnifyingGlassChart />,
+      title: "SEO & Local Growth",
+      desc: "Search visibility, Google Business Profile optimization, analytics, and content systems built for discoverability.",
       aria: "Smart digital marketing strategies"
     },
     {
       icon: <FaChartLine />,
-      title: "Growth Focused Strategy",
-      desc: "Our mission is to help businesses scale through technology, powerful digital marketing campaigns, and strategic online growth.",
+      title: "Campaigns That Scale",
+      desc: "Social media, paid ads, creative assets, and funnel strategy tuned for measurable business growth.",
       aria: "Business growth and digital scaling"
     }
   ];
@@ -47,11 +47,10 @@ const Who = () => {
           transition={{ duration: 0.8 }}
         >
           <h2 className="who-title">
-            Web Development & Digital <span className="yellow-glow">Growth Innovation</span>
+            Digital agency systems for <span className="yellow-glow">modern brands</span>
           </h2>
           <p className="who-subtitle">
-            Beyond Null is a modern web development and digital marketing agency focused on 
-            helping businesses grow online. We combine technology, creativity, and strategy.
+            From Bangalore, we combine engineering, creative direction, and performance marketing into one polished growth platform.
           </p>
         </motion.div>
 
@@ -67,8 +66,8 @@ const Who = () => {
               whileHover={{ 
                 y: -15, 
                 rotateY: 10, 
-                borderColor: "#ffcc00",
-                boxShadow: "0px 20px 40px rgba(255, 204, 0, 0.15)" 
+                borderColor: "rgba(121, 87, 213, 0.28)",
+                boxShadow: "0px 22px 55px rgba(121, 87, 213, 0.18)" 
               }}
               viewport={{ once: true }}
             >

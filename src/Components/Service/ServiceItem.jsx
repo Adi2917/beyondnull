@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import "./ServiceItem.css";
 
-// --- SAARI 9 SERVICES KA DATA ---
 const services = [
   {
     title: "Website Development",
@@ -115,7 +114,6 @@ const services = [
 ];
 
 const ServiceItem = () => {
-  // --- TERA WAHi LOGIC ---
   const [activeIndex, setActiveIndex] = useState(null);
 
   const toggleService = (index) => {
@@ -125,7 +123,6 @@ const ServiceItem = () => {
   return (
     <section className="service-items-premium">
       
-      {/* HEADER SECTION */}
       <div className="service-header-dark">
         <motion.h2 
           initial={{ opacity: 0, y: 20 }}
@@ -133,16 +130,14 @@ const ServiceItem = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          Our Professional <span className="gold-glow">Solutions</span>
+          Full-stack digital <span className="gold-glow">solutions</span>
         </motion.h2>
 
         <p>
-          We build digital powerhouses. Our services are engineered to scale your brand, 
-          dominate the market competition, and convert audience into loyal customers.
+          Pick the service you need or combine them into one complete growth engine for your business.
         </p>
       </div>
 
-      {/* SERVICES GRID */}
       <div className="services-grid-modern">
         {services.map((service, index) => (
           
@@ -156,17 +151,14 @@ const ServiceItem = () => {
             transition={{ duration: 0.4, cubicBezier: [0.175, 0.885, 0.32, 1.275] }}
             whileHover={{ y: activeIndex === index ? 0 : -10 }} // Only hover when collapsed
           >
-            {/* Image Area with 3D feel */}
             <div className="card-image-wrapper">
               <img src={service.image} alt={service.title} loading="lazy" />
               <div className="card-overlay-gradient"></div>
             </div>
 
-            {/* Content Area */}
             <div className="card-content-area">
               <h3>{service.title}</h3>
               
-              {/* ANIMATED POINTS (Show More/Less) */}
               <AnimatePresence>
                 {activeIndex === index && (
                   <motion.ul 
@@ -190,7 +182,6 @@ const ServiceItem = () => {
                 )}
               </AnimatePresence>
 
-              {/* TERA BUTTON LOGIC */}
               <button 
                 className={`cta-button-service ${activeIndex === index ? "less" : ""}`}
                 onClick={() => toggleService(index)}
@@ -200,7 +191,6 @@ const ServiceItem = () => {
               </button>
             </div>
             
-            {/* Background Glow decorative */}
             <div className="card-bg-glow"></div>
           </motion.div>
         ))}
