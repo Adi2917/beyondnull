@@ -59,6 +59,7 @@ Supabase Dashboard -> SQL Editor -> New query -> Run
 ```
 
 This creates the `admins` and `clients` tables and inserts the two admin numbers with PIN `112233`.
+It also grants frontend read/write access for the current direct-Supabase admin panel.
 
 Important: run this SQL in the same Supabase project used by the app. The project ref in the app URL is:
 

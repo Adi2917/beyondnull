@@ -36,5 +36,9 @@ do update set pin = excluded.pin;
 alter table public.admins disable row level security;
 alter table public.clients disable row level security;
 
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on public.admins to anon, authenticated;
+grant select, insert, update, delete on public.clients to anon, authenticated;
+
 -- Verify admins were created.
 select phone from public.admins order by phone;
