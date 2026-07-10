@@ -29,7 +29,7 @@ fetchClient()
 },[])
 
 
-const fetchClient = async ()=>{
+async function fetchClient(){
 
 const { data,error } = await getClientById(id)
 

@@ -1,113 +1,169 @@
 import { useState } from "react"
-import { supabase } from "../services/supabaseClient"
+import { FaShieldAlt, FaTimes } from "react-icons/fa"
+import {
+  confirmAdminPinReset,
+  requestAdminPinReset
+} from "../services/authService"
 import "./ForgetPinModal.css"
 
-function ForgetPinModal({close}){
+function ForgetPinModal({ close }) {
+  const [form, setForm] = useState({
+    email: "",
+    phone: "",
+    pin: "",
+    confirm: "",
+    otp: ""
+  })
+  const [otpSent, setOtpSent] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
 
-const [phone,setPhone] = useState("")
-const [pin,setPin] = useState("")
-const [confirm,setConfirm] = useState("")
+  const updateField = (event) => {
+    setForm({ ...form, [event.target.name]: event.target.value })
+  }
 
-const handleSubmit = async (e)=>{
+  const sendOtp = async (event) => {
+    event.preventDefault()
+    setLoading(true)
+    setMessage("")
+    setError("")
 
-e.preventDefault()
+    if (form.pin !== form.confirm) {
+      setLoading(false)
+      setError("New PIN and confirm PIN do not match")
+      return
+    }
 
-if(pin !== confirm){
-alert("PIN not match")
-return
-}
+    const result = await requestAdminPinReset(form.email, form.phone)
+    setLoading(false)
 
-if(!/^[0-9]{6}$/.test(pin)){
-alert("PIN must be 6 digits")
-return
-}
+    if (!result.success) {
+      setError(result.error?.message || "Could not send OTP")
+      return
+    }
 
-if(!/^[0-9]{10}$/.test(phone)){
-alert("Enter valid 10 digit admin phone")
-return
-}
+    setOtpSent(true)
+    setMessage(result.message)
+  }
 
-const {data:admin,error:findError} = await supabase
-.from("admins")
-.select("id")
-.eq("phone",phone)
-.maybeSingle()
+  const verifyOtp = async (event) => {
+    event.preventDefault()
+    setLoading(true)
+    setMessage("")
+    setError("")
 
-if(findError || !admin){
-alert("Admin not found")
-return
-}
+    const result = await confirmAdminPinReset(form)
+    setLoading(false)
 
-const {error} = await supabase
-.from("admins")
-.update({pin:pin})
-.eq("id",admin.id)
+    if (!result.success) {
+      setError(result.error?.message || "PIN reset failed")
+      return
+    }
 
-if(error){
-alert("PIN update failed")
-return
-}
+    setMessage("PIN updated successfully. You can login with your new PIN.")
+    setTimeout(close, 1200)
+  }
 
-alert("PIN Updated")
+  return (
+    <div className="modalOverlay">
+      <div className="modalCard resetPinCard">
+        <button type="button" className="resetClose" onClick={close}>
+          <FaTimes />
+        </button>
 
-close()
+        <div className="resetIcon">
+          <FaShieldAlt />
+        </div>
 
-}
+        <h3>Reset Admin PIN</h3>
+        <p className="resetIntro">
+          Enter the official admin email, registered admin number, and your new
+          PIN. A 4 digit OTP will be sent to the official email and will stay
+          valid for 5 minutes.
+        </p>
 
-return(
+        <form onSubmit={otpSent ? verifyOtp : sendOtp}>
+          <input
+            type="email"
+            name="email"
+            placeholder="Official admin email"
+            value={form.email}
+            onChange={updateField}
+            disabled={otpSent}
+            required
+          />
 
-<div className="modalOverlay">
+          <input
+            type="tel"
+            name="phone"
+            placeholder="Registered admin number"
+            maxLength="10"
+            value={form.phone}
+            onChange={updateField}
+            disabled={otpSent}
+            required
+          />
 
-<div className="modalCard">
+          <input
+            type="password"
+            name="pin"
+            placeholder="New 6 digit PIN"
+            maxLength="6"
+            value={form.pin}
+            onChange={updateField}
+            disabled={otpSent}
+            required
+          />
 
-<h3>Reset Admin PIN</h3>
+          <input
+            type="password"
+            name="confirm"
+            placeholder="Confirm new PIN"
+            maxLength="6"
+            value={form.confirm}
+            onChange={updateField}
+            disabled={otpSent}
+            required
+          />
 
-<form onSubmit={handleSubmit}>
+          {otpSent && (
+            <input
+              type="text"
+              name="otp"
+              placeholder="Enter 4 digit OTP"
+              maxLength="4"
+              value={form.otp}
+              onChange={updateField}
+              required
+            />
+          )}
 
-<input
-placeholder="Admin Phone"
-onChange={(e)=>setPhone(e.target.value)}
-required
-/>
+          {error && <p className="resetMessage error">{error}</p>}
+          {message && <p className="resetMessage success">{message}</p>}
 
-<input
-placeholder="New PIN"
-maxLength="6"
-onChange={(e)=>setPin(e.target.value)}
-required
-/>
+          <div className="modalActions">
+            <button type="submit" disabled={loading}>
+              {loading
+                ? "Please wait..."
+                : otpSent
+                  ? "Verify OTP & Update PIN"
+                  : "Send OTP"}
+            </button>
 
-<input
-placeholder="Confirm PIN"
-maxLength="6"
-onChange={(e)=>setConfirm(e.target.value)}
-required
-/>
-
-<div className="modalActions">
-
-<button type="submit">
-Update PIN
-</button>
-
-<button
-type="button"
-className="cancelBtn"
-onClick={close}
->
-Cancel
-</button>
-
-</div>
-
-</form>
-
-</div>
-
-</div>
-
-)
-
+            <button
+              type="button"
+              className="cancelBtn"
+              onClick={close}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
 }
 
 export default ForgetPinModal

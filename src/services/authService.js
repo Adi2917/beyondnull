@@ -3,9 +3,13 @@ import { supabase } from "./supabaseClient"
 const SESSION_KEY = "bn_admin_session"
 const LEGACY_SESSION_KEY = "adminLogged"
 const LOCAL_CLIENTS_KEY = "bn_demo_clients"
+const CONTACT_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbyoFTbbPRaFVBe41FLmQAadNFCE0JvkMNK0PmmsyqB7NguqVhJdEUHBMfKhsSPt4hzQ/exec"
+const OFFICIAL_ADMIN_EMAIL = "beyoondnull@gmail.com"
 
 const normalizePhone = (phone = "") => phone.replace(/\D/g, "").slice(0, 10)
 const normalizePin = (pin = "") => pin.replace(/\D/g, "").slice(0, 6)
+const normalizeEmail = (email = "") => email.trim().toLowerCase()
 
 function makeError(message) {
   return { message }
@@ -17,6 +21,7 @@ function saveSession(admin, source = "supabase") {
     SESSION_KEY,
     JSON.stringify({
       phone: admin.phone,
+      email: admin.email,
       role: admin.role || "Admin",
       source,
       loggedAt: new Date().toISOString()
@@ -55,11 +60,11 @@ ADMIN LOGIN
 ========================= */
 
 export async function loginAdmin(phone, pin) {
-  const cleanPhone = normalizePhone(phone)
+  const cleanEmail = normalizeEmail(phone)
   const cleanPin = normalizePin(pin)
 
-  if (!/^[0-9]{10}$/.test(cleanPhone)) {
-    return { success: false, error: makeError("Enter valid 10 digit admin phone") }
+  if (!/\S+@\S+\.\S+/.test(cleanEmail)) {
+    return { success: false, error: makeError("Enter valid official admin email") }
   }
 
   if (!/^[0-9]{6}$/.test(cleanPin)) {
@@ -68,7 +73,7 @@ export async function loginAdmin(phone, pin) {
 
   const { data, error } = await supabase
     .rpc("verify_admin_login", {
-      admin_phone: cleanPhone,
+      admin_email: cleanEmail,
       admin_pin: cleanPin
     })
     .maybeSingle()
@@ -88,6 +93,112 @@ export async function loginAdmin(phone, pin) {
   const admin = { ...data, role: data.role || "Admin" }
   saveSession(admin, "supabase")
   return { success: true, data: admin, source: "supabase" }
+}
+
+/* =========================
+ADMIN PIN RESET
+========================= */
+
+async function sendOtpMail({ email, phone, otp }) {
+  const data = new FormData()
+  data.append("name", "BeyondNull Admin Security")
+  data.append("phone", phone)
+  data.append("email", email)
+  data.append(
+    "message",
+    `OTP of reset admin PIN is ${otp}. This OTP is valid for 5 minutes. If you did not request this, ignore this message.`
+  )
+
+  await fetch(CONTACT_SCRIPT_URL, {
+    method: "POST",
+    body: data,
+    mode: "no-cors"
+  })
+}
+
+export async function requestAdminPinReset(email, phone) {
+  const cleanEmail = normalizeEmail(email)
+  const cleanPhone = normalizePhone(phone)
+
+  if (cleanEmail !== OFFICIAL_ADMIN_EMAIL) {
+    return { success: false, error: makeError("Use the official admin email") }
+  }
+
+  if (!/^[0-9]{10}$/.test(cleanPhone)) {
+    return { success: false, error: makeError("Enter valid 10 digit admin phone") }
+  }
+
+  const { data, error } = await supabase
+    .rpc("request_admin_pin_reset", {
+      admin_email: cleanEmail,
+      admin_phone: cleanPhone
+    })
+    .maybeSingle()
+
+  if (error) {
+    console.error("PIN reset request error:", error)
+    return {
+      success: false,
+      error: makeError("PIN reset backend setup pending. Run supabase-setup.sql again.")
+    }
+  }
+
+  if (!data?.otp) {
+    return { success: false, error: makeError("Admin email or phone not matched") }
+  }
+
+  try {
+    await sendOtpMail({ email: cleanEmail, phone: cleanPhone, otp: data.otp })
+  } catch (mailError) {
+    console.warn("OTP mail bridge failed:", mailError)
+  }
+
+  return {
+    success: true,
+    expiresAt: data.expires_at,
+    message: "OTP sent to official admin email. It is valid for 5 minutes."
+  }
+}
+
+export async function confirmAdminPinReset({ email, phone, otp, pin, confirm }) {
+  const cleanEmail = normalizeEmail(email)
+  const cleanPhone = normalizePhone(phone)
+  const cleanOtp = String(otp || "").replace(/\D/g, "").slice(0, 4)
+  const cleanPin = normalizePin(pin)
+  const cleanConfirm = normalizePin(confirm)
+
+  if (cleanPin !== cleanConfirm) {
+    return { success: false, error: makeError("New PIN and confirm PIN do not match") }
+  }
+
+  if (!/^[0-9]{4}$/.test(cleanOtp)) {
+    return { success: false, error: makeError("Enter valid 4 digit OTP") }
+  }
+
+  if (!/^[0-9]{6}$/.test(cleanPin)) {
+    return { success: false, error: makeError("PIN must be 6 digits") }
+  }
+
+  const { data, error } = await supabase.rpc("confirm_admin_pin_reset", {
+    admin_email: cleanEmail,
+    admin_phone: cleanPhone,
+    reset_otp: cleanOtp,
+    new_pin: cleanPin
+  })
+
+  if (error) {
+    console.error("PIN reset confirm error:", error)
+    return {
+      success: false,
+      error: makeError("Could not verify OTP. Run supabase-setup.sql again.")
+    }
+  }
+
+  if (!data) {
+    return { success: false, error: makeError("Invalid or expired OTP") }
+  }
+
+  return { success: true }
 }
 
 /* =========================

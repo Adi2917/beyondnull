@@ -112,6 +112,20 @@
   font-weight: 800;
 }
 
+.forgotPinBtn {
+  margin-top: 16px;
+  width: auto !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--bn-purple) !important;
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 14px;
+  font-weight: 900;
+}
+
 .loginMessage {
   margin: 14px 0 0;
   padding: 11px 12px;

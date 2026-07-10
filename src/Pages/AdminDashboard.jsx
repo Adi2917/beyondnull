@@ -1,7 +1,7 @@
 import { useEffect,useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { FaPlus,FaSignOutAlt,FaHome,FaUsers,FaSearch,FaCalendarAlt,FaDatabase } from "react-icons/fa"
-import { checkAdminSession, getAdminSession, getClients, logoutAdmin } from "../services/authService"
+import { FaPlus,FaSignOutAlt,FaHome,FaUsers,FaSearch,FaCalendarAlt } from "react-icons/fa"
+import { checkAdminSession, getClients, logoutAdmin } from "../services/authService"
 
 import ClientCard from "../Components/ClientCard"
 import SearchBar from "../Components/SearchBar"
@@ -21,8 +21,6 @@ const [search,setSearch] = useState("")
 const [showAdd,setShowAdd] = useState(false)
 const [deleteId,setDeleteId] = useState(null)
 const [loading,setLoading] = useState(true)
-const [backendMode,setBackendMode] = useState("Checking")
-const adminSession = getAdminSession()
 
 useEffect(()=>{
 
@@ -35,11 +33,11 @@ fetchClients()
 
 },[])
 
-const fetchClients = async ()=>{
+async function fetchClients(){
 
 setLoading(true)
 
-const {data,error,source} = await getClients()
+const {data,error} = await getClients()
 
 if(error){
 console.log("Client fetch error:", error)
@@ -48,7 +46,6 @@ setClients([])
 setClients(data || [])
 }
 
-setBackendMode(source === "demo" ? "Demo Backend" : "Live Supabase")
 setLoading(false)
 
 }
@@ -83,12 +80,6 @@ return(
 <p>Client management, project control, and backend records</p>
 </div>
 
-</div>
-
-<div className="backendPill">
-<FaDatabase/>
-<span>{backendMode}</span>
-{adminSession?.phone && <small>{adminSession.phone}</small>}
 </div>
 
 <div className="headerBtns">
@@ -147,20 +138,6 @@ return(
 <h3>{new Date().getFullYear()}</h3>
 
 <p>Active Year</p>
-
-</div>
-
-</div>
-
-<div className="statCard">
-
-<FaDatabase/>
-
-<div>
-
-<h3>{backendMode === "Live Supabase" ? "Live" : "Demo"}</h3>
-
-<p>Backend Mode</p>
 
 </div>
 

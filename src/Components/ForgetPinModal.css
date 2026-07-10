@@ -1,34 +1,140 @@
-.modalOverlay{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.4);
-display:flex;
-align-items:center;
-justify-content:center;
-z-index:1000;
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(33, 27, 24, 0.48);
+  backdrop-filter: blur(14px);
 }
 
-.modalCard{
-background:white;
-padding:30px;
-border-radius:10px;
-max-width:380px;
-width:90%;
-box-shadow:0 10px 30px rgba(0,0,0,0.15);
+.modalCard.resetPinCard {
+  position: relative;
+  width: min(460px, 100%);
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(121, 87, 213, 0.12), transparent 32%),
+    linear-gradient(180deg, #ffffff, #fffaf4);
+  box-shadow: 0 34px 100px rgba(33, 27, 24, 0.28);
 }
 
-.modalCard input{
-width:100%;
-padding:10px;
-margin-bottom:10px;
-border:1px solid #ddd;
-border-radius:6px;
+.resetClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--bn-border);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--bn-brown-dark);
+  cursor: pointer;
 }
 
-.modalActions{
-display:flex;
-justify-content:space-between;
+.resetIcon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--bn-red), var(--bn-purple));
+  color: #fff;
+  font-size: 22px;
+  box-shadow: 0 16px 34px rgba(121, 87, 213, 0.22);
+}
+
+.resetPinCard h3 {
+  margin: 0 0 8px;
+  color: var(--bn-text);
+  font-size: 26px;
+}
+
+.resetIntro {
+  margin: 0 0 20px;
+  color: var(--bn-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.resetPinCard input {
+  width: 100%;
+  padding: 13px 14px;
+  margin-bottom: 12px;
+  border: 1px solid var(--bn-border);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--bn-text);
+  outline: none;
+}
+
+.resetPinCard input:focus {
+  border-color: rgba(121, 87, 213, 0.38);
+  box-shadow: 0 0 0 4px rgba(121, 87, 213, 0.08);
+}
+
+.resetPinCard input:disabled {
+  color: var(--bn-muted);
+  background: rgba(247, 239, 230, 0.65);
+}
+
+.resetMessage {
+  margin: 2px 0 12px;
+  padding: 11px 12px;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.resetMessage.error {
+  background: rgba(232, 76, 97, 0.1);
+  color: #a8263a;
+}
+
+.resetMessage.success {
+  background: rgba(24, 169, 120, 0.12);
+  color: var(--bn-green);
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+}
+
+.modalActions button {
+  flex: 1;
+  padding: 13px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.modalActions button[type="submit"] {
+  background: linear-gradient(135deg, var(--bn-red), var(--bn-purple));
+  color: #fff;
+}
+
+.modalActions .cancelBtn {
+  border: 1px solid var(--bn-border);
+  background: #fff;
+  color: var(--bn-brown-dark);
+}
+
+.modalActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+@media(max-width:520px) {
+  .modalCard.resetPinCard {
+    padding: 24px 18px;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
 }

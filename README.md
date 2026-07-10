@@ -10,7 +10,7 @@ Admin login page:
 /admin
 ```
 
-Admin numbers and PINs are stored in Supabase. Do not show admin credentials on the public site or commit private PINs in frontend code.
+Admin email, admin numbers, PINs, and reset OTP records are stored in Supabase. Do not show admin credentials on the public site or commit private PINs in frontend code.
 
 ## Database
 
@@ -44,7 +44,9 @@ Client create/read/update/delete
 Client search
 Client profile
 Call/WhatsApp actions
-Supabase + local demo fallback
+Email + PIN login
+OTP based PIN reset
+Supabase backend service layer
 ```
 
 ## Supabase Setup

@@ -5,14 +5,16 @@ import BrandLogo from "../Components/BrandLogo"
 import "./AdminLogin.css"
 
 import { checkAdminSession, loginAdmin } from "../services/authService"
+import ForgetPinModal from "../Components/ForgetPinModal"
 
 function AdminLogin(){
 
 const navigate = useNavigate()
 
-const [phone,setPhone] = useState("")
+const [email,setEmail] = useState("")
 const [pin,setPin] = useState("")
 const [showPin,setShowPin] = useState(false)
+const [showForget,setShowForget] = useState(false)
 
 const [loading,setLoading] = useState(false)
 const [message,setMessage] = useState("")
@@ -35,7 +37,7 @@ setMode("")
 
 setLoading(true)
 
-const result = await loginAdmin(phone,pin)
+const result = await loginAdmin(email,pin)
 
 setLoading(false)
 
@@ -77,11 +79,10 @@ Exit to Website
 <form onSubmit={handleLogin}>
 
 <input
-type="tel"
-placeholder="Admin Phone"
-maxLength="10"
-value={phone}
-onChange={(e)=>setPhone(e.target.value)}
+type="email"
+placeholder="Official Admin Email"
+value={email}
+onChange={(e)=>setEmail(e.target.value)}
 />
 
 <div className="pinBox">
@@ -106,6 +107,14 @@ onChange={(e)=>setPin(e.target.value)}
 
 </form>
 
+<button
+type="button"
+className="forgotPinBtn"
+onClick={()=>setShowForget(true)}
+>
+Forgot PIN?
+</button>
+
 {message &&
 <p className={`loginMessage ${mode}`}>
 {message}
@@ -113,6 +122,10 @@ onChange={(e)=>setPin(e.target.value)}
 }
 
 </div>
+
+{showForget &&
+<ForgetPinModal close={()=>setShowForget(false)}/>
+}
 
 </div>
 
