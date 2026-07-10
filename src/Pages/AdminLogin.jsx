@@ -5,7 +5,6 @@ import BrandLogo from "../Components/BrandLogo"
 import "./AdminLogin.css"
 
 import { checkAdminSession, loginAdmin } from "../services/authService"
-import ForgetPinModal from "../Components/ForgetPinModal"
 
 function AdminLogin(){
 
@@ -15,7 +14,6 @@ const [phone,setPhone] = useState("")
 const [pin,setPin] = useState("")
 const [showPin,setShowPin] = useState(false)
 
-const [showForget,setShowForget] = useState(false)
 const [loading,setLoading] = useState(false)
 const [message,setMessage] = useState("")
 const [mode,setMode] = useState("")
@@ -76,12 +74,6 @@ Exit to Website
 <h2>Admin Control Center</h2>
 <p className="loginSubtext">Manage clients, services, profiles, and business records from one secure dashboard.</p>
 
-<div className="loginHint">
-<span>Admin</span>
-<strong>7485875137 / 6205475866</strong>
-<small>PIN: 112233</small>
-</div>
-
 <form onSubmit={handleLogin}>
 
 <input
@@ -120,18 +112,7 @@ onChange={(e)=>setPin(e.target.value)}
 </p>
 }
 
-<p
-className="forgetPin"
-onClick={()=>setShowForget(true)}
->
-Forgot PIN?
-</p>
-
 </div>
-
-{showForget &&
-<ForgetPinModal close={()=>setShowForget(false)}/>
-}
 
 </div>
 

@@ -48,8 +48,30 @@ alter table public.admins disable row level security;
 alter table public.clients disable row level security;
 
 grant usage on schema public to anon, authenticated;
-grant select, insert, update, delete on public.admins to anon, authenticated;
 grant select, insert, update, delete on public.clients to anon, authenticated;
+
+revoke all on public.admins from anon, authenticated;
+
+create or replace function public.verify_admin_login(
+  admin_phone text,
+  admin_pin text
+)
+returns table (
+  phone text,
+  role text
+)
+language sql
+security definer
+set search_path = public
+as $$
+  select admins.phone, admins.role
+  from public.admins
+  where admins.phone = admin_phone
+    and admins.pin = admin_pin
+  limit 1;
+$$;
+
+grant execute on function public.verify_admin_login(text, text) to anon, authenticated;
 
 -- Verify admins were created.
 select phone from public.admins order by phone;

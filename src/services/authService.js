@@ -1,10 +1,5 @@
 import { supabase } from "./supabaseClient"
 
-const ADMIN_CREDENTIALS = [
-  { phone: "7485875137", pin: "112233", role: "Founder Admin" },
-  { phone: "6205475866", pin: "112233", role: "Operations Admin" }
-]
-
 const SESSION_KEY = "bn_admin_session"
 const LEGACY_SESSION_KEY = "adminLogged"
 const LOCAL_CLIENTS_KEY = "bn_demo_clients"
@@ -14,12 +9,6 @@ const normalizePin = (pin = "") => pin.replace(/\D/g, "").slice(0, 6)
 
 function makeError(message) {
   return { message }
-}
-
-function getFallbackAdmin(phone, pin) {
-  return ADMIN_CREDENTIALS.find(
-    (admin) => admin.phone === phone && admin.pin === pin
-  )
 }
 
 function saveSession(admin, source = "supabase") {
@@ -77,35 +66,28 @@ export async function loginAdmin(phone, pin) {
     return { success: false, error: makeError("Enter valid 6 digit PIN") }
   }
 
-  try {
-    const { data, error } = await supabase
-      .from("admins")
-      .select("id, phone, role, created_at")
-      .eq("phone", cleanPhone)
-      .eq("pin", cleanPin)
-      .maybeSingle()
+  const { data, error } = await supabase
+    .rpc("verify_admin_login", {
+      admin_phone: cleanPhone,
+      admin_pin: cleanPin
+    })
+    .maybeSingle()
 
-    if (error) {
-      console.warn("Supabase admin login failed, checking demo fallback:", error)
+  if (error) {
+    console.error("Admin login backend error:", error)
+    return {
+      success: false,
+      error: makeError("Admin backend setup pending. Run supabase-setup.sql again.")
     }
-
-    if (data) {
-      const admin = { ...data, role: data.role || "Admin" }
-      saveSession(admin, "supabase")
-      return { success: true, data: admin, source: "supabase" }
-    }
-  } catch (error) {
-    console.warn("Supabase admin login unavailable, checking demo fallback:", error)
   }
 
-  const fallbackAdmin = getFallbackAdmin(cleanPhone, cleanPin)
-
-  if (!fallbackAdmin) {
+  if (!data) {
     return { success: false, error: makeError("Invalid phone or PIN") }
   }
 
-  saveSession(fallbackAdmin, "demo")
-  return { success: true, data: fallbackAdmin, source: "demo" }
+  const admin = { ...data, role: data.role || "Admin" }
+  saveSession(admin, "supabase")
+  return { success: true, data: admin, source: "supabase" }
 }
 
 /* =========================

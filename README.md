@@ -10,18 +10,7 @@ Admin login page:
 /admin
 ```
 
-Admin numbers:
-
-```text
-7485875137
-6205475866
-```
-
-Admin PIN:
-
-```text
-112233
-```
+Admin numbers and PINs are stored in Supabase. Do not show admin credentials on the public site or commit private PINs in frontend code.
 
 ## Database
 
@@ -72,7 +61,7 @@ Then run the full SQL in:
 Supabase Dashboard -> SQL Editor -> New query -> Run
 ```
 
-This creates/updates the `admins` and `clients` tables and inserts the two admin numbers with PIN `112233`.
+This creates/updates the `admins` and `clients` tables and inserts the configured admin accounts.
 It also grants frontend read/write access for the current direct-Supabase admin panel.
 
 Important: run this SQL in the same Supabase project used by the app. The project ref in the app URL is:
