@@ -37,22 +37,45 @@ function readLocalClients() {
   }
 }
 
-function writeLocalClients(clients) {
-  localStorage.setItem(LOCAL_CLIENTS_KEY, JSON.stringify(clients))
+function clearLocalClients() {
+  localStorage.removeItem(LOCAL_CLIENTS_KEY)
 }
 
-function createLocalClient(clientData) {
-  const client = {
-    ...clientData,
-    id:
-      globalThis.crypto?.randomUUID?.() ||
-      `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    created_at: new Date().toISOString()
+function sanitizeClient(client) {
+  return {
+    name: client.name || "",
+    phone: client.phone || "",
+    email: client.email || null,
+    address: client.address || null,
+    district: client.district || null,
+    package_amount: client.package_amount || null,
+    services: Array.isArray(client.services) ? client.services : [],
+    status: client.status || "Active",
+    source: client.source || "Admin Panel",
+    notes: client.notes || null,
+    created_at: client.created_at || new Date().toISOString()
+  }
+}
+
+async function migrateLocalClientsToSupabase() {
+  const localClients = readLocalClients()
+
+  if (localClients.length === 0) {
+    return []
   }
 
-  const clients = [client, ...readLocalClients()]
-  writeLocalClients(clients)
-  return client
+  const { data, error } = await supabase
+    .from("clients")
+    .insert(localClients.map(sanitizeClient))
+    .select()
+
+  if (error) {
+    console.warn("Local client migration failed:", error)
+    return []
+  }
+
+  clearLocalClients()
+  return data || []
 }
 
 /* =========================
@@ -87,7 +110,7 @@ export async function loginAdmin(phone, pin) {
   }
 
   if (!data) {
-    return { success: false, error: makeError("Invalid phone or PIN") }
+    return { success: false, error: makeError("Invalid email or PIN") }
   }
 
   const admin = { ...data, role: data.role || "Admin" }
@@ -243,24 +266,13 @@ ADD CLIENT
 ========================= */
 
 export async function addClient(clientData) {
-  try {
-    const { data, error } = await supabase
-      .from("clients")
-      .insert([clientData])
-      .select()
-      .single()
+  const { data, error } = await supabase
+    .from("clients")
+    .insert([sanitizeClient(clientData)])
+    .select()
+    .single()
 
-    if (!error && data) {
-      return { data, error: null, source: "supabase" }
-    }
-
-    console.warn("Supabase add client failed, saving locally:", error)
-  } catch (error) {
-    console.warn("Supabase add client unavailable, saving locally:", error)
-  }
-
-  const data = createLocalClient(clientData)
-  return { data, error: null, source: "demo" }
+  return { data, error, source: "supabase" }
 }
 
 /* =========================
@@ -268,29 +280,14 @@ GET ALL CLIENTS
 ========================= */
 
 export async function getClients() {
-  try {
-    const { data, error } = await supabase
-      .from("clients")
-      .select("*")
-      .order("created_at", { ascending: false })
+  await migrateLocalClientsToSupabase()
 
-    if (!error) {
-      const localClients = readLocalClients()
-      return {
-        data: [...(data || []), ...localClients].sort(
-          (a, b) => new Date(b.created_at) - new Date(a.created_at)
-        ),
-        error: null,
-        source: "supabase"
-      }
-    }
+  const { data, error } = await supabase
+    .from("clients")
+    .select("*")
+    .order("created_at", { ascending: false })
 
-    console.warn("Supabase fetch clients failed, reading local clients:", error)
-  } catch (error) {
-    console.warn("Supabase fetch clients unavailable, reading local clients:", error)
-  }
-
-  return { data: readLocalClients(), error: null, source: "demo" }
+  return { data: data || [], error, source: "supabase" }
 }
 
 /* =========================
@@ -298,26 +295,13 @@ GET SINGLE CLIENT
 ========================= */
 
 export async function getClientById(id) {
-  try {
-    const { data, error } = await supabase
-      .from("clients")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle()
+  const { data, error } = await supabase
+    .from("clients")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle()
 
-    if (!error && data) {
-      return { data, error: null, source: "supabase" }
-    }
-  } catch (error) {
-    console.warn("Supabase fetch client unavailable, reading local client:", error)
-  }
-
-  const data = readLocalClients().find((client) => client.id === id)
-  return {
-    data: data || null,
-    error: data ? null : makeError("Client not found"),
-    source: "demo"
-  }
+  return { data, error, source: "supabase" }
 }
 
 /* =========================
@@ -325,32 +309,14 @@ UPDATE CLIENT
 ========================= */
 
 export async function updateClient(id, updatedData) {
-  try {
-    const { data, error } = await supabase
-      .from("clients")
-      .update(updatedData)
-      .eq("id", id)
-      .select()
-      .maybeSingle()
+  const { data, error } = await supabase
+    .from("clients")
+    .update(updatedData)
+    .eq("id", id)
+    .select()
+    .maybeSingle()
 
-    if (!error && data) {
-      return { data, error: null, source: "supabase" }
-    }
-  } catch (error) {
-    console.warn("Supabase update client unavailable, updating local client:", error)
-  }
-
-  const clients = readLocalClients()
-  const index = clients.findIndex((client) => client.id === id)
-
-  if (index === -1) {
-    return { data: null, error: makeError("Client not found"), source: "demo" }
-  }
-
-  clients[index] = { ...clients[index], ...updatedData }
-  writeLocalClients(clients)
-
-  return { data: clients[index], error: null, source: "demo" }
+  return { data, error, source: "supabase" }
 }
 
 /* =========================
@@ -358,16 +324,7 @@ DELETE CLIENT
 ========================= */
 
 export async function deleteClient(id) {
-  try {
-    const { error } = await supabase.from("clients").delete().eq("id", id)
+  const { error } = await supabase.from("clients").delete().eq("id", id)
 
-    if (!error) {
-      return { data: true, error: null, source: "supabase" }
-    }
-  } catch (error) {
-    console.warn("Supabase delete client unavailable, deleting local client:", error)
-  }
-
-  writeLocalClients(readLocalClients().filter((client) => client.id !== id))
-  return { data: true, error: null, source: "demo" }
+  return { data: !error, error, source: "supabase" }
 }

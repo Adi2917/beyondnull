@@ -1,5 +1,5 @@
 .dashboard {
-  padding: 34px;
+  padding: clamp(16px, 3vw, 34px);
   min-height: 100vh;
   background:
     radial-gradient(circle at 10% 8%, rgba(232, 76, 97, 0.1), transparent 28%),
@@ -13,36 +13,56 @@
   justify-content: space-between;
   align-items: center;
   gap: 22px;
-  margin-bottom: 30px;
-  padding: 22px;
-  border-radius: 26px;
+  margin: 14px auto 30px;
+  padding: clamp(18px, 2.5vw, 26px);
+  border-radius: 28px;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid var(--bn-border);
   box-shadow: 0 18px 50px rgba(77, 51, 35, 0.08);
   backdrop-filter: blur(16px);
+  max-width: 1440px;
 }
 
 .logoBox {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
+  min-width: 0;
+}
+
+.dashboardTitle {
+  min-width: 0;
+}
+
+.dashboardTitle span {
+  display: inline-flex;
+  margin-bottom: 5px;
+  color: var(--bn-purple);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
 }
 
 .logoBox h2 {
   margin: 0;
+  font-size: clamp(28px, 3vw, 44px);
   font-weight: 950;
   color: var(--bn-text);
+  letter-spacing: -0.02em;
 }
 
 .logoBox p {
   margin: 4px 0 0;
   color: var(--bn-muted);
-  font-size: 13px;
+  font-size: clamp(13px, 1.5vw, 15px);
+  line-height: 1.5;
 }
 
 .headerBtns {
   display: flex;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .headerBtns button {
@@ -70,6 +90,8 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
   margin-bottom: 26px;
+  max-width: 1440px;
+  margin-inline: auto;
 }
 
 .statCard {
@@ -121,6 +143,32 @@
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 12px;
+  max-width: 1440px;
+  margin-inline: auto;
+}
+
+.sectionTitle {
+  min-width: 190px;
+}
+
+.sectionTitle span {
+  display: block;
+  color: var(--bn-purple);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.sectionTitle h3 {
+  margin: 4px 0 0;
+  color: var(--bn-text);
+  font-size: 24px;
+}
+
+.dashboard-top .searchBar {
+  flex: 1;
+  max-width: 460px;
 }
 
 .addClientBtn {
@@ -145,9 +193,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 18px;
+  max-width: 1440px;
+  margin-inline: auto;
 }
 
 .total {
+  max-width: 1440px;
+  margin-inline: auto;
   margin-top: 20px;
   font-weight: 850;
   color: var(--bn-brown-dark);
@@ -170,37 +222,165 @@
 
 @media(max-width:900px) {
   .dashboard {
-    padding: 22px;
+    padding: 18px;
   }
 
   .statsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .dashboard-top .searchBar {
+    max-width: none;
+  }
 }
 
 @media(max-width:650px) {
+  .dashboard {
+    padding: 14px;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(232, 76, 97, 0.1), transparent 24%),
+      radial-gradient(circle at 95% 14%, rgba(121, 87, 213, 0.12), transparent 28%),
+      linear-gradient(180deg, #fff7f2, #fffdf9 46%, #f8efe7);
+  }
+
   .dashboard-header {
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+    gap: 18px;
+    margin-top: 8px;
+    padding: 18px;
+    border-radius: 24px;
   }
 
   .logoBox {
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .logoBox .brandLogo {
+    transform: scale(0.9);
+    transform-origin: left center;
+  }
+
+  .dashboardTitle span {
+    font-size: 10px;
+  }
+
+  .logoBox h2 {
+    font-size: 30px;
+    line-height: 1.02;
+  }
+
+  .logoBox p {
+    max-width: 290px;
+    font-size: 13px;
   }
 
   .headerBtns,
   .dashboard-top {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     align-items: stretch;
+    gap: 10px;
   }
 
-  .headerBtns button,
+  .headerBtns button {
+    width: 100%;
+    justify-content: center;
+    padding: 13px 12px;
+    border-radius: 16px;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .statCard {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: 8px;
+    padding: 14px 8px;
+    border-radius: 20px;
+  }
+
+  .statCard > svg {
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .statCard h3 {
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .statCard p {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .dashboard-top {
+    grid-template-columns: 1fr;
+    padding: 14px;
+    border: 1px solid var(--bn-border);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 16px 42px rgba(77, 51, 35, 0.07);
+  }
+
+  .sectionTitle h3 {
+    font-size: 22px;
+  }
+
   .addClientBtn {
     width: 100%;
     justify-content: center;
+    padding: 15px 18px;
+    border-radius: 17px;
+    order: 3;
+  }
+
+  .clientGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .total {
+    text-align: center;
+    margin-top: 16px;
+  }
+
+  .empty {
+    margin-top: 22px;
+    padding: 22px;
+    border: 1px dashed rgba(121, 87, 213, 0.22);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.68);
+  }
+}
+
+@media(max-width:380px) {
+  .dashboard {
+    padding: 10px;
+  }
+
+  .logoBox h2 {
+    font-size: 27px;
   }
 
   .statsGrid {
     grid-template-columns: 1fr;
+  }
+
+  .statCard {
+    display: flex;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 14px;
   }
 }

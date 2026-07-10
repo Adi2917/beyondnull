@@ -75,9 +75,10 @@ return(
 
 <BrandLogo />
 
-<div>
+<div className="dashboardTitle">
+<span>Admin Control Center</span>
 <h2>Admin Studio</h2>
-<p>Client management, project control, and backend records</p>
+<p>Manage clients, project records, service details, and follow-ups.</p>
 </div>
 
 </div>
@@ -85,11 +86,11 @@ return(
 <div className="headerBtns">
 
 <button onClick={()=>navigate("/")}>
-<FaHome/> Exit
+<FaHome/> <span>Exit</span>
 </button>
 
 <button onClick={logout}>
-<FaSignOutAlt/> Logout
+<FaSignOutAlt/> <span>Logout</span>
 </button>
 
 </div>
@@ -150,6 +151,11 @@ return(
 
 <div className="dashboard-top">
 
+<div className="sectionTitle">
+<span>Client Records</span>
+<h3>Business Pipeline</h3>
+</div>
+
 <SearchBar
 search={search}
 setSearch={setSearch}
@@ -191,7 +197,7 @@ onDelete={(id)=>setDeleteId(id)}
 </div>
 
 <p className="total">
-Total Clients : {clients.length}
+Showing {filtered.length} of {clients.length} clients
 </p>
 
 
