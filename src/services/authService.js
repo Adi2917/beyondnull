@@ -101,13 +101,25 @@ ADMIN PIN RESET
 
 async function sendOtpMail({ email, phone, otp }) {
   const data = new FormData()
-  data.append("name", "BeyondNull Admin Security")
-  data.append("phone", phone)
+  const maskedPhone = `Admin ending ${phone.slice(-4)}`
+  const message = [
+    "BeyondNull Admin PIN Reset Verification",
+    "",
+    `Your 4 digit OTP is: ${otp}`,
+    "",
+    "This OTP is valid for 5 minutes.",
+    "Use this code only to reset the BeyondNull admin PIN.",
+    "",
+    "If you did not request this reset, please ignore this email."
+  ].join("\n")
+
+  data.append("subject", "BeyondNull Admin PIN Reset OTP")
+  data.append("title", "BeyondNull Admin PIN Reset OTP")
+  data.append("type", "Admin Security OTP")
+  data.append("name", "BeyondNull Security Team")
+  data.append("phone", maskedPhone)
   data.append("email", email)
-  data.append(
-    "message",
-    `OTP of reset admin PIN is ${otp}. This OTP is valid for 5 minutes. If you did not request this, ignore this message.`
-  )
+  data.append("message", message)
 
   await fetch(CONTACT_SCRIPT_URL, {
     method: "POST",

@@ -49,6 +49,8 @@ OTP based PIN reset
 Supabase backend service layer
 ```
 
+OTP email uses the existing Google Apps Script mail bridge. The React app sends `subject`, `title`, `type`, `name`, `phone`, `email`, and `message` fields. If the received email subject still says `New Website Lead`, update the Apps Script subject template to read the `subject` field.
+
 ## Supabase Setup
 
 If the Supabase project has no tables, open:
