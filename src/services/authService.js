@@ -64,18 +64,23 @@ async function migrateLocalClientsToSupabase() {
     return []
   }
 
-  const { data, error } = await supabase
-    .from("clients")
-    .insert(localClients.map(sanitizeClient))
-    .select()
+  const migrated = []
 
-  if (error) {
-    console.warn("Local client migration failed:", error)
-    return []
+  for (const client of localClients) {
+    const { data, error } = await addClient(sanitizeClient(client))
+
+    if (error) {
+      console.warn("Local client migration failed:", error)
+      return []
+    }
+
+    if (data) {
+      migrated.push(data)
+    }
   }
 
   clearLocalClients()
-  return data || []
+  return migrated
 }
 
 /* =========================
@@ -266,11 +271,16 @@ ADD CLIENT
 ========================= */
 
 export async function addClient(clientData) {
-  const { data, error } = await supabase
-    .from("clients")
-    .insert([sanitizeClient(clientData)])
-    .select()
-    .single()
+  const client = sanitizeClient(clientData)
+  const { data, error } = await supabase.rpc("admin_add_client", {
+    client_name: client.name,
+    client_phone: client.phone,
+    client_email: client.email || "",
+    client_address: client.address || "",
+    client_district: client.district || "",
+    client_package_amount: client.package_amount || "",
+    client_services: client.services
+  })
 
   return { data, error, source: "supabase" }
 }
@@ -282,10 +292,7 @@ GET ALL CLIENTS
 export async function getClients() {
   await migrateLocalClientsToSupabase()
 
-  const { data, error } = await supabase
-    .from("clients")
-    .select("*")
-    .order("created_at", { ascending: false })
+  const { data, error } = await supabase.rpc("admin_get_clients")
 
   return { data: data || [], error, source: "supabase" }
 }
@@ -295,11 +302,9 @@ GET SINGLE CLIENT
 ========================= */
 
 export async function getClientById(id) {
-  const { data, error } = await supabase
-    .from("clients")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle()
+  const { data, error } = await supabase.rpc("admin_get_client", {
+    client_id: id
+  })
 
   return { data, error, source: "supabase" }
 }
@@ -309,12 +314,17 @@ UPDATE CLIENT
 ========================= */
 
 export async function updateClient(id, updatedData) {
-  const { data, error } = await supabase
-    .from("clients")
-    .update(updatedData)
-    .eq("id", id)
-    .select()
-    .maybeSingle()
+  const client = sanitizeClient(updatedData)
+  const { data, error } = await supabase.rpc("admin_update_client", {
+    client_id: id,
+    client_name: client.name,
+    client_phone: client.phone,
+    client_email: client.email || "",
+    client_address: client.address || "",
+    client_district: client.district || "",
+    client_package_amount: client.package_amount || "",
+    client_services: client.services
+  })
 
   return { data, error, source: "supabase" }
 }
@@ -324,7 +334,9 @@ DELETE CLIENT
 ========================= */
 
 export async function deleteClient(id) {
-  const { error } = await supabase.from("clients").delete().eq("id", id)
+  const { data, error } = await supabase.rpc("admin_delete_client", {
+    client_id: id
+  })
 
-  return { data: !error, error, source: "supabase" }
+  return { data, error, source: "supabase" }
 }

@@ -70,6 +70,11 @@ revoke all on public.admin_pin_resets from anon, authenticated;
 drop function if exists public.verify_admin_login(text, text);
 drop function if exists public.request_admin_pin_reset(text, text);
 drop function if exists public.confirm_admin_pin_reset(text, text, text, text);
+drop function if exists public.admin_get_clients();
+drop function if exists public.admin_get_client(uuid);
+drop function if exists public.admin_add_client(text, text, text, text, text, text, text[]);
+drop function if exists public.admin_update_client(uuid, text, text, text, text, text, text, text[]);
+drop function if exists public.admin_delete_client(uuid);
 
 create or replace function public.verify_admin_login(
   admin_email text,
@@ -173,6 +178,116 @@ $$;
 grant execute on function public.verify_admin_login(text, text) to anon, authenticated;
 grant execute on function public.request_admin_pin_reset(text, text) to anon, authenticated;
 grant execute on function public.confirm_admin_pin_reset(text, text, text, text) to anon, authenticated;
+
+create or replace function public.admin_get_clients()
+returns setof public.clients
+language sql
+security definer
+set search_path = public
+as $$
+  select *
+  from public.clients
+  order by created_at desc;
+$$;
+
+create or replace function public.admin_get_client(client_id uuid)
+returns public.clients
+language sql
+security definer
+set search_path = public
+as $$
+  select *
+  from public.clients
+  where id = client_id
+  limit 1;
+$$;
+
+create or replace function public.admin_add_client(
+  client_name text,
+  client_phone text,
+  client_email text,
+  client_address text,
+  client_district text,
+  client_package_amount text,
+  client_services text[]
+)
+returns public.clients
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.clients (
+    name,
+    phone,
+    email,
+    address,
+    district,
+    package_amount,
+    services,
+    status,
+    source
+  )
+  values (
+    client_name,
+    client_phone,
+    nullif(client_email, ''),
+    nullif(client_address, ''),
+    nullif(client_district, ''),
+    nullif(client_package_amount, ''),
+    coalesce(client_services, '{}'),
+    'Active',
+    'Admin Panel'
+  )
+  returning *;
+$$;
+
+create or replace function public.admin_update_client(
+  client_id uuid,
+  client_name text,
+  client_phone text,
+  client_email text,
+  client_address text,
+  client_district text,
+  client_package_amount text,
+  client_services text[]
+)
+returns public.clients
+language sql
+security definer
+set search_path = public
+as $$
+  update public.clients
+  set
+    name = client_name,
+    phone = client_phone,
+    email = nullif(client_email, ''),
+    address = nullif(client_address, ''),
+    district = nullif(client_district, ''),
+    package_amount = nullif(client_package_amount, ''),
+    services = coalesce(client_services, services)
+  where id = client_id
+  returning *;
+$$;
+
+create or replace function public.admin_delete_client(client_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from public.clients
+  where id = client_id;
+
+  return true;
+end;
+$$;
+
+grant execute on function public.admin_get_clients() to anon, authenticated;
+grant execute on function public.admin_get_client(uuid) to anon, authenticated;
+grant execute on function public.admin_add_client(text, text, text, text, text, text, text[]) to anon, authenticated;
+grant execute on function public.admin_update_client(uuid, text, text, text, text, text, text, text[]) to anon, authenticated;
+grant execute on function public.admin_delete_client(uuid) to anon, authenticated;
 
 -- Verify admins were created.
 select email, phone from public.admins order by phone;
