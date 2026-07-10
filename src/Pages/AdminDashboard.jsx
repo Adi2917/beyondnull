@@ -1,7 +1,7 @@
 import { useEffect,useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { FaPlus,FaSignOutAlt,FaHome,FaUsers,FaSearch,FaCalendarAlt } from "react-icons/fa"
-import { supabase } from "../services/supabaseClient"
+import { FaPlus,FaSignOutAlt,FaHome,FaUsers,FaSearch,FaCalendarAlt,FaDatabase } from "react-icons/fa"
+import { checkAdminSession, getAdminSession, getClients, logoutAdmin } from "../services/authService"
 
 import ClientCard from "../Components/ClientCard"
 import SearchBar from "../Components/SearchBar"
@@ -20,12 +20,13 @@ const [clients,setClients] = useState([])
 const [search,setSearch] = useState("")
 const [showAdd,setShowAdd] = useState(false)
 const [deleteId,setDeleteId] = useState(null)
+const [loading,setLoading] = useState(true)
+const [backendMode,setBackendMode] = useState("Checking")
+const adminSession = getAdminSession()
 
 useEffect(()=>{
 
-const logged = localStorage.getItem("adminLogged")
-
-if(!logged){
+if(!checkAdminSession()){
 navigate("/admin")
 return
 }
@@ -36,27 +37,33 @@ fetchClients()
 
 const fetchClients = async ()=>{
 
-const {data,error} = await supabase
-.from("clients")
-.select("*")
-.order("created_at",{ascending:false})
+setLoading(true)
 
-if(!error){
-setClients(data)
+const {data,error,source} = await getClients()
+
+if(error){
+console.log("Client fetch error:", error)
+setClients([])
+}else{
+setClients(data || [])
 }
+
+setBackendMode(source === "demo" ? "Demo Backend" : "Live Supabase")
+setLoading(false)
 
 }
 
 const logout = ()=>{
 
-localStorage.removeItem("adminLogged")
+logoutAdmin()
 navigate("/admin")
 
 }
 
 const filtered = clients.filter(c =>
-c.name.toLowerCase().includes(search.toLowerCase()) ||
-c.phone.includes(search)
+(c.name || "").toLowerCase().includes(search.toLowerCase()) ||
+(c.phone || "").includes(search) ||
+(c.district || "").toLowerCase().includes(search.toLowerCase())
 )
 
 return(
@@ -73,9 +80,15 @@ return(
 
 <div>
 <h2>Admin Studio</h2>
-<p>Client management and project control</p>
+<p>Client management, project control, and backend records</p>
 </div>
 
+</div>
+
+<div className="backendPill">
+<FaDatabase/>
+<span>{backendMode}</span>
+{adminSession?.phone && <small>{adminSession.phone}</small>}
 </div>
 
 <div className="headerBtns">
@@ -139,6 +152,20 @@ return(
 
 </div>
 
+<div className="statCard">
+
+<FaDatabase/>
+
+<div>
+
+<h3>{backendMode === "Live Supabase" ? "Live" : "Demo"}</h3>
+
+<p>Backend Mode</p>
+
+</div>
+
+</div>
+
 </div>
 
 
@@ -167,7 +194,10 @@ onClick={()=>setShowAdd(true)}
 
 {filtered.length === 0 ?
 
-<p className="empty">No clients found</p>
+<div className="empty">
+<strong>{loading ? "Loading clients..." : "No clients found"}</strong>
+<span>{loading ? "Connecting to backend records" : "Add your first client to test the full CRUD flow"}</span>
+</div>
 
 :
 

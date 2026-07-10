@@ -44,6 +44,20 @@ admins
 clients
 ```
 
+The admin panel uses Supabase as the live backend. It also has a demo-safe local fallback so the dashboard can still be shown if Supabase tables or permissions are not ready during a presentation.
+
+Backend features currently wired:
+
+```text
+Admin login
+Protected admin routes
+Client create/read/update/delete
+Client search
+Client profile
+Call/WhatsApp actions
+Supabase + local demo fallback
+```
+
 ## Supabase Setup
 
 If the Supabase project has no tables, open:
@@ -58,7 +72,7 @@ Then run the full SQL in:
 Supabase Dashboard -> SQL Editor -> New query -> Run
 ```
 
-This creates the `admins` and `clients` tables and inserts the two admin numbers with PIN `112233`.
+This creates/updates the `admins` and `clients` tables and inserts the two admin numbers with PIN `112233`.
 It also grants frontend read/write access for the current direct-Supabase admin panel.
 
 Important: run this SQL in the same Supabase project used by the app. The project ref in the app URL is:

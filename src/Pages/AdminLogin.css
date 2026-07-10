@@ -56,6 +56,30 @@
   font-size: 14px;
 }
 
+.loginHint {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 13px;
+  border: 1px solid rgba(24, 169, 120, 0.18);
+  border-radius: 16px;
+  background: rgba(24, 169, 120, 0.08);
+  color: var(--bn-text);
+}
+
+.loginHint span,
+.loginHint small {
+  color: var(--bn-muted);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.loginHint strong {
+  font-size: 14px;
+}
+
 .loginCard input {
   width: 100%;
   padding: 14px 15px;
@@ -98,12 +122,41 @@
   box-shadow: 0 10px 0 rgba(77, 51, 35, 0.14), 0 22px 50px rgba(121, 87, 213, 0.2);
 }
 
+.loginCard button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none;
+}
+
 .forgetPin {
   margin-top: 18px;
   font-size: 14px;
   color: var(--bn-purple);
   cursor: pointer;
   font-weight: 800;
+}
+
+.loginMessage {
+  margin: 14px 0 0;
+  padding: 11px 12px;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.loginMessage.error {
+  background: rgba(232, 76, 97, 0.1);
+  color: #a8263a;
+}
+
+.loginMessage.demo {
+  background: rgba(245, 159, 11, 0.12);
+  color: #8a5400;
+}
+
+.loginMessage.live {
+  background: rgba(24, 169, 120, 0.12);
+  color: var(--bn-green);
 }
 
 @media(max-width:500px) {

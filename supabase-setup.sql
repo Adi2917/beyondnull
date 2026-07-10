@@ -8,6 +8,7 @@ create table if not exists public.admins (
   id uuid primary key default gen_random_uuid(),
   phone text not null unique,
   pin text not null,
+  role text not null default 'Admin',
   created_at timestamptz not null default now()
 );
 
@@ -20,15 +21,25 @@ create table if not exists public.clients (
   district text,
   package_amount text,
   services text[] not null default '{}',
+  status text not null default 'Active',
+  source text default 'Admin Panel',
+  notes text,
   created_at timestamptz not null default now()
 );
 
-insert into public.admins (phone, pin)
+alter table public.admins add column if not exists role text not null default 'Admin';
+alter table public.clients add column if not exists status text not null default 'Active';
+alter table public.clients add column if not exists source text default 'Admin Panel';
+alter table public.clients add column if not exists notes text;
+
+insert into public.admins (phone, pin, role)
 values
-  ('7485875137', '112233'),
-  ('6205475866', '112233')
+  ('7485875137', '112233', 'Founder Admin'),
+  ('6205475866', '112233', 'Operations Admin')
 on conflict (phone)
-do update set pin = excluded.pin;
+do update set
+  pin = excluded.pin,
+  role = excluded.role;
 
 -- Current frontend reads/writes directly with the Supabase anon key.
 -- Keep RLS disabled for this version, otherwise the admin panel will need

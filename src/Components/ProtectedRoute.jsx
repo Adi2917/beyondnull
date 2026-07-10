@@ -1,8 +1,9 @@
 import { Navigate } from "react-router-dom"
+import { checkAdminSession } from "../services/authService"
 
 function ProtectedRoute({children}) {
 
-const isLogged = localStorage.getItem("adminLogged")
+const isLogged = checkAdminSession()
 
 if(!isLogged){
 

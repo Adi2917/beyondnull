@@ -1,14 +1,11 @@
-import { supabase } from "../services/supabaseClient"
+import { deleteClient } from "../services/authService"
 import "./ConfirmDeleteModal.css"
 
 function ConfirmDeleteModal({clientId,close,refresh}){
 
 const handleDelete = async ()=>{
 
-const {error} = await supabase
-.from("clients")
-.delete()
-.eq("id",clientId)
+const {error} = await deleteClient(clientId)
 
 if(error){
 alert("Delete failed")

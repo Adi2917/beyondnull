@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { FaTimes } from "react-icons/fa"
-import { supabase } from "../services/supabaseClient"
+import { addClient } from "../services/authService"
 import "./AddClientModal.css"
 
 function AddClientModal({ onClose, refreshClients }) {
@@ -20,7 +20,13 @@ const serviceList = [
 "Web Development",
 "App Development",
 "Social Media Marketing",
-"Social Media Management"
+"Social Media Management",
+"Digital Marketing",
+"SEO",
+"Google My Business",
+"Advertisement",
+"Consultancy",
+"Video Editing"
 ]
 
 const handleService = (service)=>{
@@ -41,14 +47,17 @@ const handleSubmit = async (e)=>{
 
 e.preventDefault()
 
+if(!/^[0-9]{10}$/.test(form.phone)){
+alert("Enter valid 10 digit phone number")
+return
+}
+
 if(services.length===0){
 alert("Select at least one service")
 return
 }
 
-const { error } = await supabase
-.from("clients")
-.insert([{
+const { error, source } = await addClient({
 name:form.name,
 phone:form.phone,
 email:form.email,
@@ -56,12 +65,16 @@ address:form.address,
 district:form.district,
 package_amount:form.amount,
 services:services
-}])
+})
 
 if(error){
-alert("Error adding client")
+alert(error.message || "Error adding client")
 console.log(error)
 return
+}
+
+if(source === "demo"){
+console.info("Client saved in demo backend because Supabase is unavailable.")
 }
 
 refreshClients()

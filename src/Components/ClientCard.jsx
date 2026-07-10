@@ -31,10 +31,15 @@ onClick={()=>navigate(`/client/${client.id}`)}
 
 </div>
 
+{onDelete &&
 <FaTrash
 className="deleteIcon"
-onClick={()=>onDelete(client.id)}
+onClick={(e)=>{
+e.stopPropagation()
+onDelete(client.id)
+}}
 />
+}
 
 </div>
 

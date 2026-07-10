@@ -1,6 +1,6 @@
 import { useEffect,useState } from "react"
 import { useParams,useNavigate } from "react-router-dom"
-import { supabase } from "../services/supabaseClient"
+import { deleteClient as removeClient, getClientById, updateClient as saveClient } from "../services/authService"
 import { FaEdit,FaTrash } from "react-icons/fa"
 
 import "./ClientProfile.css"
@@ -31,11 +31,7 @@ fetchClient()
 
 const fetchClient = async ()=>{
 
-const { data,error } = await supabase
-.from("clients")
-.select("*")
-.eq("id",id)
-.single()
+const { data,error } = await getClientById(id)
 
 if(error){
 
@@ -73,9 +69,7 @@ UPDATE CLIENT
 
 const updateClient = async ()=>{
 
-const { error } = await supabase
-.from("clients")
-.update({
+const { error } = await saveClient(id,{
 name:form.name,
 phone:form.phone,
 email:form.email,
@@ -83,7 +77,6 @@ address:form.address,
 district:form.district,
 package_amount:form.package_amount
 })
-.eq("id",id)
 
 if(error){
 
@@ -112,10 +105,7 @@ const confirmDelete = window.confirm("Delete this client?")
 
 if(!confirmDelete) return
 
-const { error } = await supabase
-.from("clients")
-.delete()
-.eq("id",id)
+const { error } = await removeClient(id)
 
 if(error){
 
@@ -143,6 +133,20 @@ return(
 <div className="profile-loading">
 
 Loading client...
+
+</div>
+
+)
+
+}
+
+if(!client){
+
+return(
+
+<div className="profile-loading">
+
+Client not found
 
 </div>
 
@@ -281,7 +285,7 @@ onChange={handleChange}
 
 ):( 
 
-<p>₹ {client.package_amount}</p>
+<p>Rs {client.package_amount || "Not provided"}</p>
 
 )}
 
