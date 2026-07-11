@@ -5,6 +5,19 @@ import { FaEdit,FaTrash } from "react-icons/fa"
 
 import "./ClientProfile.css"
 
+const serviceList = [
+  "Web Development",
+  "App Development",
+  "Social Media Marketing",
+  "Social Media Management",
+  "Digital Marketing",
+  "SEO",
+  "Google My Business",
+  "Advertisement",
+  "Consultancy",
+  "Video Editing"
+]
+
 function ClientProfile(){
 
 const { id } = useParams()
@@ -62,6 +75,25 @@ setForm({...form,[e.target.name]:e.target.value})
 
 }
 
+const toggleService = (service)=>{
+
+const selectedServices = Array.isArray(form.services) ? form.services : []
+
+if(selectedServices.includes(service)){
+setForm({
+...form,
+services:selectedServices.filter((item)=>item!==service)
+})
+return
+}
+
+setForm({
+...form,
+services:[...selectedServices,service]
+})
+
+}
+
 
 /* =====================
 UPDATE CLIENT
@@ -69,13 +101,24 @@ UPDATE CLIENT
 
 const updateClient = async ()=>{
 
+if(!/^[0-9]{10}$/.test(form.phone || "")){
+alert("Enter valid 10 digit phone number")
+return
+}
+
+if(!Array.isArray(form.services) || form.services.length===0){
+alert("Select at least one service")
+return
+}
+
 const { error } = await saveClient(id,{
 name:form.name,
 phone:form.phone,
 email:form.email,
 address:form.address,
 district:form.district,
-package_amount:form.package_amount
+package_amount:form.package_amount,
+services:form.services
 })
 
 if(error){
@@ -301,9 +344,30 @@ onChange={handleChange}
 
 <h3>Services</h3>
 
+{editMode ? (
+
+<div className="profile-service-grid">
+
+{serviceList.map((service)=>(
+
+<button
+type="button"
+key={service}
+className={`profile-service-option ${form.services?.includes(service) ? "active":""}`}
+onClick={()=>toggleService(service)}
+>
+{service}
+</button>
+
+))}
+
+</div>
+
+) : (
+
 <div className="service-badges">
 
-{client.services?.map((service,i)=>(
+{client.services?.length ? client.services.map((service,i)=>(
 
 <span key={i} className="badge">
 
@@ -311,9 +375,11 @@ onChange={handleChange}
 
 </span>
 
-))}
+)) : <p className="no-services">No services selected</p>}
 
 </div>
+
+)}
 
 </div>
 
