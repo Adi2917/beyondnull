@@ -130,24 +130,45 @@ ADMIN PIN RESET
 async function sendOtpMail({ email, phone, otp }) {
   const data = new FormData()
   const maskedPhone = `Admin ending ${phone.slice(-4)}`
-  const message = [
-    "BeyondNull Admin PIN Reset Verification",
+  const spacedOtp = String(otp).split("").join(" ")
+  const subject = `[BeyondNull Security] Admin PIN Reset OTP: ${otp}`
+  const plainMessage = [
+    "BeyondNull Security",
+    "Admin PIN Reset Verification",
     "",
-    `Your 4 digit OTP is: ${otp}`,
+    `Security code: ${otp}`,
     "",
-    "This OTP is valid for 5 minutes.",
-    "Use this code only to reset the BeyondNull admin PIN.",
+    "This code is valid for exactly 5 minutes.",
+    "Use it only to reset the BeyondNull admin PIN.",
+    `Request account: ${maskedPhone}`,
     "",
     "If you did not request this reset, please ignore this email."
   ].join("\n")
+  const htmlMessage = `
+    <div style="margin:0;padding:32px;background:#f6f8fb;font-family:Inter,Arial,sans-serif;color:#0f172a;">
+      <div style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #dde5f0;border-radius:24px;padding:36px 34px;text-align:center;box-shadow:0 20px 60px rgba(15,23,42,0.08);">
+        <div style="width:64px;height:64px;border-radius:18px;margin:0 auto 22px;background:linear-gradient(135deg,#13b8a6,#7c3aed);display:inline-flex;align-items:center;justify-content:center;color:#ffffff;font-weight:900;font-size:24px;letter-spacing:-1px;">BN</div>
+        <h1 style="margin:0 0 12px;font-size:28px;line-height:1.2;color:#0b1220;">Admin PIN Reset Verification</h1>
+        <p style="margin:0 auto 26px;max-width:460px;font-size:16px;line-height:1.65;color:#536179;">Use this secure code to reset your BeyondNull admin PIN. This verification is linked to ${maskedPhone}.</p>
+        <div style="margin:0 auto 22px;padding:24px;border:2px dashed #16a3d8;border-radius:18px;background:#f8fbff;color:#0ea5e9;font-size:38px;font-weight:900;letter-spacing:13px;">${spacedOtp}</div>
+        <p style="margin:0;font-size:14px;color:#8794ad;">This transmission remains active for exactly 5 minutes.</p>
+        <div style="height:1px;background:#e7edf5;margin:28px 0 18px;"></div>
+        <p style="margin:0;font-size:13px;line-height:1.6;color:#667085;">If you did not request this reset, ignore this email. Never share this OTP with anyone.</p>
+      </div>
+    </div>
+  `
 
-  data.append("subject", "BeyondNull Admin PIN Reset OTP")
-  data.append("title", "BeyondNull Admin PIN Reset OTP")
+  data.append("subject", subject)
+  data.append("title", "Admin PIN Reset Verification")
   data.append("type", "Admin Security OTP")
-  data.append("name", "BeyondNull Security Team")
+  data.append("fromName", "BeyondNull Security")
+  data.append("name", "BeyondNull Security")
   data.append("phone", maskedPhone)
   data.append("email", email)
-  data.append("message", message)
+  data.append("message", plainMessage)
+  data.append("plainMessage", plainMessage)
+  data.append("htmlMessage", htmlMessage)
+  data.append("html_message", htmlMessage)
 
   await fetch(CONTACT_SCRIPT_URL, {
     method: "POST",
