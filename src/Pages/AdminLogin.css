@@ -126,6 +126,14 @@
   font-weight: 900;
 }
 
+.secureAccessNote {
+  margin: 16px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--bn-muted);
+  font-weight: 800;
+}
+
 .loginMessage {
   margin: 14px 0 0;
   padding: 11px 12px;

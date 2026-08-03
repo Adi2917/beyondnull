@@ -45,8 +45,16 @@ Client search
 Client profile
 Call/WhatsApp actions
 Email + PIN login
-OTP based PIN reset
+Token based admin session
 Supabase backend service layer
+```
+
+Security mode:
+
+```text
+Only the two registered BeyondNull admins can login.
+Client records are blocked by RLS and can be accessed only through a valid admin session token.
+Public PIN reset is disabled so outsiders cannot reset the admin PIN from the browser.
 ```
 
 OTP email uses the existing Google Apps Script mail bridge. The React app sends `subject`, `plainMessage`, and `htmlMessage` fields for the professional security email.

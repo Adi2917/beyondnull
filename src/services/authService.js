@@ -16,17 +16,34 @@ function makeError(message) {
 }
 
 function saveSession(admin, source = "supabase") {
-  localStorage.setItem(LEGACY_SESSION_KEY, "true")
+  localStorage.removeItem(LEGACY_SESSION_KEY)
   localStorage.setItem(
     SESSION_KEY,
     JSON.stringify({
       phone: admin.phone,
       email: admin.email,
       role: admin.role || "Admin",
+      token: admin.session_token,
+      expiresAt: admin.expires_at,
       source,
       loggedAt: new Date().toISOString()
     })
   )
+}
+
+function getAdminToken() {
+  const session = getAdminSession()
+
+  if (!session?.token) {
+    return null
+  }
+
+  if (session.expiresAt && new Date(session.expiresAt).getTime() <= Date.now()) {
+    logoutAdmin()
+    return null
+  }
+
+  return session.token
 }
 
 function readLocalClients() {
@@ -276,7 +293,7 @@ CHECK LOGIN SESSION
 ========================= */
 
 export function checkAdminSession() {
-  return Boolean(localStorage.getItem(SESSION_KEY) || localStorage.getItem(LEGACY_SESSION_KEY))
+  return Boolean(getAdminToken())
 }
 
 export function getAdminSession() {
@@ -292,8 +309,15 @@ ADD CLIENT
 ========================= */
 
 export async function addClient(clientData) {
+  const admin_session_token = getAdminToken()
+
+  if (!admin_session_token) {
+    return { data: null, error: makeError("Admin session expired. Login again."), source: "supabase" }
+  }
+
   const client = sanitizeClient(clientData)
   const { data, error } = await supabase.rpc("admin_add_client", {
+    admin_session_token,
     client_name: client.name,
     client_phone: client.phone,
     client_email: client.email || "",
@@ -302,6 +326,10 @@ export async function addClient(clientData) {
     client_package_amount: client.package_amount || "",
     client_services: client.services
   })
+
+  if (!error && !data) {
+    return { data: null, error: makeError("Unauthorized admin session. Login again."), source: "supabase" }
+  }
 
   return { data, error, source: "supabase" }
 }
@@ -313,7 +341,15 @@ GET ALL CLIENTS
 export async function getClients() {
   await migrateLocalClientsToSupabase()
 
-  const { data, error } = await supabase.rpc("admin_get_clients")
+  const admin_session_token = getAdminToken()
+
+  if (!admin_session_token) {
+    return { data: [], error: makeError("Admin session expired. Login again."), source: "supabase" }
+  }
+
+  const { data, error } = await supabase.rpc("admin_get_clients", {
+    admin_session_token
+  })
 
   return { data: data || [], error, source: "supabase" }
 }
@@ -323,9 +359,20 @@ GET SINGLE CLIENT
 ========================= */
 
 export async function getClientById(id) {
+  const admin_session_token = getAdminToken()
+
+  if (!admin_session_token) {
+    return { data: null, error: makeError("Admin session expired. Login again."), source: "supabase" }
+  }
+
   const { data, error } = await supabase.rpc("admin_get_client", {
+    admin_session_token,
     client_id: id
   })
+
+  if (!error && !data) {
+    return { data: null, error: makeError("Unauthorized admin session. Login again."), source: "supabase" }
+  }
 
   return { data, error, source: "supabase" }
 }
@@ -335,8 +382,15 @@ UPDATE CLIENT
 ========================= */
 
 export async function updateClient(id, updatedData) {
+  const admin_session_token = getAdminToken()
+
+  if (!admin_session_token) {
+    return { data: null, error: makeError("Admin session expired. Login again."), source: "supabase" }
+  }
+
   const client = sanitizeClient(updatedData)
   const { data, error } = await supabase.rpc("admin_update_client", {
+    admin_session_token,
     client_id: id,
     client_name: client.name,
     client_phone: client.phone,
@@ -347,6 +401,10 @@ export async function updateClient(id, updatedData) {
     client_services: client.services
   })
 
+  if (!error && !data) {
+    return { data: null, error: makeError("Unauthorized admin session. Login again."), source: "supabase" }
+  }
+
   return { data, error, source: "supabase" }
 }
 
@@ -355,9 +413,20 @@ DELETE CLIENT
 ========================= */
 
 export async function deleteClient(id) {
+  const admin_session_token = getAdminToken()
+
+  if (!admin_session_token) {
+    return { data: false, error: makeError("Admin session expired. Login again."), source: "supabase" }
+  }
+
   const { data, error } = await supabase.rpc("admin_delete_client", {
+    admin_session_token,
     client_id: id
   })
+
+  if (!error && !data) {
+    return { data: false, error: makeError("Unauthorized admin session. Login again."), source: "supabase" }
+  }
 
   return { data, error, source: "supabase" }
 }

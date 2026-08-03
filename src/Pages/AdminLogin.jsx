@@ -5,7 +5,6 @@ import BrandLogo from "../Components/BrandLogo"
 import "./AdminLogin.css"
 
 import { checkAdminSession, loginAdmin } from "../services/authService"
-import ForgetPinModal from "../Components/ForgetPinModal"
 
 function AdminLogin(){
 
@@ -14,7 +13,6 @@ const navigate = useNavigate()
 const [email,setEmail] = useState("")
 const [pin,setPin] = useState("")
 const [showPin,setShowPin] = useState(false)
-const [showForget,setShowForget] = useState(false)
 
 const [loading,setLoading] = useState(false)
 const [message,setMessage] = useState("")
@@ -107,13 +105,9 @@ onChange={(e)=>setPin(e.target.value)}
 
 </form>
 
-<button
-type="button"
-className="forgotPinBtn"
-onClick={()=>setShowForget(true)}
->
-Forgot PIN?
-</button>
+<p className="secureAccessNote">
+Access is restricted to the two registered BeyondNull admins only.
+</p>
 
 {message &&
 <p className={`loginMessage ${mode}`}>
@@ -122,10 +116,6 @@ Forgot PIN?
 }
 
 </div>
-
-{showForget &&
-<ForgetPinModal close={()=>setShowForget(false)}/>
-}
 
 </div>
 
