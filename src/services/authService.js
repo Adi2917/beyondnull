@@ -4,7 +4,7 @@ const SESSION_KEY = "bn_admin_session"
 const LEGACY_SESSION_KEY = "adminLogged"
 const LOCAL_CLIENTS_KEY = "bn_demo_clients"
 const CONTACT_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyoFTbbPRaFVBe41FLmQAadNFCE0JvkMNK0PmmsyqB7NguqVhJdEUHBMfKhsSPt4hzQ/exec"
+  "https://script.google.com/macros/s/AKfycbwJyjKFlkswSNUIflWz0cwb7imu_M29Ea6eywUrbGeWGOtddPUrTBUgjQvNIHItHHVf/exec"
 const OFFICIAL_ADMIN_EMAIL = "beyoondnull@gmail.com"
 
 const normalizePhone = (phone = "") => phone.replace(/\D/g, "").slice(0, 10)

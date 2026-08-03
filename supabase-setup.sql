@@ -57,13 +57,13 @@ alter table public.clients add column if not exists notes text;
 
 insert into public.admins (email, phone, pin, pin_hash, role)
 values
-  ('beyoondnull@gmail.com', '7485875137', 'protected', crypt('112233', gen_salt('bf')), 'Founder Admin'),
-  ('beyoondnull@gmail.com', '6205475866', 'protected', crypt('112233', gen_salt('bf')), 'Operations Admin')
+  ('beyoondnull@gmail.com', '7485875137', 'protected', crypt('111111', gen_salt('bf')), 'Founder Admin'),
+  ('beyoondnull@gmail.com', '6205475866', 'protected', crypt('111111', gen_salt('bf')), 'Operations Admin')
 on conflict (phone)
 do update set
   email = excluded.email,
   pin = 'protected',
-  pin_hash = coalesce(public.admins.pin_hash, excluded.pin_hash),
+  pin_hash = excluded.pin_hash,
   role = excluded.role;
 
 alter table public.admins enable row level security;
@@ -172,6 +172,7 @@ begin
     from public.admins
     where lower(admins.email) = lower(admin_email)
       and admins.phone = admin_phone
+      and admins.phone in ('7485875137', '6205475866')
   ) then
     return;
   end if;
@@ -222,7 +223,8 @@ begin
     pin = 'protected',
     pin_hash = crypt(new_pin, gen_salt('bf'))
   where lower(email) = lower(admin_email)
-    and phone = admin_phone;
+    and phone = admin_phone
+    and phone in ('7485875137', '6205475866');
 
   update public.admin_pin_resets
   set used_at = now()
@@ -233,8 +235,8 @@ end;
 $$;
 
 grant execute on function public.verify_admin_login(text, text) to anon, authenticated;
-revoke execute on function public.request_admin_pin_reset(text, text) from public, anon, authenticated;
-revoke execute on function public.confirm_admin_pin_reset(text, text, text, text) from public, anon, authenticated;
+grant execute on function public.request_admin_pin_reset(text, text) to anon, authenticated;
+grant execute on function public.confirm_admin_pin_reset(text, text, text, text) to anon, authenticated;
 
 create or replace function public.admin_get_clients()
 returns setof public.clients
