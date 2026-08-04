@@ -2,7 +2,7 @@
 -- Run this in Supabase Dashboard -> SQL Editor -> New query -> Run.
 -- This creates the tables currently used by the React admin panel.
 
-create extension if not exists pgcrypto;
+create extension if not exists pgcrypto with schema extensions;
 
 create table if not exists public.admins (
   id uuid primary key default gen_random_uuid(),
@@ -57,8 +57,8 @@ alter table public.clients add column if not exists notes text;
 
 insert into public.admins (email, phone, pin, pin_hash, role)
 values
-  ('beyoondnull@gmail.com', '7485875137', 'protected', crypt('111111', gen_salt('bf')), 'Founder Admin'),
-  ('beyoondnull@gmail.com', '6205475866', 'protected', crypt('111111', gen_salt('bf')), 'Operations Admin')
+  ('beyoondnull@gmail.com', '7485875137', 'protected', extensions.crypt('111111', extensions.gen_salt('bf')), 'Founder Admin'),
+  ('beyoondnull@gmail.com', '6205475866', 'protected', extensions.crypt('111111', extensions.gen_salt('bf')), 'Operations Admin')
 on conflict (phone)
 do update set
   email = excluded.email,
@@ -130,7 +130,7 @@ begin
   into matched_admin
   from public.admins
   where lower(admins.email) = lower(admin_email)
-    and admins.pin_hash = crypt(admin_pin, admins.pin_hash)
+    and admins.pin_hash = extensions.crypt(admin_pin, admins.pin_hash)
     and admins.phone in ('7485875137', '6205475866')
   limit 1;
 
@@ -138,7 +138,7 @@ begin
     return;
   end if;
 
-  session_token := encode(gen_random_bytes(32), 'hex');
+  session_token := encode(extensions.gen_random_bytes(32), 'hex');
   expires_at := now() + interval '12 hours';
 
   insert into public.admin_sessions (admin_id, token, expires_at)
@@ -221,7 +221,7 @@ begin
   update public.admins
   set
     pin = 'protected',
-    pin_hash = crypt(new_pin, gen_salt('bf'))
+    pin_hash = extensions.crypt(new_pin, extensions.gen_salt('bf'))
   where lower(email) = lower(admin_email)
     and phone = admin_phone
     and phone in ('7485875137', '6205475866');
