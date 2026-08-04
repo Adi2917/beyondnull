@@ -36,8 +36,8 @@ function Footer() {
 
         <div className="footer-contact">
           <h3>Get In Touch</h3>
-          <p className="contact-item"><FaPhone /> +91 6205475866</p>
-          <p className="contact-item"><FaEnvelope /> beyondnull@gmail.com</p>
+          <p className="contact-item"><FaPhone /> +91 6205475866, 7485875137</p>
+          <p className="contact-item"><FaEnvelope /> beyoondnull@gmail.com</p>
           <p className="contact-item"><FaLocationDot /> India</p>
           <p className="agency-tags">Web Dev - App Dev - SEO - Marketing</p>
         </div>

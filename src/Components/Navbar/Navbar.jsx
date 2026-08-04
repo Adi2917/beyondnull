@@ -59,7 +59,7 @@ function Navbar() {
             </span>
 
             <motion.a 
-               href="https://wa.me/919297753276"
+               href="https://wa.me/916205475866"
                whileHover={{ y: -5, scale: 1.2 }}
                aria-label="Chat with BeyondNull on WhatsApp"
                onClick={() => setMenuOpen(false)}

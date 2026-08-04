@@ -24,8 +24,8 @@ const ContactMiddle = () => {
         {/* CONTACT CARDS - 3D GLASS STYLE */}
         <div className="contact-cards-grid">
           {[
-            { icon: <FaPhoneAlt />, title: "Call Us", desc: "For project and strategy calls.", detail: "+91 6205475866" },
-            { icon: <FaEnvelope />, title: "Email", desc: "For briefs, docs, and proposals.", detail: "beyondnull@gmail.com" },
+            { icon: <FaPhoneAlt />, title: "Call Us", desc: "For project and strategy calls.", detail: "+91 6205475866, 7485875137" },
+            { icon: <FaEnvelope />, title: "Email", desc: "For briefs, docs, and proposals.", detail: "beyoondnull@gmail.com" },
             { icon: <FaWhatsapp />, title: "WhatsApp", desc: "For instant quick updates.", detail: "Chat Anytime" },
             { icon: <FaLocationDot />, title: "Current City", desc: "Available for Bangalore businesses.", detail: "Bangalore" }
           ].map((item, index) => (
