@@ -4,13 +4,12 @@ function BrandLogo({ compact = false, label = "BeyondNull" }) {
   return (
     <div className={`brandLogo ${compact ? "compact" : ""}`} aria-label={label}>
       <div className="brandLogo-mark">
-        <span className="brandLogo-orbit"></span>
-        <span className="brandLogo-core">BN</span>
+        <img src="/beyondnull-official-logo.jpg" alt="" aria-hidden="true" />
       </div>
       {!compact && (
         <div className="brandLogo-text">
-          <strong>Beyond</strong>
-          <span>Null</span>
+          <strong>BEYOND</strong>
+          <span>NULL</span>
         </div>
       )}
     </div>

@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import "./Why.css";
-import { motion } from "framer-motion";
-import { FaChartBar, FaClock, FaCode, FaHandshake } from "react-icons/fa";
+import { FaBullseye, FaEye, FaFingerprint, FaHandshake, FaUsers } from "react-icons/fa";
 
 const Why = () => {
   useEffect(() => {
@@ -23,28 +22,34 @@ const Why = () => {
 
   const whyData = [
     {
-      icon: <FaCode />,
-      title: "Modern Tech Stack",
-      desc: "React-first interfaces, clean performance practices, and scalable digital foundations for business websites and apps.",
-      label: "Modern web development technology"
+      icon: <FaBullseye />,
+      title: "Reach the right people",
+      desc: "We focus your channels, targeting, and message on the audience most likely to need what you offer.",
+      label: "Audience targeting strategy"
     },
     {
-      icon: <FaChartBar />,
-      title: "ROI-Driven Marketing",
-      desc: "Campaigns are planned around leads, conversions, discovery, and measurable brand growth.",
-      label: "Data driven digital marketing"
+      icon: <FaEye />,
+      title: "Earn their attention",
+      desc: "Strong creative, clear positioning, and useful content give people a reason to stop and notice your brand.",
+      label: "Brand attention strategy"
+    },
+    {
+      icon: <FaFingerprint />,
+      title: "Show what makes you different",
+      desc: "We turn your offer, expertise, and customer value into a digital presence that does not feel interchangeable.",
+      label: "Distinctive brand positioning"
     },
     {
       icon: <FaHandshake />,
-      title: "Client-Centric System",
-      desc: "Every project gets a practical roadmap, transparent communication, and execution shaped around your business goals.",
-      label: "Trusted business partnership"
+      title: "Build real trust",
+      desc: "Consistent design, proof, useful information, and transparent communication help prospects choose with confidence.",
+      label: "Customer trust building"
     },
     {
-      icon: <FaClock />,
-      title: "Agile Delivery",
-      desc: "Fast launches, clean iteration, and post-launch support so your digital presence keeps improving.",
-      label: "Fast website development delivery"
+      icon: <FaUsers />,
+      title: "Turn interest into customers",
+      desc: "Conversion-focused pages, funnels, campaigns, and follow-up systems move qualified attention toward action.",
+      label: "Lead and customer conversion"
     }
   ];
 
@@ -59,11 +64,11 @@ const Why = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            Why businesses choose <span className="gold-text">BeyondNull</span>
+            How we turn visibility into <span className="gold-text">growth</span>
           </motion.h2>
 
           <p>
-            We connect design, development, and marketing into one reliable growth workflow for ambitious brands.
+            A clear customer journey from first impression to confidence, enquiry, and long-term business growth.
           </p>
         </div>
 
@@ -82,6 +87,10 @@ const Why = () => {
             </div>
           ))}
         </div>
+
+        <p className="why-closing">
+          The goal is not to look busy online. The goal is to help the right people find you, trust you, and buy from you.
+        </p>
       </div>
     </section>
   );

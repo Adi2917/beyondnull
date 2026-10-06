@@ -1,5 +1,4 @@
 import React from "react";
-import { motion } from "framer-motion";
 import "./ServiceHero.css";
 
 const ServiceHero = () => {
@@ -8,39 +7,30 @@ const ServiceHero = () => {
       <div className="service-hero-accent"></div>
 
       <div className="service-hero-container">
-        <motion.div 
-          className="service-hero-left"
-          initial={{ opacity: 0, x: -100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-        >
+        <div className="service-hero-left">
           <h1>
-            Digital <br />
-            <span className="yellow-glow-text">Services</span>
+            Digital growth <br />
+            <span className="yellow-glow-text">capabilities</span>
           </h1>
           <div className="title-underline"></div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          className="service-hero-right"
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
+        <div className="service-hero-right">
           <div className="glass-content-card">
             <p className="lead-text">
-              BeyondNull builds complete digital systems for brands that need stronger visibility, better websites, and measurable growth.
+              BeyondNull helps businesses build stronger digital foundations, get discovered by the right audience, and grow with measurable campaigns.
             </p>
             <p>
-              Our team combines creativity, strategy, and technology to deliver websites, apps, SEO, social media, ads, Google Business Profile optimization, and performance campaigns.
+              Our team connects websites, apps, SEO, content, LinkedIn, social media, Google Business Profile, video, and performance advertising.
             </p>
             <div className="service-tags">
               <span>#WebDev</span>
               <span>#SEO</span>
               <span>#Marketing</span>
+              <span>#LinkedIn</span>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -6,6 +6,7 @@ import AboutMiddle from '../Components/About/AboutMiddle'
 import MsnVsn from '../Components/About/MsnVsn'
 import Values from '../Components/About/Values'
 import AboutEnd from '../Components/About/AboutEnd'
+import TeamSection from '../Components/About/TeamSection'
 
 const About = () => {
   return (
@@ -13,6 +14,7 @@ const About = () => {
         <Navbar />
         <AboutHero />
         <AboutMiddle />
+        <TeamSection />
         <MsnVsn />
         <Values />
         <AboutEnd />

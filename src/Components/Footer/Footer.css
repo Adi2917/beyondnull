@@ -21,6 +21,8 @@
   gap: 12px;
   margin-bottom: 18px;
   perspective: 1000px;
+  width: max-content;
+  text-decoration: none;
 }
 
 .footer-desc {
@@ -61,11 +63,16 @@
   color: var(--bn-muted);
   margin-bottom: 14px;
   font-size: 14px;
+  text-decoration: none;
 }
 
 .contact-item svg {
   color: var(--bn-purple);
   flex-shrink: 0;
+}
+
+a.contact-item:hover {
+  color: var(--bn-red);
 }
 
 .agency-tags {
@@ -97,7 +104,7 @@
 
 .social-icons a:nth-child(1) { color: var(--bn-red); }
 .social-icons a:nth-child(3) { color: #0a66c2; }
-.social-icons a:nth-child(4) { color: var(--bn-green); }
+.social-icons a:nth-child(4) { color: var(--bn-whatsapp); }
 
 .social-icons a:hover {
   background: #fff;

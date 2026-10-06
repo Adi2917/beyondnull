@@ -1,7 +1,6 @@
 import React from "react";
 import "./AboutEnd.css";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 
 const AboutEnd = () => {
   return (
@@ -19,7 +18,7 @@ const AboutEnd = () => {
           <h2>Ready to Grow Your <span className="yellow-text">Business With Us?</span></h2>
 
           <p>
-            At Beyond Null, we help brands transform their digital presence 
+            At BeyondNull, we help brands transform their digital presence
             through creative strategies, innovative marketing, and powerful 
             branding solutions.
           </p>

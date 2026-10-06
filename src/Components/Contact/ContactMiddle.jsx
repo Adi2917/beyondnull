@@ -1,5 +1,4 @@
 import React from "react";
-import { motion } from "framer-motion";
 import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
 import { FaArrowRight, FaEnvelope, FaLocationDot } from "react-icons/fa6";
 import "./ContactMiddle.css";
@@ -24,14 +23,18 @@ const ContactMiddle = () => {
         {/* CONTACT CARDS - 3D GLASS STYLE */}
         <div className="contact-cards-grid">
           {[
-            { icon: <FaPhoneAlt />, title: "Call Us", desc: "For project and strategy calls.", detail: "+91 6205475866, 7485875137" },
-            { icon: <FaEnvelope />, title: "Email", desc: "For briefs, docs, and proposals.", detail: "beyoondnull@gmail.com" },
-            { icon: <FaWhatsapp />, title: "WhatsApp", desc: "For instant quick updates.", detail: "Chat Anytime" },
+            { icon: <FaPhoneAlt />, title: "Call Us", desc: "For project and strategy calls.", detail: "+91 6205475866, 7485875137", href: "tel:+916205475866" },
+            { icon: <FaEnvelope />, title: "Email", desc: "For briefs, docs, and proposals.", detail: "business@beyondnull.in", href: "mailto:business@beyondnull.in" },
+            { icon: <FaWhatsapp />, title: "WhatsApp", desc: "For instant quick updates.", detail: "+91 6205475866", href: "https://wa.me/916205475866", external: true },
             { icon: <FaLocationDot />, title: "Current City", desc: "Available for Bangalore businesses.", detail: "Bangalore" }
           ].map((item, index) => (
-            <motion.div 
+            <motion.a
               className="contact-card-premium" 
               key={index}
+              href={item.href}
+              target={item.external ? "_blank" : undefined}
+              rel={item.external ? "noopener noreferrer" : undefined}
+              aria-label={item.href ? `${item.title}: ${item.detail}` : undefined}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               whileHover={{ y: -10 }}
@@ -43,7 +46,7 @@ const ContactMiddle = () => {
               <p>{item.desc}</p>
               <span className="contact-detail-text">{item.detail}</span>
               <div className="card-bg-blur"></div>
-            </motion.div>
+            </motion.a>
           ))}
         </div>
 

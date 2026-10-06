@@ -1,6 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
-import { FaRocket, FaUsers, FaChartLine, FaLightbulb } from "react-icons/fa";
+import { FaCalendarCheck, FaLocationDot, FaLayerGroup, FaRoute } from "react-icons/fa6";
 import "./ServiceEnd.css";
 
 const ServiceEnd = () => {
@@ -61,10 +60,10 @@ const ServiceEnd = () => {
       {/* FEATURE CARDS */}
       <div className="service-end-grid">
         {[
-          { icon: <FaRocket />, title: "Growth Focused", desc: "Strategies designed to scale revenue." },
-          { icon: <FaUsers />, title: "Client First", desc: "Custom goals for every project." },
-          { icon: <FaChartLine />, title: "Result Driven", desc: "Measurable data-backed campaigns." },
-          { icon: <FaLightbulb />, title: "Creative Systems", desc: "Strong ideas shaped for your brand." }
+          { icon: <FaCalendarCheck />, title: "Founded in 2024", desc: "Built to connect digital strategy, technology, and execution." },
+          { icon: <FaLocationDot />, title: "Bangalore Based", desc: "Supporting local and remote businesses from Karnataka." },
+          { icon: <FaLayerGroup />, title: "Full-Service Delivery", desc: "Web, search, content, social, video, and paid growth." },
+          { icon: <FaRoute />, title: "Strategy to Execution", desc: "One clear roadmap from discovery through ongoing improvement." }
         ].map((item, index) => (
           <motion.div 
             className="service-end-card-glass" 
@@ -85,10 +84,10 @@ const ServiceEnd = () => {
       {/* STATS COUNTER BAR */}
       <div className="service-stats-bar">
         {[
-          { num: "120+", label: "Projects Done" },
-          { num: "80+", label: "Happy Clients" },
-          { num: "5+", label: "Expert Members" },
-          { num: "360", label: "Growth System" }
+          { num: "2024", label: "Founded" },
+          { num: "BLR", label: "Bangalore, Karnataka" },
+          { num: "3", label: "Build · Get Found · Grow" },
+          { num: "1", label: "Connected Growth Partner" }
         ].map((stat, i) => (
           <div className="stat-item" key={i}>
             <h3 className="stat-num">{stat.num}</h3>

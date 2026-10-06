@@ -1,6 +1,6 @@
 import React from "react";
-import { motion } from "framer-motion";
-import { FaChartLine, FaCode, FaMagnifyingGlassChart } from "react-icons/fa6";
+import { Link } from "react-router-dom";
+import { FaArrowRight, FaChartLine, FaCode, FaMagnifyingGlassChart } from "react-icons/fa6";
 import "./Who.css";
 
 const Who = () => {
@@ -17,20 +17,23 @@ const Who = () => {
   const cards = [
     {
       icon: <FaCode />,
-      title: "Web & App Engineering",
-      desc: "Responsive websites, web apps, landing pages, and product interfaces designed for speed, clarity, and conversion.",
+      title: "Build",
+      desc: "Responsive websites, apps, landing pages, and digital assets designed for speed, clarity, and conversion.",
+      services: ["Websites", "Apps", "Content assets"],
       aria: "Innovative web development solutions"
     },
     {
       icon: <FaMagnifyingGlassChart />,
-      title: "SEO & Local Growth",
-      desc: "Search visibility, Google Business Profile optimization, analytics, and content systems built for discoverability.",
+      title: "Get Found",
+      desc: "SEO, Google Business Profile, content strategy, and local discovery systems built to improve visibility.",
+      services: ["SEO", "Google Business", "LinkedIn"],
       aria: "Smart digital marketing strategies"
     },
     {
       icon: <FaChartLine />,
-      title: "Campaigns That Scale",
-      desc: "Social media, paid ads, creative assets, and funnel strategy tuned for measurable business growth.",
+      title: "Grow",
+      desc: "Paid ads, social media, LinkedIn management, video, and funnel strategy focused on measurable growth.",
+      services: ["Social media", "Performance ads", "Consulting"],
       aria: "Business growth and digital scaling"
     }
   ];
@@ -46,38 +49,39 @@ const Who = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
+          <span className="section-kicker">Three connected capabilities</span>
           <h2 className="who-title">
-            Digital agency systems for <span className="yellow-glow">modern brands</span>
+            One partner to build, get found, and <span className="yellow-glow">grow</span>
           </h2>
           <p className="who-subtitle">
-            We combine engineering, creative direction, and performance marketing into one polished growth platform.
+            Strategy, technology, content, and performance marketing connected around the same business goal.
           </p>
         </motion.div>
 
         <div className="who-cards">
           {cards.map((card, index) => (
-            <motion.div 
+            <motion.article
               className="who-card"
               key={index}
               custom={index}
               variants={cardVariants}
               initial="hidden"
               whileInView="visible"
-              whileHover={{ 
-                y: -15, 
-                rotateY: 10, 
-                borderColor: "rgba(121, 87, 213, 0.28)",
-                boxShadow: "0px 22px 55px rgba(121, 87, 213, 0.18)" 
-              }}
               viewport={{ once: true }}
             >
+              <span className="who-card-number">0{index + 1}</span>
               <div className="who-icon-wrapper" aria-label={card.aria}>
                 <div className="icon-inner">{card.icon}</div>
               </div>
               <h3>{card.title}</h3>
               <p>{card.desc}</p>
-              <div className="card-shine"></div>
-            </motion.div>
+              <ul className="who-service-list">
+                {card.services.map((service) => <li key={service}>{service}</li>)}
+              </ul>
+              <Link to="/services" className="who-card-link">
+                Explore {card.title} <FaArrowRight />
+              </Link>
+            </motion.article>
           ))}
         </div>
 

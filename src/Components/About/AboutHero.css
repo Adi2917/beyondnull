@@ -7,8 +7,8 @@
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(circle at 15% 20%, rgba(232, 76, 97, 0.16), transparent 30%),
-    radial-gradient(circle at 85% 70%, rgba(24, 169, 120, 0.15), transparent 30%),
+    radial-gradient(circle at 15% 20%, rgba(215, 25, 53, 0.13), transparent 30%),
+    radial-gradient(circle at 85% 70%, rgba(122, 20, 38, 0.12), transparent 30%),
     linear-gradient(135deg, #fffaf4, #ffffff 52%, #f7efe6);
   overflow: hidden;
 }
@@ -28,7 +28,7 @@
 .s1 {
   width: 160px;
   height: 160px;
-  background: linear-gradient(135deg, rgba(232, 76, 97, 0.26), rgba(121, 87, 213, 0.18));
+  background: linear-gradient(135deg, rgba(215, 25, 53, 0.22), rgba(122, 20, 38, 0.16));
   top: 18%;
   left: 7%;
   transform: rotate(14deg);
@@ -37,7 +37,7 @@
 .s2 {
   width: 130px;
   height: 130px;
-  background: linear-gradient(135deg, rgba(24, 169, 120, 0.24), rgba(139, 94, 60, 0.14));
+  background: linear-gradient(135deg, rgba(122, 20, 38, 0.18), rgba(215, 25, 53, 0.1));
   bottom: 14%;
   right: 8%;
   animation-delay: 1s;
@@ -88,7 +88,7 @@
 
 .hero-line {
   height: 3px;
-  background: linear-gradient(90deg, transparent, var(--bn-red), var(--bn-purple), var(--bn-green), transparent);
+  background: linear-gradient(90deg, transparent, var(--bn-red), var(--bn-purple), transparent);
   margin: 30px auto 0;
   border-radius: 999px;
 }

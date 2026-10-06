@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
-import { FaLocationDot, FaWhatsapp } from "react-icons/fa6"
+import { Link, useLocation } from "react-router-dom"
 import { HiOutlineMenuAlt3, HiOutlineX } from "react-icons/hi"
 import BrandLogo from "../BrandLogo"
+import { openDiscoveryCall } from "../../utils/openDiscoveryCall"
 import "./Navbar.css"
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { pathname } = useLocation()
 
   useEffect(() => {
     const closeMenu = () => setMenuOpen(false)
@@ -31,55 +31,58 @@ function Navbar() {
   }, [menuOpen])
 
   return (
-    <nav className="navbar">
-      <div className="nav-wrapper">
+    <>
+      <nav className="navbar">
+        <div className="nav-wrapper">
         
-        <motion.div 
-          className="logo"
-          whileHover={{ scale: 1.04, rotateY: 8 }}
-          transition={{ type: "spring", stiffness: 300 }}
-        >
+        <Link className={`logo ${pathname === "/" ? "active" : ""}`} to="/" aria-label="BeyondNull home" aria-current={pathname === "/" ? "page" : undefined} onClick={() => setMenuOpen(false)}>
           <BrandLogo />
-        </motion.div>
+        </Link>
 
         <div
           className={`menu ${menuOpen ? "active" : ""}`}
           onClick={(e) => e.stopPropagation()}
         >
-          <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
-          <Link to="/about" onClick={() => setMenuOpen(false)}>About</Link>
-          <Link to="/services" onClick={() => setMenuOpen(false)}>Services</Link>
-          <Link to="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
-          <Link to="/admin" className="admin-nav-link" onClick={() => setMenuOpen(false)}>Admin</Link>
-
-          <div className="nav-icons">
-            <span className="city-chip">
-              <FaLocationDot />
-              India
-            </span>
-
-            <motion.a 
-               href="https://wa.me/916205475866"
-               whileHover={{ y: -5, scale: 1.2 }}
-               aria-label="Chat with BeyondNull on WhatsApp"
-               onClick={() => setMenuOpen(false)}
-            >
-              <FaWhatsapp className="icon whatsapp" />
-            </motion.a>
-          </div>
+          <Link className={pathname === "/about" ? "active" : ""} aria-current={pathname === "/about" ? "page" : undefined} to="/about" onClick={() => setMenuOpen(false)}>Who We Are</Link>
+          <Link className={pathname === "/services" ? "active" : ""} aria-current={pathname === "/services" ? "page" : undefined} to="/services" onClick={() => setMenuOpen(false)}>Services</Link>
+          <Link className={pathname === "/results" ? "active" : ""} aria-current={pathname === "/results" ? "page" : undefined} to="/results" onClick={() => setMenuOpen(false)}>Our Work</Link>
+          <Link className={pathname === "/resources" ? "active" : ""} aria-current={pathname === "/resources" ? "page" : undefined} to="/resources" onClick={() => setMenuOpen(false)}>Resources</Link>
+          <Link className={pathname === "/contact" ? "active" : ""} aria-current={pathname === "/contact" ? "page" : undefined} to="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
+          <button
+            className="nav-discovery-btn"
+            type="button"
+            onClick={() => {
+              setMenuOpen(false)
+              openDiscoveryCall()
+            }}
+          >
+            Book a Free Discovery Call
+          </button>
         </div>
 
         <div
           className={`hamburger ${menuOpen ? "active" : ""}`}
+          role="button"
+          tabIndex="0"
+          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={menuOpen}
           onClick={(e) => {
             e.stopPropagation()
             setMenuOpen(!menuOpen)
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault()
+              setMenuOpen(!menuOpen)
+            }
+          }}
         >
           {menuOpen ? <HiOutlineX /> : <HiOutlineMenuAlt3 />}
         </div>
-      </div>
-    </nav>
+        </div>
+      </nav>
+      <div className="navbar-spacer" aria-hidden="true" />
+    </>
   )
 }
 

@@ -75,7 +75,7 @@
   transform: rotateX(10deg) rotateY(-10deg);
 }
 
-.value-item:nth-child(2) .value-icon-circle { color: var(--bn-green); background: rgba(24, 169, 120, 0.08); }
+.value-item:nth-child(2) .value-icon-circle { color: var(--bn-purple); background: rgba(122, 20, 38, 0.08); }
 .value-item:nth-child(3) .value-icon-circle { color: var(--bn-red); background: rgba(232, 76, 97, 0.08); }
 .value-item:nth-child(4) .value-icon-circle { color: var(--bn-brown); background: rgba(139, 94, 60, 0.08); }
 

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { FaArrowRight, FaCheck, FaXmark } from "react-icons/fa6";
 import "./ServiceItem.css";
 
 const services = [
   {
+    group: "Build",
     title: "Website Development",
     image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=900&auto=format&fit=crop",
     intro: "Premium responsive websites that look sharp, load fast, and turn visitors into leads.",
@@ -14,6 +15,7 @@ const services = [
     bestFor: "Startups, local businesses, service providers, creators, agencies, and brands that need a professional online presence."
   },
   {
+    group: "Build",
     title: "App Development",
     image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=900&auto=format&fit=crop",
     intro: "Clean mobile app experiences for businesses that need customer portals, booking flows, or custom digital tools.",
@@ -23,6 +25,7 @@ const services = [
     bestFor: "Businesses that need a custom app for operations, customers, leads, services, or digital products."
   },
   {
+    group: "Grow",
     title: "Social Media Marketing",
     image: "https://images.unsplash.com/photo-1611162618071-b39a2ec055fb?w=900&auto=format&fit=crop",
     intro: "Campaigns, creatives, and audience strategy that make your brand visible and memorable.",
@@ -32,6 +35,7 @@ const services = [
     bestFor: "Brands that want reach, leads, awareness, and a stronger social media presence."
   },
   {
+    group: "Grow",
     title: "Social Media Management",
     image: "https://images.unsplash.com/photo-1611926653458-09294b3142bf?w=900&auto=format&fit=crop",
     intro: "Daily social presence handled with strategy, consistency, and professional brand presentation.",
@@ -41,6 +45,17 @@ const services = [
     bestFor: "Businesses that want consistent posting and better brand trust without managing everything themselves."
   },
   {
+    group: "Get Found",
+    title: "LinkedIn Management",
+    image: "https://images.unsplash.com/photo-1611944212129-29977ae1398c?w=900&auto=format&fit=crop",
+    intro: "A focused LinkedIn presence for founders and brands that want authority, relationships, and qualified opportunities.",
+    types: ["Founder profiles", "Company pages", "Content strategy", "Thought leadership", "Profile optimization", "Engagement support"],
+    deliverables: ["Positioning direction", "Monthly content plan", "Post writing", "Creative coordination", "Publishing support", "Performance review"],
+    process: ["Profile and audience audit", "Voice and content planning", "Publishing and engagement", "Monthly learning and refinement"],
+    bestFor: "Founders, consultants, B2B teams, and international service businesses building trust and demand on LinkedIn."
+  },
+  {
+    group: "Build",
     title: "Video Editing",
     image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=900&auto=format&fit=crop",
     intro: "Professional edits for reels, ads, YouTube, launches, testimonials, and brand storytelling.",
@@ -50,6 +65,7 @@ const services = [
     bestFor: "Creators, coaches, local brands, eCommerce stores, and businesses running social campaigns."
   },
   {
+    group: "Grow",
     title: "Consultancy",
     image: "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=900&auto=format&fit=crop",
     intro: "Practical digital guidance for business owners who want clarity before spending on tech or marketing.",
@@ -59,7 +75,8 @@ const services = [
     bestFor: "Founders and businesses that need direction, planning, and smarter digital decisions."
   },
   {
-    title: "Digital Marketing",
+    group: "Get Found",
+    title: "SEO & Digital Marketing",
     image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&auto=format&fit=crop",
     intro: "A complete growth system combining SEO, content, ads, analytics, and conversion-focused strategy.",
     types: ["SEO", "Content marketing", "Lead generation", "Funnel strategy", "Analytics setup", "Conversion optimization"],
@@ -68,7 +85,8 @@ const services = [
     bestFor: "Businesses that want predictable online growth and a long-term digital acquisition system."
   },
   {
-    title: "Google My Business",
+    group: "Get Found",
+    title: "Google Business Profile",
     image: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=900&auto=format&fit=crop",
     intro: "Local visibility setup so nearby customers can find, trust, and contact your business faster.",
     types: ["Profile setup", "Profile optimization", "Local SEO", "Review strategy", "Map ranking support", "Post updates"],
@@ -77,13 +95,35 @@ const services = [
     bestFor: "Clinics, restaurants, salons, stores, agencies, consultants, and local service businesses."
   },
   {
-    title: "Paid Advertisement",
+    group: "Grow",
+    title: "Performance Advertising",
     image: "https://images.unsplash.com/photo-1557838923-2985c318be48?w=900&auto=format&fit=crop",
     intro: "Paid campaigns built for qualified leads, better targeting, and cleaner conversion tracking.",
     types: ["Google Ads", "Meta Ads", "Lead campaigns", "Retargeting", "Launch campaigns", "Offer campaigns"],
     deliverables: ["Campaign setup", "Ad copy", "Audience targeting", "Creative guidance", "Pixel/tracking setup", "Performance optimization"],
     process: ["Offer and audience planning", "Campaign setup", "Launch monitoring", "Budget and creative optimization"],
     bestFor: "Businesses ready to generate leads, bookings, traffic, or sales with measurable ad spend."
+  }
+];
+
+const serviceGroups = [
+  {
+    name: "Build",
+    number: "01",
+    headline: "Create a digital foundation people trust.",
+    description: "Websites, applications, and content assets designed to make your business look credible and work smoothly on every screen."
+  },
+  {
+    name: "Get Found",
+    number: "02",
+    headline: "Show up when the right customers search.",
+    description: "Search, local discovery, and authority-building systems that put your business in front of people already looking for it."
+  },
+  {
+    name: "Grow",
+    number: "03",
+    headline: "Turn attention into measurable demand.",
+    description: "Campaigns, social media, advertising, and strategy focused on generating qualified enquiries and sustainable growth."
   }
 ];
 
@@ -99,45 +139,60 @@ const ServiceItem = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          Full-stack digital <span className="gold-glow">solutions</span>
+          Build, get found, and <span className="gold-glow">grow</span>
         </motion.h2>
 
         <p>
-          Explore each service in detail and choose the exact growth system your business needs.
+          Explore the capabilities we connect around your business goals, audience, and growth stage.
         </p>
       </div>
 
-      <div className="services-grid-modern">
-        {services.map((service, index) => (
-          <motion.div
-            className="service-card-premium"
-            key={service.title}
-            initial={{ opacity: 0, scale: 0.94 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: index * 0.03 }}
-            whileHover={{ y: -10 }}
-          >
-            <div className="card-image-wrapper">
-              <img src={service.image} alt={service.title} loading="lazy" />
-              <div className="card-overlay-gradient"></div>
-            </div>
+      <div className="service-groups">
+        {serviceGroups.map((group) => {
+          const groupedServices = services.filter((service) => service.group === group.name);
 
-            <div className="card-content-area">
-              <span className="service-index">0{index + 1}</span>
-              <h3>{service.title}</h3>
-              <p>{service.intro}</p>
+          return (
+            <section className={`service-group service-group-${group.name.toLowerCase().replace(" ", "-")}`} id={`service-group-${group.number}`} key={group.name} aria-labelledby={`service-group-title-${group.number}`}>
+              <header className="service-group-header">
+                <span className="service-group-number">{group.number}</span>
+                <div className="service-group-title-block">
+                  <p className="service-group-name">{group.name}</p>
+                  <h3 id={`service-group-title-${group.number}`}>{group.headline}</h3>
+                </div>
+                <p className="service-group-description">{group.description}</p>
+              </header>
 
-              <button
-                className="cta-button-service"
-                onClick={() => setActiveService(service)}
-              >
-                <span>Explore Details</span>
-                <FaArrowRight />
-              </button>
-            </div>
-          </motion.div>
-        ))}
+              <div className="services-grid-modern">
+                {groupedServices.map((service, index) => (
+                  <article
+                    className="service-card-premium"
+                    key={service.title}
+                  >
+                    <div className="card-image-wrapper">
+                      <img src={service.image} alt={service.title} loading="lazy" />
+                      <div className="card-overlay-gradient"></div>
+                      <span className="service-card-category">{group.name}</span>
+                    </div>
+
+                    <div className="card-content-area">
+                      <span className="service-index">{group.number}.{index + 1}</span>
+                      <h3>{service.title}</h3>
+                      <p>{service.intro}</p>
+
+                      <button
+                        className="cta-button-service"
+                        onClick={() => setActiveService(service)}
+                      >
+                        <span>Explore service</span>
+                        <FaArrowRight />
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          );
+        })}
       </div>
 
       <AnimatePresence>
@@ -164,7 +219,7 @@ const ServiceItem = () => {
               <div className="service-modal-hero">
                 <img src={activeService.image} alt={activeService.title} />
                 <div>
-                  <span className="service-modal-kicker">Service Detail</span>
+                  <span className="service-modal-kicker">{activeService.group} / Service detail</span>
                   <h3>{activeService.title}</h3>
                   <p>{activeService.intro}</p>
                 </div>

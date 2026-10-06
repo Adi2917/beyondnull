@@ -1,7 +1,6 @@
 import React from "react";
 import "./HomeAbout.css";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 
 const HomeAbout = () => {
   const navigate = useNavigate();
@@ -13,7 +12,7 @@ const HomeAbout = () => {
   return (
     <section className="homeAbout">
       {/* Background Subtle Text for Premium Look */}
-      <div className="bg-watermark">BEYOND NULL</div>
+      <div className="bg-watermark">BEYONDNULL</div>
 
       <div className="about-wrapper">
         
@@ -26,17 +25,17 @@ const HomeAbout = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <h2 className="about-heading">
-            Your creative tech partner for <span className="yellow-text">digital growth</span>
+            Digital strategy that moves people from <span className="yellow-text">attention to action</span>
           </h2>
 
           <p className="about-text">
-            Beyond Null is a web development and digital marketing agency built for brands that need more than a basic online presence. We blend websites, apps, SEO, ads, social media, design, and local discovery into one growth-focused digital system.
+            Founded in 2024 and based in Bangalore, BeyondNull combines marketing strategy, websites, apps, SEO, content, social media, and performance campaigns into one measurable growth system.
           </p>
 
           <motion.button 
             className="about-button" 
             onClick={goToAbout}
-            aria-label="Learn more about Beyond Null"
+            aria-label="Learn more about BeyondNull"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >

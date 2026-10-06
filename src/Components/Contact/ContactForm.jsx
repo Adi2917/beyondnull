@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "./ContactForm.css";
 import Swal from "sweetalert2";
-import { motion } from "framer-motion"; // Optional: For smooth reveal
 
 const ContactForm = () => {
   const [form, setForm] = useState({
@@ -72,7 +71,7 @@ const ContactForm = () => {
         color: "#211b18"
       });
 
-    } catch (err) {
+    } catch {
       setLoading(false);
       Swal.fire({
         icon: "error",
@@ -85,39 +84,48 @@ const ContactForm = () => {
   };
 
   return (
-    <section className="contact">
+    <section className="contact" id="contact-form-section">
       <div className="contact-wrapper-main">
         
         <div className="contact-heading">
-          <motion.h2 initial={{opacity:0}} whileInView={{opacity:1}}>
-            Let's Build Something <span className="yellow-gradient">Powerful Together</span>
-          </motion.h2>
+          <span className="section-kicker">Free discovery call</span>
+          <h2>
+            Have an idea? Let's turn it into <span className="yellow-gradient">business growth.</span>
+          </h2>
           <p>
-            Have a project idea or business requirement? 
-            Send us a message and our team will connect with you shortly.
+            Tell us what you are building, improving, or trying to grow. We will use the call to identify a practical next step.
           </p>
         </div>
 
         <div className="contact-container">
           {/* LEFT INFO SIDE */}
           <div className="contact-info">
-            <div className="info-badge">BeyondNull Studio</div>
-            <h3>Grow Your Digital Presence</h3>
+            <div className="info-badge">BeyondNull / Bangalore</div>
+            <h3>One team for your complete digital journey.</h3>
             <p>
-              We create websites, apps, campaigns, and local growth assets that help your audience find you and trust you faster.
+              From the first website screen to the campaign that brings the next customer, we connect every part around one clear business goal.
             </p>
 
             <ul className="premium-list">
-              <li><span className="dot"></span> Custom Software Development</li>
-              <li><span className="dot"></span> Digital Marketing Strategy</li>
-              <li><span className="dot"></span> High-Performance Web Apps</li>
-              <li><span className="dot"></span> Business Scaling Solutions</li>
+              <li><span>01</span><strong>Build</strong> Websites, apps, and digital assets</li>
+              <li><span>02</span><strong>Get Found</strong> SEO, local search, and authority</li>
+              <li><span>03</span><strong>Grow</strong> Social, ads, campaigns, and strategy</li>
             </ul>
+
+            <div className="contact-direct">
+              <a href="mailto:business@beyondnull.in">business@beyondnull.in</a>
+              <a href="tel:+916205475866">+91 6205475866</a>
+              <a href="tel:+917485875137">+91 7485875137</a>
+            </div>
           </div>
 
           {/* RIGHT FORM SIDE */}
           <div className="contact-form-card">
             <div className="form-glass-layer">
+              <div className="form-heading">
+                <span>Start a conversation</span>
+                <h3>Book a free discovery call.</h3>
+              </div>
               <form onSubmit={handleSubmit}>
                 <div className="input-group">
                   <input

@@ -1,5 +1,4 @@
 import React from "react";
-import { motion } from "framer-motion";
 import "./AboutHero.css";
 
 const AboutHero = () => {
@@ -25,8 +24,8 @@ const AboutHero = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2, duration: 0.8 }}
         >
-          Web Development & Digital Solutions
-          <span className="gold-glow"> That Empower Modern Businesses</span>
+          Marketing, Technology, and Consulting
+          <span className="gold-glow">Built Around Measurable Growth</span>
         </motion.h1>
 
         <motion.div 
@@ -36,15 +35,14 @@ const AboutHero = () => {
           transition={{ delay: 0.5, duration: 0.8 }}
         >
           <p>
-            Beyond Null is a modern web development and digital marketing
-            agency focused on building high-performance websites,
-            scalable software, and powerful digital platforms.
+            BeyondNull is a digital marketing and consulting company founded
+            in 2024 and based in Bangalore, Karnataka.
           </p>
 
           <p>
-            Our team combines strategy, design, and engineering to build
-            reliable products that help startups and businesses grow
-            faster in the digital world.
+            We combine strategy, creative, engineering, SEO, social media,
+            and performance marketing to help businesses earn attention,
+            build trust, and turn demand into customers.
           </p>
         </motion.div>
 
