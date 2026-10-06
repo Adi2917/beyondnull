@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { FaCalendarCheck, FaLocationDot, FaLayerGroup, FaRoute } from "react-icons/fa6";
 import "./ServiceEnd.css";
 

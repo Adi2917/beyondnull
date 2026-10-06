@@ -1,6 +1,7 @@
 import React from "react";
 import "./AboutEnd.css";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const AboutEnd = () => {
   return (

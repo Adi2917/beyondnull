@@ -1,5 +1,6 @@
 import "./HomeHero.css";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { FaCode, FaLocationDot, FaRocket, FaShareNodes } from "react-icons/fa6";
 
 const HomeHero = () => {

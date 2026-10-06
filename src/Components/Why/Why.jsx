@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import "./Why.css";
+import { motion } from "framer-motion";
 import { FaBullseye, FaEye, FaFingerprint, FaHandshake, FaUsers } from "react-icons/fa";
 
 const Why = () => {

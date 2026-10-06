@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FaArrowRight, FaChartLine, FaCode, FaMagnifyingGlassChart } from "react-icons/fa6";
 import "./Who.css";

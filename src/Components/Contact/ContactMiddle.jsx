@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
 import { FaArrowRight, FaEnvelope, FaLocationDot } from "react-icons/fa6";
 import "./ContactMiddle.css";
