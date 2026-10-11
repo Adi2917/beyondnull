@@ -3,6 +3,8 @@ const OFFICIAL_EMAIL = "beyoondnull@gmail.com"
 const ADMIN_PHONES = ["7485875137", "6205475866"]
 const SESSION_HOURS = 12
 const RECEIPT_LIMIT_BYTES = 3 * 1024 * 1024
+const RESOURCE_IMAGE_LIMIT_BYTES = 2 * 1024 * 1024
+const RESOURCE_IMAGE_LIMIT = 5
 
 const TABLES = {
   clients: ["id", "name", "phone", "email", "address", "district", "status", "source", "notes", "created_at", "updated_at"],
@@ -10,7 +12,8 @@ const TABLES = {
   employees: ["id", "name", "address", "phone", "job_role", "job_type", "custom_job_type", "salary", "joined_on", "status", "created_at", "updated_at"],
   payouts: ["id", "employee_id", "salary_month", "paid_on", "amount", "receipt_file_id", "receipt_name", "receipt_type", "created_at"],
   sessions: ["id", "token_hash", "email", "role", "expires_at", "revoked_at", "created_at"],
-  resets: ["id", "email", "phone", "otp_hash", "expires_at", "attempts", "used_at", "created_at"]
+  resets: ["id", "email", "phone", "otp_hash", "expires_at", "attempts", "used_at", "created_at"],
+  resources: ["id", "slug", "category", "read_time", "title", "subtitle", "excerpt", "intro", "logo_file_id", "cover_file_id", "gallery_file_ids", "sections_json", "status", "created_at", "updated_at"]
 }
 
 const SHEET_NAMES = {
@@ -19,7 +22,8 @@ const SHEET_NAMES = {
   employees: "Employees",
   payouts: "Payouts",
   sessions: "Sessions",
-  resets: "PIN Resets"
+  resets: "PIN Resets",
+  resources: "Resources"
 }
 
 function setupBeyondNullDatabase() {
@@ -44,6 +48,9 @@ function setupBeyondNullDatabase() {
   if (!properties.getProperty("RECEIPT_FOLDER_ID")) {
     properties.setProperty("RECEIPT_FOLDER_ID", DriveApp.createFolder("BeyondNull Employee Payout Receipts").getId())
   }
+  if (!properties.getProperty("RESOURCE_FOLDER_ID")) {
+    properties.setProperty("RESOURCE_FOLDER_ID", DriveApp.createFolder("BeyondNull Published Resource Images").getId())
+  }
   return "BeyondNull Google Sheets database is ready. Initial PIN: 111111"
 }
 
@@ -55,7 +62,7 @@ function doPost(e) {
   try {
     const request = parseRequest(e)
     if (!request.action) return handleLegacyMail(request)
-    const publicActions = ["login", "requestPinReset", "confirmPinReset", "logout"]
+    const publicActions = ["login", "requestPinReset", "confirmPinReset", "logout", "getResources"]
     if (publicActions.indexOf(request.action) === -1) requireSession(request.sessionToken)
     const result = routeAction(request.action, request.payload || {}, request.sessionToken || "")
     return jsonResponse({ ok: true, data: result })
@@ -82,7 +89,10 @@ function routeAction(action, payload, sessionToken) {
     updateEmployee: function () { return saveEmployee(payload, payload.id) },
     deleteEmployee: function () { return deleteEmployee(payload.id) },
     addPayout: function () { return addPayout(payload) },
-    getReceipt: function () { return getReceipt(payload.payout_id) }
+    getReceipt: function () { return getReceipt(payload.payout_id) },
+    getResources: getResources,
+    addResource: function () { return addResource(payload) },
+    deleteResource: function () { return deleteResource(payload.id) }
   }
   if (!routes[action]) throw new Error("Unsupported request")
   return routes[action]()
@@ -341,6 +351,120 @@ function getReceipt(payoutId) {
   return { name: payout.receipt_name || blob.getName(), type: payout.receipt_type || blob.getContentType(), data: "data:" + (payout.receipt_type || blob.getContentType()) + ";base64," + Utilities.base64Encode(blob.getBytes()) }
 }
 
+function getResources() {
+  return readObjects("resources")
+    .filter(function (item) { return item.status === "Published" })
+    .sort(newestFirst)
+    .map(normalizeResource)
+}
+
+function addResource(payload) {
+  const title = String(payload.title || "").trim()
+  if (!title) throw new Error("Resource heading is required")
+
+  const sections = Array.isArray(payload.sections) ? payload.sections.map(function (section) {
+    return {
+      heading: String(section.heading || "").trim(),
+      paragraphs: Array.isArray(section.paragraphs)
+        ? section.paragraphs.map(function (paragraph) { return String(paragraph || "").trim() }).filter(Boolean)
+        : String(section.body || "").split(/\n\s*\n/).map(function (paragraph) { return paragraph.trim() }).filter(Boolean)
+    }
+  }).filter(function (section) { return section.heading || section.paragraphs.length }) : []
+
+  const gallery = Array.isArray(payload.gallery) ? payload.gallery.slice(0, RESOURCE_IMAGE_LIMIT) : []
+  if (Array.isArray(payload.gallery) && payload.gallery.length > RESOURCE_IMAGE_LIMIT) throw new Error("Resource gallery supports up to 5 images")
+
+  const uploadedIds = []
+  try {
+    const logoId = payload.logo && payload.logo.data ? saveResourceImage(payload.logo) : ""
+    if (logoId) uploadedIds.push(logoId)
+    const coverId = payload.cover && payload.cover.data ? saveResourceImage(payload.cover) : ""
+    if (coverId) uploadedIds.push(coverId)
+    const galleryIds = gallery.map(function (image) {
+      const id = saveResourceImage(image)
+      uploadedIds.push(id)
+      return id
+    })
+
+    const now = new Date()
+    const resource = {
+      id: Utilities.getUuid(),
+      slug: uniqueResourceSlug(title),
+      category: String(payload.category || "Business Growth").trim().slice(0, 80),
+      read_time: String(payload.read_time || "5 min read").trim().slice(0, 30),
+      title: title.slice(0, 180),
+      subtitle: String(payload.subtitle || "").trim().slice(0, 260),
+      excerpt: String(payload.excerpt || payload.subtitle || "").trim().slice(0, 500),
+      intro: String(payload.intro || payload.excerpt || payload.subtitle || "").trim().slice(0, 1500),
+      logo_file_id: logoId,
+      cover_file_id: coverId,
+      gallery_file_ids: JSON.stringify(galleryIds),
+      sections_json: JSON.stringify(sections),
+      status: "Published",
+      created_at: now,
+      updated_at: now
+    }
+    appendObject("resources", resource)
+    return normalizeResource(resource)
+  } catch (error) {
+    uploadedIds.forEach(function (id) { try { DriveApp.getFileById(id).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) } })
+    throw error
+  }
+}
+
+function deleteResource(id) {
+  const resource = readObjects("resources").find(function (item) { return item.id === String(id) })
+  if (!resource) throw new Error("Resource not found")
+  const fileIds = [resource.logo_file_id, resource.cover_file_id].concat(parseJsonArray(resource.gallery_file_ids)).filter(Boolean)
+  fileIds.forEach(function (fileId) { try { DriveApp.getFileById(fileId).setTrashed(true) } catch (error) { console.warn(error) } })
+  return deleteRowsWhere("resources", "id", id) > 0
+}
+
+function saveResourceImage(image) {
+  const match = String(image.data || "").match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/)
+  if (!match) throw new Error("Invalid resource image")
+  const bytes = Utilities.base64Decode(match[2])
+  if (bytes.length > RESOURCE_IMAGE_LIMIT_BYTES) throw new Error("Resource images must be smaller than 2 MB each")
+  const folderId = PropertiesService.getScriptProperties().getProperty("RESOURCE_FOLDER_ID")
+  if (!folderId) throw new Error("Resource image folder is not configured")
+  const file = DriveApp.getFolderById(folderId).createFile(Utilities.newBlob(bytes, match[1], safeFileName(image.name || "resource-image")))
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW)
+  return file.getId()
+}
+
+function normalizeResource(item) {
+  const galleryIds = parseJsonArray(item.gallery_file_ids)
+  return {
+    id: item.id,
+    slug: item.slug,
+    category: item.category,
+    readTime: item.read_time,
+    title: item.title,
+    subtitle: item.subtitle,
+    excerpt: item.excerpt,
+    intro: item.intro,
+    logo: publicDriveImage(item.logo_file_id, 600),
+    image: publicDriveImage(item.cover_file_id || item.logo_file_id, 1600),
+    gallery: galleryIds.map(function (id) { return publicDriveImage(id, 1600) }),
+    sections: parseJsonArray(item.sections_json),
+    createdAt: serializeValue(item.created_at),
+    managed: true
+  }
+}
+
+function publicDriveImage(fileId, width) {
+  return fileId ? "https://drive.google.com/thumbnail?id=" + encodeURIComponent(fileId) + "&sz=w" + width : ""
+}
+
+function uniqueResourceSlug(title) {
+  const base = String(title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 70) || "resource"
+  const existing = readObjects("resources").map(function (item) { return item.slug })
+  let slug = base
+  let suffix = 2
+  while (existing.indexOf(slug) !== -1) { slug = base + "-" + suffix; suffix += 1 }
+  return slug
+}
+
 function sendResetEmail(otp, phone) {
   const spacedOtp = otp.split("").join(" ")
   const maskedPhone = "Admin ending " + phone.slice(-4)
@@ -447,7 +571,7 @@ function newestFirst(a, b) { return new Date(b.created_at) - new Date(a.created_
 function stripMeta(object) { const clean = Object.assign({}, object); delete clean._row; return clean }
 function safeError(error) {
   const message = String(error && error.message ? error.message : "Request failed")
-  const allowed = ["Invalid", "Admin", "Client", "Employee", "Receipt", "Select", "Enter", "Complete", "Unsupported", "Too many", "Database", "Phone", "Total", "Advance", "Monthly", "Work", "An employee"]
+  const allowed = ["Invalid", "Admin", "Client", "Employee", "Receipt", "Resource", "Select", "Enter", "Complete", "Unsupported", "Too many", "Database", "Phone", "Total", "Advance", "Monthly", "Work", "An employee"]
   return allowed.some(function (prefix) { return message.indexOf(prefix) === 0 }) ? message : "Request could not be completed"
 }
 function jsonResponse(value) { return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON) }

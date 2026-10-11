@@ -195,3 +195,18 @@ export async function downloadEmployeeReceipt(payoutId) {
   if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
   return apiRequest("getReceipt", { payout_id: payoutId })
 }
+
+export async function getPublishedResources() {
+  const result = await apiRequest("getResources", {}, false)
+  return { data: result.data || [], error: result.error }
+}
+
+export async function addResource(resource) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("addResource", resource)
+}
+
+export async function deleteResource(id) {
+  if (!getAdminToken()) return { data: false, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("deleteResource", { id })
+}

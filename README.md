@@ -33,6 +33,7 @@ Employees
 Payouts
 Sessions
 PIN Resets
+Resources
 ```
 
 The initial six-digit admin PIN is `111111`. Change it using Forgot PIN after setup.
@@ -44,6 +45,8 @@ The initial six-digit admin PIN is `111111`. Change it using Forgot PIN after se
 - Client and service records with billing, platforms, dates, and statuses
 - Employee profiles with job and salary details
 - Monthly payout history and private receipt uploads
+- Resource publishing with optional logos, covers, galleries, and article sections
+- Published resource images stored in a dedicated public-view Google Drive folder
 - Desktop and mobile admin layouts
 
 ## Commands

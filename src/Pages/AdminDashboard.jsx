@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { FaBriefcase, FaHome, FaPlus, FaSearch, FaSignOutAlt, FaUsers } from "react-icons/fa"
-import { checkAdminSession, getClients, getEmployees, logoutAdmin } from "../services/authService"
+import { FaBookOpen, FaBriefcase, FaExternalLinkAlt, FaHome, FaPlus, FaSignOutAlt, FaTrash, FaUsers } from "react-icons/fa"
+import { checkAdminSession, deleteResource, getClients, getEmployees, getPublishedResources, logoutAdmin } from "../services/authService"
 import ClientCard from "../Components/ClientCard"
 import SearchBar from "../Components/SearchBar"
 import AddClientModal from "../Components/AddClientModal"
 import AddEmployeeModal from "../Components/AddEmployeeModal"
+import AddResourceModal from "../Components/AddResourceModal"
 import ConfirmDeleteModal from "../Components/ConfirmDeleteModal"
 import BrandLogo from "../Components/BrandLogo"
 import "./AdminDashboard.css"
@@ -15,19 +16,22 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("clients")
   const [clients, setClients] = useState([])
   const [employees, setEmployees] = useState([])
+  const [resources, setResources] = useState([])
   const [search, setSearch] = useState("")
   const [showAddClient, setShowAddClient] = useState(false)
   const [showAddEmployee, setShowAddEmployee] = useState(false)
+  const [showAddResource, setShowAddResource] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [backendMessage, setBackendMessage] = useState("")
 
   const fetchRecords = useCallback(async () => {
     setLoading(true)
-    const [clientResult, employeeResult] = await Promise.all([getClients(), getEmployees()])
+    const [clientResult, employeeResult, resourceResult] = await Promise.all([getClients(), getEmployees(), getPublishedResources()])
     setClients(clientResult.data || [])
     setEmployees(employeeResult.data || [])
-    const error = clientResult.error || employeeResult.error
+    setResources(resourceResult.data || [])
+    const error = clientResult.error || employeeResult.error || resourceResult.error
     setBackendMessage(error ? "Records could not be loaded. Check the Google Apps Script deployment." : "")
     setLoading(false)
   }, [])
@@ -35,11 +39,12 @@ function AdminDashboard() {
   useEffect(() => {
     if (!checkAdminSession()) return navigate("/admin")
     let active = true
-    Promise.all([getClients(), getEmployees()]).then(([clientResult, employeeResult]) => {
+    Promise.all([getClients(), getEmployees(), getPublishedResources()]).then(([clientResult, employeeResult, resourceResult]) => {
       if (!active) return
       setClients(clientResult.data || [])
       setEmployees(employeeResult.data || [])
-      const error = clientResult.error || employeeResult.error
+      setResources(resourceResult.data || [])
+      const error = clientResult.error || employeeResult.error || resourceResult.error
       setBackendMessage(error ? "Records could not be loaded. Check the Google Apps Script deployment." : "")
       setLoading(false)
     })
@@ -56,7 +61,31 @@ function AdminDashboard() {
     return [employee.name, employee.phone, employee.job_role, employee.job_type].some((value) => String(value || "").toLowerCase().includes(query))
   }), [employees, search])
 
-  const visibleRecords = activeTab === "clients" ? filteredClients : filteredEmployees
+  const filteredResources = useMemo(() => resources.filter((resource) => {
+    const query = search.toLowerCase()
+    return [resource.title, resource.subtitle, resource.category].some((value) => String(value || "").toLowerCase().includes(query))
+  }), [resources, search])
+
+  const visibleRecords = activeTab === "clients" ? filteredClients : activeTab === "employees" ? filteredEmployees : filteredResources
+
+  const tabCopy = {
+    clients: { eyebrow: "Client records", title: "Business pipeline", action: "Add client" },
+    employees: { eyebrow: "Team directory", title: "Employees & payroll", action: "Add employee" },
+    resources: { eyebrow: "Published content", title: "Resource library", action: "Add resource" }
+  }[activeTab]
+
+  const openAddModal = () => {
+    if (activeTab === "clients") setShowAddClient(true)
+    else if (activeTab === "employees") setShowAddEmployee(true)
+    else setShowAddResource(true)
+  }
+
+  const removeResource = async (resource) => {
+    if (!window.confirm(`Delete "${resource.title}" from the resource library?`)) return
+    const { error } = await deleteResource(resource.id)
+    if (error) return alert(error.message || "Could not delete resource")
+    await fetchRecords()
+  }
 
   const logout = () => {
     logoutAdmin()
@@ -66,7 +95,7 @@ function AdminDashboard() {
   return (
     <main className="dashboard">
       <header className="dashboard-header">
-        <div className="logoBox"><BrandLogo /><div className="dashboardTitle"><span>Secure operations</span><h1>Admin Studio</h1><p>Clients, projects, team profiles and payouts in one workspace.</p></div></div>
+        <div className="logoBox"><BrandLogo /><div className="dashboardTitle"><span>Secure operations</span><h1>Admin Studio</h1><p>Clients, projects, team profiles, payouts and published resources in one workspace.</p></div></div>
         <div className="headerBtns"><button onClick={() => navigate("/")}><FaHome /> <span>Website</span></button><button onClick={logout}><FaSignOutAlt /> <span>Logout</span></button></div>
       </header>
 
@@ -74,41 +103,50 @@ function AdminDashboard() {
         <div><small>Total clients</small><strong>{clients.length}</strong><span>Business accounts</span></div>
         <div><small>Team members</small><strong>{employees.length}</strong><span>Employee profiles</span></div>
         <div><small>Active services</small><strong>{clients.reduce((sum, client) => sum + (client.projects?.filter((project) => project.work_status === "Running").length || 0), 0)}</strong><span>Currently running</span></div>
+        <div><small>Published resources</small><strong>{resources.length}</strong><span>Managed articles</span></div>
       </section>
 
       <nav className="admin-tabs" aria-label="Admin sections">
         <button className={activeTab === "clients" ? "active" : ""} onClick={() => { setActiveTab("clients"); setSearch("") }}><FaBriefcase /><span>Clients</span><b>{clients.length}</b></button>
         <button className={activeTab === "employees" ? "active" : ""} onClick={() => { setActiveTab("employees"); setSearch("") }}><FaUsers /><span>Employees</span><b>{employees.length}</b></button>
+        <button className={activeTab === "resources" ? "active" : ""} onClick={() => { setActiveTab("resources"); setSearch("") }}><FaBookOpen /><span>Resources</span><b>{resources.length}</b></button>
       </nav>
 
       <section className="records-shell">
         <div className="dashboard-top">
-          <div className="sectionTitle"><span>{activeTab === "clients" ? "Client records" : "Team directory"}</span><h2>{activeTab === "clients" ? "Business pipeline" : "Employees & payroll"}</h2></div>
+          <div className="sectionTitle"><span>{tabCopy.eyebrow}</span><h2>{tabCopy.title}</h2></div>
           <SearchBar search={search} setSearch={setSearch} />
-          <button className="addClientBtn" onClick={() => activeTab === "clients" ? setShowAddClient(true) : setShowAddEmployee(true)}><FaPlus /> {activeTab === "clients" ? "Add client" : "Add employee"}</button>
+          <button className="addClientBtn" onClick={openAddModal}><FaPlus /> {tabCopy.action}</button>
         </div>
 
         {backendMessage && <div className="backend-notice">{backendMessage}</div>}
 
-        <div className={activeTab === "clients" ? "clientGrid" : "employeeGrid"}>
+        <div className={activeTab === "clients" ? "clientGrid" : activeTab === "employees" ? "employeeGrid" : "resource-admin-grid"}>
           {visibleRecords.length === 0 ? (
-            <div className="empty"><strong>{loading ? "Loading records..." : `No ${activeTab} found`}</strong><span>{loading ? "Connecting to secure records" : `Create the first ${activeTab === "clients" ? "client record" : "employee profile"}.`}</span></div>
+            <div className="empty"><strong>{loading ? "Loading records..." : `No ${activeTab} found`}</strong><span>{loading ? "Connecting to secure records" : `Create the first ${activeTab === "clients" ? "client record" : activeTab === "employees" ? "employee profile" : "published resource"}.`}</span></div>
           ) : activeTab === "clients" ? filteredClients.map((client) => (
             <ClientCard key={client.id} client={client} onDelete={(id) => setDeleteId(id)} />
-          )) : filteredEmployees.map((employee) => (
+          )) : activeTab === "employees" ? filteredEmployees.map((employee) => (
             <article className="employee-card" key={employee.id} onClick={() => navigate(`/employee/${employee.id}`)}>
               <div className="employee-card-top"><div className="employee-avatar">{employee.name?.charAt(0).toUpperCase()}</div><span>{employee.job_type === "Custom" ? employee.custom_job_type : employee.job_type}</span></div>
               <h3>{employee.name}</h3><p>{employee.job_role}</p>
               <div className="employee-card-meta"><span>{employee.phone}</span><strong>Rs {Number(employee.salary || 0).toLocaleString("en-IN")}/mo</strong></div>
               <button type="button">View profile</button>
             </article>
+          )) : filteredResources.map((resource) => (
+            <article className="resource-admin-card" key={resource.id}>
+              <div className="resource-admin-visual"><img src={resource.image || resource.logo || "/beyondnull-official-logo.jpg"} alt="" /><span>{resource.category}</span></div>
+              <div className="resource-admin-copy"><small>{resource.readTime}</small><h3>{resource.title}</h3><p>{resource.subtitle || resource.excerpt || "Published BeyondNull resource"}</p></div>
+              <div className="resource-admin-actions"><button type="button" onClick={() => navigate(`/resources/${resource.slug}`)}><FaExternalLinkAlt /> View</button><button type="button" className="danger" onClick={() => removeResource(resource)}><FaTrash /> Delete</button></div>
+            </article>
           ))}
         </div>
-        <p className="total">Showing {visibleRecords.length} of {activeTab === "clients" ? clients.length : employees.length} {activeTab}</p>
+        <p className="total">Showing {visibleRecords.length} of {activeTab === "clients" ? clients.length : activeTab === "employees" ? employees.length : resources.length} {activeTab}</p>
       </section>
 
       {showAddClient && <AddClientModal onClose={() => setShowAddClient(false)} refreshClients={fetchRecords} />}
       {showAddEmployee && <AddEmployeeModal onClose={() => setShowAddEmployee(false)} refreshEmployees={fetchRecords} />}
+      {showAddResource && <AddResourceModal onClose={() => setShowAddResource(false)} refreshResources={fetchRecords} />}
       {deleteId && <ConfirmDeleteModal clientId={deleteId} close={() => setDeleteId(null)} refresh={fetchRecords} />}
     </main>
   )

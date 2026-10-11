@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   FaArrowLeft,
@@ -11,6 +12,7 @@ import {
 import Navbar from "../Components/Navbar/Navbar";
 import Footer from "../Components/Footer/Footer";
 import { openDiscoveryCall } from "../utils/openDiscoveryCall";
+import { getPublishedResources } from "../services/authService";
 import "./Resources.css";
 
 const blogs = [
@@ -208,11 +210,13 @@ function ArticlePage({ blog }) {
         <article className="resource-article">
           <header className="article-header">
             <Link to="/resources" className="article-back"><FaArrowLeft /> All resources</Link>
+            {blog.logo && <img className="article-brand-logo" src={blog.logo} alt="" />}
             <div className="article-meta"><span>{blog.category}</span><span><FaClock /> {blog.readTime}</span></div>
             <h1>{blog.title}</h1>
+            {blog.subtitle && <h2 className="article-subtitle">{blog.subtitle}</h2>}
             <p>{blog.intro}</p>
           </header>
-          <div className="article-cover"><img src={blog.image} alt={blog.title} /></div>
+          {blog.image && <div className="article-cover"><img src={blog.image} alt={blog.title} /></div>}
           <div className="article-layout">
             <aside>
               <span>BeyondNull Editorial</span>
@@ -221,14 +225,15 @@ function ArticlePage({ blog }) {
             </aside>
             <div className="article-body">
               {blog.sections.map((section) => (
-                <section key={section.heading}>
-                  <h2>{section.heading}</h2>
-                  {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                <section key={section.heading || section.paragraphs?.[0]}>
+                  {section.heading && <h2>{section.heading}</h2>}
+                  {(section.paragraphs || []).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
                   {section.bullets && <ul>{section.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul>}
                 </section>
               ))}
             </div>
           </div>
+          {blog.gallery?.length > 0 && <section className="article-gallery" aria-label="Resource gallery">{blog.gallery.map((image, index) => <img key={image} src={image} alt={`${blog.title} visual ${index + 1}`} loading="lazy" />)}</section>}
         </article>
         <section className="article-next">
           <span>Continue learning</span>
@@ -243,9 +248,30 @@ function ArticlePage({ blog }) {
 
 function Resources() {
   const { slug } = useParams();
-  const activeBlog = slug ? blogs.find((blog) => blog.slug === slug) : null;
+  const [managedResources, setManagedResources] = useState([]);
+  const [resourcesLoaded, setResourcesLoaded] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getPublishedResources().then(({ data }) => {
+      if (active) setManagedResources(data || []);
+    }).finally(() => {
+      if (active) setResourcesLoaded(true);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const allBlogs = [...managedResources, ...blogs];
+  const activeBlog = slug ? allBlogs.find((blog) => blog.slug === slug) : null;
+
+  if (slug && !resourcesLoaded && !blogs.some((blog) => blog.slug === slug)) {
+    return <div className="resources-page"><Navbar /><main className="resource-loading"><strong>Loading resource...</strong></main><Footer /></div>;
+  }
 
   if (activeBlog) return <ArticlePage blog={activeBlog} />;
+
+  const featuredBlog = allBlogs[0];
+  const libraryBlogs = allBlogs.slice(1);
 
   return (
     <div className="resources-page">
@@ -296,28 +322,28 @@ function Resources() {
         </section>
 
         <section className="featured-resource">
-          <div className="featured-resource-image"><img src={blogs[0].image} alt={blogs[0].title} /></div>
+          <div className="featured-resource-image"><img src={featuredBlog.image || featuredBlog.logo || "/beyondnull-official-logo.jpg"} alt={featuredBlog.title} /></div>
           <div className="featured-resource-copy">
             <span>Featured guide</span>
-            <h2>{blogs[0].title}</h2>
-            <p>{blogs[0].excerpt}</p>
-            <div><span>{blogs[0].category}</span><span><FaClock /> {blogs[0].readTime}</span></div>
-            <Link to={`/resources/${blogs[0].slug}`}>Read the guide <FaArrowRight /></Link>
+            <h2>{featuredBlog.title}</h2>
+            <p>{featuredBlog.excerpt || featuredBlog.subtitle}</p>
+            <div><span>{featuredBlog.category}</span><span><FaClock /> {featuredBlog.readTime}</span></div>
+            <Link to={`/resources/${featuredBlog.slug}`}>Read the guide <FaArrowRight /></Link>
           </div>
         </section>
 
         <section className="resource-library">
           <header><span>Resource library</span><h2>Ideas your team can put to work.</h2><p>Built around common digital growth decisions, without unnecessary jargon.</p></header>
           <div className="resource-grid">
-            {blogs.slice(1).map((blog, index) => (
+            {libraryBlogs.map((blog, index) => (
               <article className="resource-card" key={blog.slug}>
                 <Link className="resource-card-image" to={`/resources/${blog.slug}`} aria-label={`Read ${blog.title}`}>
-                  <img src={blog.image} alt="" loading="lazy" /><span>{String(index + 2).padStart(2, "0")}</span>
+                  <img src={blog.image || blog.logo || "/beyondnull-official-logo.jpg"} alt="" loading="lazy" /><span>{String(index + 2).padStart(2, "0")}</span>
                 </Link>
                 <div className="resource-card-content">
                   <div className="resource-card-meta"><span>{blog.category}</span><span><FaClock /> {blog.readTime}</span></div>
                   <h3><Link to={`/resources/${blog.slug}`}>{blog.title}</Link></h3>
-                  <p>{blog.excerpt}</p>
+                  <p>{blog.excerpt || blog.subtitle}</p>
                   <Link className="resource-card-link" to={`/resources/${blog.slug}`}>Read article <FaArrowUpRightFromSquare /></Link>
                 </div>
               </article>

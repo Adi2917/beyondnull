@@ -1,0 +1,27 @@
+.resource-entry-modal{width:min(920px,100%)}
+.resource-form{padding:0 28px 30px}
+.resource-form-section{padding:26px 0;border-bottom:1px solid #eadcdf}
+.resource-form-heading{display:flex;gap:15px;margin-bottom:18px}
+.resource-form-heading>span{color:#d71935;font-size:11px;font-weight:900}
+.resource-form-heading strong{font-size:18px}
+.resource-form-heading p{margin:4px 0 0;color:#6c6263;font-size:13px}
+.resource-form label{display:grid;gap:7px}
+.resource-form label>span{color:#4d4243;font-size:12px;font-weight:800}
+.resource-form input,.resource-form textarea{width:100%;padding:13px 14px;border:1px solid #ded3d4;background:#fcfaf9;color:#191717;outline:none}
+.resource-form input:focus,.resource-form textarea:focus{border-color:#d71935;box-shadow:0 0 0 3px rgba(215,25,53,.08)}
+.resource-upload-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.resource-upload-grid label{padding:16px;border:1px solid #ded3d4;background:#faf7f5}
+.resource-upload-grid input{padding:10px;background:#fff}
+.resource-upload-grid small{overflow:hidden;color:#766d6b;text-overflow:ellipsis;white-space:nowrap}
+.resource-gallery-input{grid-column:1/-1}
+.selected-image-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.selected-image-list button{display:flex;align-items:center;gap:8px;max-width:100%;padding:8px 10px;border:1px solid #ded3d4;background:#fff;color:#4d4243;font-size:11px;cursor:pointer}
+.selected-image-list button svg{color:#d71935}
+.resource-sections{display:grid;gap:12px}
+.resource-section-editor{display:grid;gap:10px;padding:16px;border-left:3px solid #d71935;background:#faf7f5}
+.resource-section-editor>div{display:flex;align-items:center;justify-content:space-between}
+.resource-section-editor>div button{display:grid;place-items:center;width:34px;height:34px;background:#fff;color:#a51d34;cursor:pointer}
+.add-resource-section{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border:1px dashed #bdaeb0;background:#fff;color:#4d4243;font-weight:850;cursor:pointer}
+.resource-form>.modal-actions{display:flex;gap:10px;padding-top:24px}
+.resource-form>.modal-actions button{flex:1;padding:15px;font-weight:900;cursor:pointer}
+@media(max-width:680px){.resource-form{padding:0 18px 22px}.resource-upload-grid{grid-template-columns:1fr}.resource-gallery-input{grid-column:auto}.resource-form>.modal-actions{flex-direction:column}}
