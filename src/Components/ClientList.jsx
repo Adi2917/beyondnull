@@ -1,16 +1,7 @@
-import { useEffect,useState } from "react"
 import ClientCard from "./ClientCard"
 import "./ClientList.css"
 
-function ClientList(){
-
-const [clients,setClients] = useState([])
-
-useEffect(()=>{
-
-// SUPABASE DATA FETCH YAHAN LAGEGA
-
-},[])
+function ClientList({clients=[]}){
 
 return(
 

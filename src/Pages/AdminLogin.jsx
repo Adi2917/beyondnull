@@ -26,7 +26,7 @@ if(checkAdminSession()){
 navigate("/admin-dashboard")
 }
 
-},[])
+},[navigate])
 
 const handleLogin = async (e)=>{
 
@@ -47,11 +47,8 @@ setMode("error")
 return
 }
 
-setMode(result.source === "demo" ? "demo" : "live")
-setMessage(result.source === "demo"
-? "Demo backend active. Supabase fallback login successful."
-: "Live backend connected. Login successful."
-)
+setMode("live")
+setMessage("Google Sheets backend connected. Login successful.")
 
 navigate("/admin-dashboard")
 

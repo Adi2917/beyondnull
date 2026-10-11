@@ -1,103 +1,50 @@
 # BeyondNull
 
-React + Vite website and admin panel for BeyondNull.
+React + Vite website with a private Google Sheets powered admin panel.
 
-## Admin Access
+## Admin Backend
 
-Admin login page:
-
-```text
-/admin
-```
-
-Admin email, admin numbers, PINs, and reset OTP records are stored in Supabase. Do not show admin credentials on the public site or commit private PINs in frontend code.
-
-## Database
-
-Database provider:
+The backend uses this Google Sheet:
 
 ```text
-Supabase
+1RvuUQ-vat4j8Ml7QI0TxX2eUwqzI7eRAEswioxx7tPY
 ```
 
-Project URL used by the app:
+Admin data is handled by `apps-script-mailer.gs`. PINs, OTPs, and session tokens are stored only as SHA-256 hashes. Employee receipts are kept in a private Google Drive folder and are downloaded through an authenticated admin request.
+
+### First-time setup
+
+1. Open the Sheet using `beyoondnull@gmail.com`.
+2. Open `Extensions -> Apps Script`.
+3. Replace the editor code with `apps-script-mailer.gs`.
+4. Select and run `setupBeyondNullDatabase` once.
+5. Approve the requested Sheets, Drive, and Mail permissions.
+6. Choose `Deploy -> Manage deployments -> Edit`.
+7. Select `New version`, set `Execute as: Me`, and access to `Anyone`.
+8. Deploy and copy the `/exec` Web App URL.
+9. If the URL changed, replace `SHEETS_API_URL` in `src/services/authService.js`.
+
+The setup creates these tabs automatically:
 
 ```text
-https://anovwnwddqlhljkymrvw.supabase.co
+Clients
+Client Services
+Employees
+Payouts
+Sessions
+PIN Resets
 ```
 
-Tables used by the app:
+The initial six-digit admin PIN is `111111`. Change it using Forgot PIN after setup.
 
-```text
-admins
-clients
-```
+## Admin Features
 
-The admin panel uses Supabase as the live backend. It also has a demo-safe local fallback so the dashboard can still be shown if Supabase tables or permissions are not ready during a presentation.
-
-Backend features currently wired:
-
-```text
-Admin login
-Protected admin routes
-Client create/read/update/delete
-Client search
-Client profile
-Call/WhatsApp actions
-Email + PIN login
-Token based admin session
-Supabase backend service layer
-```
-
-Security mode:
-
-```text
-Only the two registered BeyondNull admins can login.
-Client records are blocked by RLS and can be accessed only through a valid admin session token.
-Forgot PIN reset works only with the official email and the two registered admin numbers.
-```
-
-OTP email uses the existing Google Apps Script mail bridge. The React app sends `subject`, `plainMessage`, and `htmlMessage` fields for the professional security email.
-
-If Gmail still shows `New Website Lead`, the deployed Apps Script is still using the old contact-form template. Open the Apps Script project, replace its code with:
-
-```text
-apps-script-mailer.gs
-```
-
-Then deploy it as a Web App again. If Google gives a new Web App URL, update `CONTACT_SCRIPT_URL` in `src/services/authService.js`.
-
-## Supabase Setup
-
-If the Supabase project has no tables, open:
-
-```text
-supabase-setup.sql
-```
-
-Then run the full SQL in:
-
-```text
-Supabase Dashboard -> SQL Editor -> New query -> Run
-```
-
-This creates/updates the `admins` and `clients` tables and inserts the configured admin accounts.
-It also grants frontend read/write access for the current direct-Supabase admin panel.
-
-Important: run this SQL in the same Supabase project used by the app. The project ref in the app URL is:
-
-```text
-anovwnwddqlhljkymrvw
-```
-
-If you created a different Supabase project, update these environment variables in your hosting dashboard:
-
-```text
-VITE_SUPABASE_URL
-VITE_SUPABASE_ANON_KEY
-```
-
-Or update `src/services/supabaseClient.js` with the new Project URL and anon public key.
+- Secure email and PIN login with 12-hour sessions
+- Rate-limited OTP reset sent to the official email
+- Client and service records with billing, platforms, dates, and statuses
+- Employee profiles with job and salary details
+- Monthly payout history and private receipt uploads
+- Desktop and mobile admin layouts
 
 ## Commands
 

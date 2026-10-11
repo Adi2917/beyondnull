@@ -5,19 +5,6 @@ import { FaEdit,FaTrash } from "react-icons/fa"
 
 import "./ClientProfile.css"
 
-const serviceList = [
-  "Web Development",
-  "App Development",
-  "Social Media Marketing",
-  "Social Media Management",
-  "Digital Marketing",
-  "SEO",
-  "Google My Business",
-  "Advertisement",
-  "Consultancy",
-  "Video Editing"
-]
-
 function ClientProfile(){
 
 const { id } = useParams()
@@ -36,10 +23,16 @@ FETCH CLIENT
 ===================== */
 
 useEffect(()=>{
-
-fetchClient()
-
-},[])
+let active=true
+getClientById(id).then(({data,error})=>{
+if(!active) return
+if(error){console.log(error);setLoading(false);return}
+setClient(data)
+setForm(data)
+setLoading(false)
+})
+return()=>{active=false}
+},[id])
 
 
 async function fetchClient(){
@@ -75,23 +68,8 @@ setForm({...form,[e.target.name]:e.target.value})
 
 }
 
-const toggleService = (service)=>{
-
-const selectedServices = Array.isArray(form.services) ? form.services : []
-
-if(selectedServices.includes(service)){
-setForm({
-...form,
-services:selectedServices.filter((item)=>item!==service)
-})
-return
-}
-
-setForm({
-...form,
-services:[...selectedServices,service]
-})
-
+const updateProjectStatus = (serviceType,status)=>{
+setForm({...form,projects:(form.projects || []).map((project)=>project.service_type===serviceType ? {...project,work_status:status}:project)})
 }
 
 
@@ -118,7 +96,8 @@ email:form.email,
 address:form.address,
 district:form.district,
 package_amount:form.package_amount,
-services:form.services
+services:form.services,
+projects:form.projects || []
 })
 
 if(error){
@@ -314,25 +293,7 @@ onChange={handleChange}
 
 </div>
 
-<div className="info-item">
-
-<span>Package</span>
-
-{editMode ? (
-
-<input
-name="package_amount"
-value={form.package_amount}
-onChange={handleChange}
-/>
-
-):( 
-
-<p>Rs {client.package_amount || "Not provided"}</p>
-
-)}
-
-</div>
+<div className="info-item"><span>Added on</span><p>{new Date(client.created_at).toLocaleDateString("en-IN")}</p></div>
 
 </div>
 
@@ -344,42 +305,15 @@ onChange={handleChange}
 
 <h3>Services</h3>
 
-{editMode ? (
-
-<div className="profile-service-grid">
-
-{serviceList.map((service)=>(
-
-<button
-type="button"
-key={service}
-className={`profile-service-option ${form.services?.includes(service) ? "active":""}`}
-onClick={()=>toggleService(service)}
->
-{service}
-</button>
-
-))}
-
+<div className="profile-projects">
+{(editMode ? form.projects : client.projects)?.length ? (editMode ? form.projects : client.projects).map((project)=>(
+<article className="profile-project" key={project.id || project.service_type}>
+<div><strong>{project.service_type}</strong><span>{project.work_start_date ? `Started ${new Date(`${project.work_start_date}T00:00:00`).toLocaleDateString("en-IN")}` : "Start date not set"}</span></div>
+{project.billing_type === "project" ? <p>Total: Rs {Number(project.total_amount || 0).toLocaleString("en-IN")} / Advance: Rs {Number(project.advance_amount || 0).toLocaleString("en-IN")} / Pending: Rs {Number(project.pending_amount || 0).toLocaleString("en-IN")}</p> : <p>Monthly: Rs {Number(project.monthly_package || 0).toLocaleString("en-IN")} / {(project.social_platforms || []).join(", ")}</p>}
+{editMode ? <select value={project.work_status} onChange={(event)=>updateProjectStatus(project.service_type,event.target.value)}><option>Running</option><option>Paused</option><option>{project.billing_type === "project" ? "Delivered" : "Stopped"}</option></select> : <b className={`project-status ${project.work_status?.toLowerCase()}`}>{project.work_status}</b>}
+</article>
+)) : <p className="no-services">No structured services recorded</p>}
 </div>
-
-) : (
-
-<div className="service-badges">
-
-{client.services?.length ? client.services.map((service,i)=>(
-
-<span key={i} className="badge">
-
-{service}
-
-</span>
-
-)) : <p className="no-services">No services selected</p>}
-
-</div>
-
-)}
 
 </div>
 

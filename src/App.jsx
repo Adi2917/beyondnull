@@ -12,6 +12,7 @@ import Resources from "./Pages/Resources"
 import AdminLogin from "./Pages/AdminLogin"
 import AdminDashboard from "./Pages/AdminDashboard"
 import ClientProfile from "./Pages/ClientProfile"
+import EmployeeProfile from "./Pages/EmployeeProfile"
 
 import ProtectedRoute from "./Components/ProtectedRoute"
 import SeoManager from "./Components/SeoManager"
@@ -53,6 +54,15 @@ path="/client/:id"
 element={
 <ProtectedRoute>
 <ClientProfile/>
+</ProtectedRoute>
+}
+/>
+
+<Route
+path="/employee/:id"
+element={
+<ProtectedRoute>
+<EmployeeProfile/>
 </ProtectedRoute>
 }
 />

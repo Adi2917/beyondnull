@@ -31,6 +31,7 @@ function Footer() {
             <Link to="/results">Our Work</Link>
             <Link to="/resources">Resources</Link>
             <Link to="/contact">Contact</Link>
+            <Link to="/admin">Admin Login</Link>
           </div>
         </div>
 

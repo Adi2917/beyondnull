@@ -1,8 +1,14 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FaArrowRight, FaArrowUpRightFromSquare, FaCheck } from "react-icons/fa6";
+import { FaArrowRight, FaChevronLeft, FaChevronRight, FaCheck, FaImages, FaXmark } from "react-icons/fa6";
 import Navbar from "../Components/Navbar/Navbar";
 import Footer from "../Components/Footer/Footer";
 import "./Results.css";
+
+const screenshotSet = (folder, count) => Array.from(
+  { length: count },
+  (_, index) => `/client-work/${folder}/${String(index + 1).padStart(2, "0")}.png`
+);
 
 const caseStudies = [
   {
@@ -10,8 +16,7 @@ const caseStudies = [
     industry: "Pre-Owned Automotive",
     duration: "3 months",
     image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1400&auto=format&fit=crop",
-    link: "https://www.instagram.com/yeti.motors/",
-    platform: "View Instagram",
+    screenshots: screenshotSet("yeti-motors", 10),
     objective: "Increase local reach and generate qualified enquiries for pre-owned cars.",
     approach: "High-engagement short-form video content paired with audience-led performance campaigns and continuous creative optimization.",
     highlights: [
@@ -32,8 +37,7 @@ const caseStudies = [
     industry: "Hospitality & Restaurant",
     duration: "Under 3 months",
     image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1400&auto=format&fit=crop",
-    link: "https://www.instagram.com/hotel.bellacasaa/",
-    platform: "View Instagram",
+    screenshots: screenshotSet("bella-casa", 26),
     objective: "Build city-wide awareness for a newly launched restaurant and increase local footfall.",
     approach: "A local visibility system combining consistent social content, attention-led creatives, and targeted awareness promotions.",
     highlights: [
@@ -54,8 +58,7 @@ const caseStudies = [
     industry: "Tiles, Sanitaryware & Interiors",
     duration: "6 months",
     image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1400&auto=format&fit=crop",
-    link: "https://www.facebook.com/aravalimarbles.co.in",
-    platform: "View Facebook",
+    screenshots: screenshotSet("aravali-marbles", 14),
     objective: "Expand Facebook reach and create a stronger digital presence for a multi-brand building materials showroom.",
     approach: "A combined organic content and performance advertising program built around product discovery, reach, and local relevance.",
     highlights: [
@@ -75,8 +78,7 @@ const caseStudies = [
     industry: "Industrial Machinery & Finance",
     duration: "2 months",
     image: "/angika-industries-machinery.png",
-    link: "https://www.facebook.com/profile.php?id=100089424853127",
-    platform: "View Facebook",
+    screenshots: screenshotSet("angika-industries", 4),
     objective: "Generate qualified enquiries for industrial machinery and PMEGP/PMFME government-scheme loan assistance.",
     approach: "Targeted lead campaigns designed around entrepreneur intent, machinery requirements, and PMEGP/PMFME finance consultation demand.",
     highlights: [
@@ -96,6 +98,45 @@ const serviceGroups = [
 ];
 
 function Results() {
+  const [gallery, setGallery] = useState(null);
+  const [activeScreenshot, setActiveScreenshot] = useState(0);
+
+  const closeGallery = () => setGallery(null);
+  const showPrevious = () => setActiveScreenshot((current) => (
+    current === 0 ? gallery.screenshots.length - 1 : current - 1
+  ));
+  const showNext = () => setActiveScreenshot((current) => (
+    current === gallery.screenshots.length - 1 ? 0 : current + 1
+  ));
+
+  useEffect(() => {
+    if (!gallery) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") closeGallery();
+      if (event.key === "ArrowLeft") {
+        setActiveScreenshot((current) => current === 0 ? gallery.screenshots.length - 1 : current - 1);
+      }
+      if (event.key === "ArrowRight") {
+        setActiveScreenshot((current) => current === gallery.screenshots.length - 1 ? 0 : current + 1);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [gallery]);
+
+  const openGallery = (study) => {
+    setActiveScreenshot(0);
+    setGallery(study);
+  };
+
   return (
     <div className="results-page">
       <Navbar />
@@ -160,7 +201,9 @@ function Results() {
                     {study.metrics.map((metric) => <div key={metric.label}><strong>{metric.value}</strong><span>{metric.label}</span></div>)}
                   </div>
                   <span className="case-metrics-note">Reported dashboard snapshot</span>
-                  <a href={study.link} target="_blank" rel="noopener noreferrer" className="case-study-link">{study.platform} <FaArrowUpRightFromSquare /></a>
+                  <button type="button" className="case-study-link" onClick={() => openGallery(study)}>
+                    <FaImages /> View real screenshots <span>{study.screenshots.length}</span>
+                  </button>
                 </div>
               </article>
             ))}
@@ -182,6 +225,47 @@ function Results() {
         </section>
       </main>
       <Footer />
+
+      {gallery && (
+        <div className="client-gallery-backdrop" role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) closeGallery();
+        }}>
+          <section className="client-gallery" role="dialog" aria-modal="true" aria-labelledby="client-gallery-title">
+            <header className="client-gallery-header">
+              <div>
+                <span>Real campaign screenshots</span>
+                <h2 id="client-gallery-title">{gallery.client}</h2>
+              </div>
+              <div className="client-gallery-status">
+                <span>{String(activeScreenshot + 1).padStart(2, "0")} / {String(gallery.screenshots.length).padStart(2, "0")}</span>
+                <button type="button" onClick={closeGallery} aria-label="Close screenshot gallery"><FaXmark /></button>
+              </div>
+            </header>
+
+            <div className="client-gallery-viewer">
+              <button type="button" className="gallery-arrow gallery-arrow-left" onClick={showPrevious} aria-label="Previous screenshot"><FaChevronLeft /></button>
+              <img src={gallery.screenshots[activeScreenshot]} alt={`${gallery.client} campaign result screenshot ${activeScreenshot + 1}`} />
+              <button type="button" className="gallery-arrow gallery-arrow-right" onClick={showNext} aria-label="Next screenshot"><FaChevronRight /></button>
+            </div>
+
+            <div className="client-gallery-thumbnails" aria-label="Screenshot thumbnails">
+              {gallery.screenshots.map((screenshot, index) => (
+                <button
+                  type="button"
+                  className={index === activeScreenshot ? "active" : ""}
+                  onClick={() => setActiveScreenshot(index)}
+                  aria-label={`View screenshot ${index + 1}`}
+                  aria-current={index === activeScreenshot ? "true" : undefined}
+                  key={screenshot}
+                >
+                  <img src={screenshot} alt="" loading="lazy" />
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

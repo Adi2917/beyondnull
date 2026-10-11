@@ -179,6 +179,27 @@ const resourceTypes = [
   { icon: <FaLightbulb />, title: "Field Insights", text: "Practical lessons shaped around the growth problems businesses face every day." }
 ];
 
+const beyondNullProducts = [
+  {
+    name: "Connect Your School",
+    category: "School Management Platform",
+    url: "https://connectyourschool.in",
+    logo: "/products/connect-your-school.png",
+    theme: "school",
+    description: "A secure school management platform for student records, fees, results, notices, and connected school administration.",
+    features: ["Student records", "Fees and results", "Notices and administration"]
+  },
+  {
+    name: "Social Controller",
+    category: "Social Media Workspace",
+    url: "https://socialcontroller.in",
+    logo: "/products/social-controller.png",
+    theme: "social",
+    description: "A focused workspace for planning, creating, organizing, and publishing brand content from one streamlined system.",
+    features: ["Content planning", "Creative workflow", "Publishing operations"]
+  }
+];
+
 function ArticlePage({ blog }) {
   return (
     <div className="resources-page article-page">
@@ -242,6 +263,36 @@ function Resources() {
               <div>{resource.icon}</div><span>0{index + 1}</span><h2>{resource.title}</h2><p>{resource.text}</p>
             </article>
           ))}
+        </section>
+
+        <section className="product-showcase">
+          <header className="product-showcase-header">
+            <div>
+              <span>Built by BeyondNull</span>
+              <h2>Digital products designed for real operations.</h2>
+            </div>
+            <p>Explore platforms developed by our team to simplify school administration and modern social media workflows.</p>
+          </header>
+
+          <div className="product-grid">
+            {beyondNullProducts.map((product, index) => (
+              <article className={`product-card product-card-${product.theme}`} key={product.name}>
+                <div className="product-card-visual">
+                  <span>0{index + 1}</span>
+                  <img src={product.logo} alt={`${product.name} logo`} />
+                </div>
+                <div className="product-card-content">
+                  <span>{product.category}</span>
+                  <h3>{product.name}</h3>
+                  <p>{product.description}</p>
+                  <ul>{product.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
+                  <a href={product.url} target="_blank" rel="noopener noreferrer">
+                    Visit {product.name} <FaArrowUpRightFromSquare />
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="featured-resource">

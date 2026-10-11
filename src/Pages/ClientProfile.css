@@ -218,6 +218,8 @@ font-size:14px;
 
 }
 
+.profile-projects{display:grid;gap:10px}.profile-project{position:relative;padding:16px;border:1px solid #e2d8d7;background:#fcfaf9}.profile-project>div{display:flex;justify-content:space-between;gap:12px}.profile-project>div span{color:#765d61;font-size:12px}.profile-project p{margin:10px 0;color:#6c6263;font-size:13px;line-height:1.5}.profile-project select{width:100%;padding:10px;border:1px solid #d9cdce;background:#fff}.project-status{display:inline-flex;padding:6px 9px;background:#191717;color:#fff;font-size:10px;text-transform:uppercase}.project-status.running{background:#18794e}.project-status.paused{background:#9b6508}.project-status.delivered,.project-status.stopped{background:#7a1426}
+
 .profile-actions{
 
 display:flex;
