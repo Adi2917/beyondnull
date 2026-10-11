@@ -1,7 +1,7 @@
 const SESSION_KEY = "bn_admin_session"
 const LEGACY_SESSION_KEY = "adminLogged"
 const SHEETS_API_URL =
-  "https://script.google.com/macros/s/AKfycbwJyjKFlkswSNUIflWz0cwb7imu_M29Ea6eywUrbGeWGOtddPUrTBUgjQvNIHItHHVf/exec"
+  "https://script.google.com/macros/s/AKfycbxVhfZH5vWv-FS9Al3gROmCiV7E_Td4aYX30xSS7_fwXf5RgJyJVAkDkhKNNiOBUVMhRA/exec"
 const OFFICIAL_ADMIN_EMAIL = "beyoondnull@gmail.com"
 
 const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "").slice(0, 10)
