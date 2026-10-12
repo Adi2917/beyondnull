@@ -206,6 +206,11 @@ export async function addResource(resource) {
   return apiRequest("addResource", resource)
 }
 
+export async function updateResource(resource) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("updateResource", resource)
+}
+
 export async function deleteResource(id) {
   if (!getAdminToken()) return { data: false, error: makeError("Admin session expired. Login again.") }
   return apiRequest("deleteResource", { id })

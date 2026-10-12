@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { FaBookOpen, FaBriefcase, FaExternalLinkAlt, FaHome, FaPlus, FaSignOutAlt, FaTrash, FaUsers } from "react-icons/fa"
+import { FaBookOpen, FaBriefcase, FaEdit, FaExternalLinkAlt, FaHome, FaPlus, FaSignOutAlt, FaTrash, FaUsers } from "react-icons/fa"
 import { checkAdminSession, deleteResource, getClients, getEmployees, getPublishedResources, logoutAdmin } from "../services/authService"
 import ClientCard from "../Components/ClientCard"
 import SearchBar from "../Components/SearchBar"
@@ -21,9 +21,12 @@ function AdminDashboard() {
   const [showAddClient, setShowAddClient] = useState(false)
   const [showAddEmployee, setShowAddEmployee] = useState(false)
   const [showAddResource, setShowAddResource] = useState(false)
+  const [editClient, setEditClient] = useState(null)
+  const [editEmployee, setEditEmployee] = useState(null)
+  const [editResource, setEditResource] = useState(null)
   const [deleteId, setDeleteId] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [backendMessage, setBackendMessage] = useState("")
+  const [backendErrors, setBackendErrors] = useState({})
 
   const fetchRecords = useCallback(async () => {
     setLoading(true)
@@ -31,8 +34,7 @@ function AdminDashboard() {
     setClients(clientResult.data || [])
     setEmployees(employeeResult.data || [])
     setResources(resourceResult.data || [])
-    const error = clientResult.error || employeeResult.error || resourceResult.error
-    setBackendMessage(error ? "Records could not be loaded. Check the Google Apps Script deployment." : "")
+    setBackendErrors({ clients: clientResult.error, employees: employeeResult.error, resources: resourceResult.error })
     setLoading(false)
   }, [])
 
@@ -44,8 +46,7 @@ function AdminDashboard() {
       setClients(clientResult.data || [])
       setEmployees(employeeResult.data || [])
       setResources(resourceResult.data || [])
-      const error = clientResult.error || employeeResult.error || resourceResult.error
-      setBackendMessage(error ? "Records could not be loaded. Check the Google Apps Script deployment." : "")
+      setBackendErrors({ clients: clientResult.error, employees: employeeResult.error, resources: resourceResult.error })
       setLoading(false)
     })
     return () => { active = false }
@@ -119,25 +120,25 @@ function AdminDashboard() {
           <button className="addClientBtn" onClick={openAddModal}><FaPlus /> {tabCopy.action}</button>
         </div>
 
-        {backendMessage && <div className="backend-notice">{backendMessage}</div>}
+        {backendErrors[activeTab] && <div className="backend-notice">{backendErrors[activeTab].message || "Records could not be loaded. Check the Google Apps Script deployment."}</div>}
 
         <div className={activeTab === "clients" ? "clientGrid" : activeTab === "employees" ? "employeeGrid" : "resource-admin-grid"}>
           {visibleRecords.length === 0 ? (
             <div className="empty"><strong>{loading ? "Loading records..." : `No ${activeTab} found`}</strong><span>{loading ? "Connecting to secure records" : `Create the first ${activeTab === "clients" ? "client record" : activeTab === "employees" ? "employee profile" : "published resource"}.`}</span></div>
           ) : activeTab === "clients" ? filteredClients.map((client) => (
-            <ClientCard key={client.id} client={client} onDelete={(id) => setDeleteId(id)} />
+            <ClientCard key={client.id} client={client} onEdit={setEditClient} onDelete={(id) => setDeleteId(id)} />
           )) : activeTab === "employees" ? filteredEmployees.map((employee) => (
             <article className="employee-card" key={employee.id} onClick={() => navigate(`/employee/${employee.id}`)}>
               <div className="employee-card-top"><div className="employee-avatar">{employee.name?.charAt(0).toUpperCase()}</div><span>{employee.job_type === "Custom" ? employee.custom_job_type : employee.job_type}</span></div>
               <h3>{employee.name}</h3><p>{employee.job_role}</p>
               <div className="employee-card-meta"><span>{employee.phone}</span><strong>Rs {Number(employee.salary || 0).toLocaleString("en-IN")}/mo</strong></div>
-              <button type="button">View profile</button>
+              <div className="employee-card-actions"><button type="button" onClick={(event) => { event.stopPropagation(); navigate(`/employee/${employee.id}`) }}>View profile</button><button type="button" onClick={(event) => { event.stopPropagation(); setEditEmployee(employee) }}><FaEdit /> Edit</button></div>
             </article>
           )) : filteredResources.map((resource) => (
             <article className="resource-admin-card" key={resource.id}>
               <div className="resource-admin-visual"><img src={resource.image || resource.logo || "/beyondnull-official-logo.jpg"} alt="" /><span>{resource.category}</span></div>
               <div className="resource-admin-copy"><small>{resource.readTime}</small><h3>{resource.title}</h3><p>{resource.subtitle || resource.excerpt || "Published BeyondNull resource"}</p></div>
-              <div className="resource-admin-actions"><button type="button" onClick={() => navigate(`/resources/${resource.slug}`)}><FaExternalLinkAlt /> View</button><button type="button" className="danger" onClick={() => removeResource(resource)}><FaTrash /> Delete</button></div>
+              <div className="resource-admin-actions"><button type="button" onClick={() => navigate(`/resources/${resource.slug}`)}><FaExternalLinkAlt /> View</button><button type="button" onClick={() => setEditResource(resource)}><FaEdit /> Edit</button><button type="button" className="danger" onClick={() => removeResource(resource)}><FaTrash /> Delete</button></div>
             </article>
           ))}
         </div>
@@ -147,6 +148,9 @@ function AdminDashboard() {
       {showAddClient && <AddClientModal onClose={() => setShowAddClient(false)} refreshClients={fetchRecords} />}
       {showAddEmployee && <AddEmployeeModal onClose={() => setShowAddEmployee(false)} refreshEmployees={fetchRecords} />}
       {showAddResource && <AddResourceModal onClose={() => setShowAddResource(false)} refreshResources={fetchRecords} />}
+      {editClient && <AddClientModal client={editClient} onClose={() => setEditClient(null)} refreshClients={fetchRecords} />}
+      {editEmployee && <AddEmployeeModal employee={editEmployee} onClose={() => setEditEmployee(null)} refreshEmployees={fetchRecords} />}
+      {editResource && <AddResourceModal resource={editResource} onClose={() => setEditResource(null)} refreshResources={fetchRecords} />}
       {deleteId && <ConfirmDeleteModal clientId={deleteId} close={() => setDeleteId(null)} refresh={fetchRecords} />}
     </main>
   )

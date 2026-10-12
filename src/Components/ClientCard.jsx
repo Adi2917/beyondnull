@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom"
-import { FaTrash } from "react-icons/fa"
+import { FaEdit, FaTrash } from "react-icons/fa"
 import "./ClientCard.css"
 
-function ClientCard({client,onDelete}){
+function ClientCard({client,onDelete,onEdit}){
 
 const navigate = useNavigate()
 
@@ -31,15 +31,10 @@ onClick={()=>navigate(`/client/${client.id}`)}
 
 </div>
 
-{onDelete &&
-<FaTrash
-className="deleteIcon"
-onClick={(e)=>{
-e.stopPropagation()
-onDelete(client.id)
-}}
-/>
-}
+<div className="client-card-actions">
+{onEdit && <button type="button" onClick={(event)=>{event.stopPropagation();onEdit(client)}} aria-label={`Edit ${client.name}`}><FaEdit /></button>}
+{onDelete && <button type="button" className="deleteIcon" onClick={(event)=>{event.stopPropagation();onDelete(client.id)}} aria-label={`Delete ${client.name}`}><FaTrash /></button>}
+</div>
 
 </div>
 

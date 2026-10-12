@@ -92,6 +92,7 @@ function routeAction(action, payload, sessionToken) {
     getReceipt: function () { return getReceipt(payload.payout_id) },
     getResources: getResources,
     addResource: function () { return addResource(payload) },
+    updateResource: function () { return updateResource(payload) },
     deleteResource: function () { return deleteResource(payload.id) }
   }
   if (!routes[action]) throw new Error("Unsupported request")
@@ -141,6 +142,10 @@ function requestPinReset(payload) {
   if (email !== OFFICIAL_EMAIL || ADMIN_PHONES.indexOf(phone) === -1) throw new Error("Admin email or phone not matched")
   enforceRateLimit("reset:" + phone, 3, 900)
 
+  readObjects("resets").filter(function (item) {
+    return String(item.email) === email && String(item.phone) === phone && !item.used_at
+  }).forEach(function (item) { updateRow("resets", item._row, { used_at: new Date() }) })
+
   const otp = String((parseInt(Utilities.getUuid().replace(/-/g, "").slice(0, 8), 16) % 9000) + 1000)
   const expires = new Date(Date.now() + 5 * 60 * 1000)
   appendObject("resets", {
@@ -160,7 +165,7 @@ function confirmPinReset(payload) {
   if (email !== OFFICIAL_EMAIL || ADMIN_PHONES.indexOf(phone) === -1 || !/^\d{4}$/.test(otp) || !/^\d{6}$/.test(pin)) throw new Error("Invalid or expired OTP")
 
   const resets = readObjects("resets").filter(function (item) {
-    return item.email === email && item.phone === phone && !item.used_at && Number(item.attempts || 0) < 5 && new Date(item.expires_at).getTime() > Date.now()
+    return String(item.email) === email && String(item.phone) === phone && !item.used_at && Number(item.attempts || 0) < 5 && new Date(item.expires_at).getTime() > Date.now()
   }).sort(function (a, b) { return new Date(b.created_at) - new Date(a.created_at) })
   const reset = resets[0]
   if (!reset) throw new Error("Invalid or expired OTP")
@@ -352,6 +357,7 @@ function getReceipt(payoutId) {
 }
 
 function getResources() {
+  ensureResourceStorage()
   return readObjects("resources")
     .filter(function (item) { return item.status === "Published" })
     .sort(newestFirst)
@@ -359,17 +365,11 @@ function getResources() {
 }
 
 function addResource(payload) {
+  ensureResourceStorage()
   const title = String(payload.title || "").trim()
   if (!title) throw new Error("Resource heading is required")
 
-  const sections = Array.isArray(payload.sections) ? payload.sections.map(function (section) {
-    return {
-      heading: String(section.heading || "").trim(),
-      paragraphs: Array.isArray(section.paragraphs)
-        ? section.paragraphs.map(function (paragraph) { return String(paragraph || "").trim() }).filter(Boolean)
-        : String(section.body || "").split(/\n\s*\n/).map(function (paragraph) { return paragraph.trim() }).filter(Boolean)
-    }
-  }).filter(function (section) { return section.heading || section.paragraphs.length }) : []
+  const sections = normalizeResourceSections(payload.sections)
 
   const gallery = Array.isArray(payload.gallery) ? payload.gallery.slice(0, RESOURCE_IMAGE_LIMIT) : []
   if (Array.isArray(payload.gallery) && payload.gallery.length > RESOURCE_IMAGE_LIMIT) throw new Error("Resource gallery supports up to 5 images")
@@ -406,6 +406,57 @@ function addResource(payload) {
     }
     appendObject("resources", resource)
     return normalizeResource(resource)
+  } catch (error) {
+    uploadedIds.forEach(function (id) { try { DriveApp.getFileById(id).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) } })
+    throw error
+  }
+}
+
+function updateResource(payload) {
+  ensureResourceStorage()
+  const existing = readObjects("resources").find(function (item) { return item.id === String(payload.id) })
+  if (!existing) throw new Error("Resource not found")
+  const title = String(payload.title || "").trim()
+  if (!title) throw new Error("Resource heading is required")
+
+  const sections = normalizeResourceSections(payload.sections)
+  const gallery = Array.isArray(payload.gallery) ? payload.gallery.slice(0, RESOURCE_IMAGE_LIMIT) : []
+  if (Array.isArray(payload.gallery) && payload.gallery.length > RESOURCE_IMAGE_LIMIT) throw new Error("Resource gallery supports up to 5 images")
+
+  const uploadedIds = []
+  try {
+    const logoId = payload.logo && payload.logo.data ? saveResourceImage(payload.logo) : existing.logo_file_id
+    if (logoId !== existing.logo_file_id) uploadedIds.push(logoId)
+    const coverId = payload.cover && payload.cover.data ? saveResourceImage(payload.cover) : existing.cover_file_id
+    if (coverId !== existing.cover_file_id) uploadedIds.push(coverId)
+    const previousGallery = parseJsonArray(existing.gallery_file_ids)
+    const galleryIds = gallery.length ? gallery.map(function (image) {
+      const id = saveResourceImage(image)
+      uploadedIds.push(id)
+      return id
+    }) : previousGallery
+
+    const updates = {
+      category: String(payload.category || "Business Growth").trim().slice(0, 80),
+      read_time: String(payload.read_time || "5 min read").trim().slice(0, 30),
+      title: title.slice(0, 180),
+      subtitle: String(payload.subtitle || "").trim().slice(0, 260),
+      excerpt: String(payload.excerpt || payload.subtitle || "").trim().slice(0, 500),
+      intro: String(payload.intro || payload.excerpt || payload.subtitle || "").trim().slice(0, 1500),
+      logo_file_id: logoId,
+      cover_file_id: coverId,
+      gallery_file_ids: JSON.stringify(galleryIds),
+      sections_json: JSON.stringify(sections),
+      updated_at: new Date()
+    }
+    updateRow("resources", existing._row, updates)
+
+    const replacedIds = []
+    if (logoId !== existing.logo_file_id && existing.logo_file_id) replacedIds.push(existing.logo_file_id)
+    if (coverId !== existing.cover_file_id && existing.cover_file_id) replacedIds.push(existing.cover_file_id)
+    if (gallery.length) replacedIds.push.apply(replacedIds, previousGallery)
+    replacedIds.forEach(function (id) { try { DriveApp.getFileById(id).setTrashed(true) } catch (error) { console.warn(error) } })
+    return normalizeResource(Object.assign({}, existing, updates))
   } catch (error) {
     uploadedIds.forEach(function (id) { try { DriveApp.getFileById(id).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) } })
     throw error
@@ -463,6 +514,33 @@ function uniqueResourceSlug(title) {
   let suffix = 2
   while (existing.indexOf(slug) !== -1) { slug = base + "-" + suffix; suffix += 1 }
   return slug
+}
+
+function normalizeResourceSections(sections) {
+  return Array.isArray(sections) ? sections.map(function (section) {
+    return {
+      heading: String(section.heading || "").trim(),
+      paragraphs: Array.isArray(section.paragraphs)
+        ? section.paragraphs.map(function (paragraph) { return String(paragraph || "").trim() }).filter(Boolean)
+        : String(section.body || "").split(/\n\s*\n/).map(function (paragraph) { return paragraph.trim() }).filter(Boolean)
+    }
+  }).filter(function (section) { return section.heading || section.paragraphs.length }) : []
+}
+
+function ensureResourceStorage() {
+  const target = spreadsheet()
+  let sheet = target.getSheetByName(SHEET_NAMES.resources)
+  if (!sheet) {
+    sheet = target.insertSheet(SHEET_NAMES.resources)
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(TABLES.resources)
+    sheet.setFrozenRows(1)
+    sheet.getRange(1, 1, 1, TABLES.resources.length).setBackground("#191717").setFontColor("#ffffff").setFontWeight("bold")
+    sheet.autoResizeColumns(1, TABLES.resources.length)
+  }
+  const properties = PropertiesService.getScriptProperties()
+  if (!properties.getProperty("RESOURCE_FOLDER_ID")) properties.setProperty("RESOURCE_FOLDER_ID", DriveApp.createFolder("BeyondNull Published Resource Images").getId())
 }
 
 function sendResetEmail(otp, phone) {

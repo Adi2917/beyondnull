@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { FaCheck, FaTimes } from "react-icons/fa"
-import { addClient } from "../services/authService"
+import { addClient, updateClient } from "../services/authService"
 import "./AddClientModal.css"
 
 const SERVICES = [
@@ -22,9 +22,19 @@ const emptyProject = (service) => ({
   work_status: "Running"
 })
 
-function AddClientModal({ onClose, refreshClients }) {
-  const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", district: "" })
-  const [projects, setProjects] = useState([])
+function AddClientModal({ onClose, refreshClients, client = null }) {
+  const editing = Boolean(client)
+  const [form, setForm] = useState(() => ({
+    name: client?.name || "", phone: String(client?.phone || ""), email: client?.email || "",
+    address: client?.address || "", district: client?.district || ""
+  }))
+  const [projects, setProjects] = useState(() => (client?.projects || []).map((project) => ({
+    ...project,
+    total_amount: project.total_amount ?? "",
+    advance_amount: project.advance_amount ?? "",
+    monthly_package: project.monthly_package ?? "",
+    social_platforms: project.social_platforms || []
+  })))
   const [saving, setSaving] = useState(false)
   const selectedNames = useMemo(() => projects.map((item) => item.service_type), [projects])
 
@@ -73,9 +83,10 @@ function AddClientModal({ onClose, refreshClients }) {
     }
 
     setSaving(true)
-    const { error } = await addClient({ ...form, package_amount: "", services: selectedNames, projects })
+    const payload = { ...form, package_amount: "", services: selectedNames, projects }
+    const { error } = editing ? await updateClient(client.id, payload) : await addClient(payload)
     setSaving(false)
-    if (error) return alert(error.message || "Could not add client")
+    if (error) return alert(error.message || `Could not ${editing ? "update" : "add"} client`)
     await refreshClients()
     onClose()
   }
@@ -84,7 +95,7 @@ function AddClientModal({ onClose, refreshClients }) {
     <div className="modal-overlay" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div className="modal-box client-entry-modal" role="dialog" aria-modal="true" aria-labelledby="add-client-title">
         <div className="modal-header">
-          <div><span className="modal-kicker">New business record</span><h2 id="add-client-title">Add client</h2></div>
+          <div><span className="modal-kicker">{editing ? "Update business record" : "New business record"}</span><h2 id="add-client-title">{editing ? "Edit client" : "Add client"}</h2></div>
           <button type="button" className="close-btn" onClick={onClose} aria-label="Close"><FaTimes /></button>
         </div>
 
@@ -141,7 +152,7 @@ function AddClientModal({ onClose, refreshClients }) {
           })}
 
           <div className="modal-actions sticky-actions">
-            <button className="add-btn" type="submit" disabled={saving}>{saving ? "Creating..." : "Create client record"}</button>
+            <button className="add-btn" type="submit" disabled={saving}>{saving ? "Saving..." : editing ? "Save client changes" : "Create client record"}</button>
             <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
           </div>
         </form>

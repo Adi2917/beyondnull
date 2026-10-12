@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { FaPlus, FaTimes, FaTrash } from "react-icons/fa"
-import { addResource } from "../services/authService"
+import { addResource, updateResource } from "../services/authService"
 import "./AddResourceModal.css"
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024
@@ -15,11 +15,14 @@ const readImage = (file) => new Promise((resolve, reject) => {
   reader.readAsDataURL(file)
 })
 
-function AddResourceModal({ onClose, refreshResources }) {
-  const [form, setForm] = useState({
-    title: "", subtitle: "", category: "Business Growth", read_time: "5 min read",
-    excerpt: "", intro: "", logo: null, cover: null, gallery: [], sections: []
-  })
+function AddResourceModal({ onClose, refreshResources, resource = null }) {
+  const editing = Boolean(resource)
+  const [form, setForm] = useState(() => ({
+    title: resource?.title || "", subtitle: resource?.subtitle || "", category: resource?.category || "Business Growth",
+    read_time: resource?.readTime || "5 min read", excerpt: resource?.excerpt || "", intro: resource?.intro || "",
+    logo: null, cover: null, gallery: [],
+    sections: (resource?.sections || []).map((section) => ({ heading: section.heading || "", body: (section.paragraphs || []).join("\n\n") }))
+  }))
   const [saving, setSaving] = useState(false)
 
   const updateField = ({ target: { name, value } }) => setForm((current) => ({ ...current, [name]: value }))
@@ -60,9 +63,9 @@ function AddResourceModal({ onClose, refreshResources }) {
     event.preventDefault()
     if (!form.title.trim()) return alert("Resource heading is required")
     setSaving(true)
-    const { error } = await addResource(form)
+    const { error } = editing ? await updateResource({ id: resource.id, ...form }) : await addResource(form)
     setSaving(false)
-    if (error) return alert(error.message || "Could not publish resource")
+    if (error) return alert(error.message || `Could not ${editing ? "update" : "publish"} resource`)
     await refreshResources()
     onClose()
   }
@@ -71,7 +74,7 @@ function AddResourceModal({ onClose, refreshResources }) {
     <div className="modal-overlay" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div className="modal-box resource-entry-modal" role="dialog" aria-modal="true" aria-labelledby="resource-modal-title">
         <div className="modal-header">
-          <div><span className="modal-kicker">Resource library</span><h2 id="resource-modal-title">Publish a resource</h2></div>
+          <div><span className="modal-kicker">Resource library</span><h2 id="resource-modal-title">{editing ? "Edit resource" : "Publish a resource"}</h2></div>
           <button type="button" className="close-btn" onClick={onClose} aria-label="Close"><FaTimes /></button>
         </div>
 
@@ -91,9 +94,9 @@ function AddResourceModal({ onClose, refreshResources }) {
           <section className="resource-form-section">
             <div className="resource-form-heading"><span>02</span><div><strong>Visuals</strong><p>Logo, cover and gallery are optional. JPG, PNG or WebP; maximum 2 MB each.</p></div></div>
             <div className="resource-upload-grid">
-              <label><span>Logo image</span><input type="file" accept="image/*" onChange={(event) => chooseSingleImage("logo", event.target.files[0])} /><small>{form.logo?.name || "No logo selected"}</small></label>
-              <label><span>Cover image</span><input type="file" accept="image/*" onChange={(event) => chooseSingleImage("cover", event.target.files[0])} /><small>{form.cover?.name || "No cover selected"}</small></label>
-              <label className="resource-gallery-input"><span>More images (up to 5)</span><input type="file" accept="image/*" multiple onChange={(event) => chooseGallery(event.target.files)} /><small>{form.gallery.length ? `${form.gallery.length} image(s) selected` : "No gallery images selected"}</small></label>
+              <label><span>Logo image</span><input type="file" accept="image/*" onChange={(event) => chooseSingleImage("logo", event.target.files[0])} /><small>{form.logo?.name || (editing && resource.logo ? "Current logo will be kept" : "No logo selected")}</small></label>
+              <label><span>Cover image</span><input type="file" accept="image/*" onChange={(event) => chooseSingleImage("cover", event.target.files[0])} /><small>{form.cover?.name || (editing && resource.image ? "Current cover will be kept" : "No cover selected")}</small></label>
+              <label className="resource-gallery-input"><span>More images (up to 5)</span><input type="file" accept="image/*" multiple onChange={(event) => chooseGallery(event.target.files)} /><small>{form.gallery.length ? `${form.gallery.length} new image(s) selected` : editing && resource.gallery?.length ? `${resource.gallery.length} current image(s) will be kept` : "No gallery images selected"}</small></label>
             </div>
             {form.gallery.length > 0 && <div className="selected-image-list">{form.gallery.map((image, index) => <button type="button" key={`${image.name}-${index}`} onClick={() => setForm((current) => ({ ...current, gallery: current.gallery.filter((_, imageIndex) => imageIndex !== index) }))}>{image.name}<FaTimes /></button>)}</div>}
           </section>
@@ -113,7 +116,7 @@ function AddResourceModal({ onClose, refreshResources }) {
           </section>
 
           <div className="modal-actions">
-            <button className="add-btn" type="submit" disabled={saving}>{saving ? "Publishing..." : "Add to resources"}</button>
+            <button className="add-btn" type="submit" disabled={saving}>{saving ? "Saving..." : editing ? "Save resource changes" : "Add to resources"}</button>
             <button className="cancel-btn" type="button" onClick={onClose}>Cancel</button>
           </div>
         </form>

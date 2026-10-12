@@ -67,11 +67,32 @@
   font-weight: 800;
 }
 
-.deleteIcon {
+.client-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: 10px;
+}
+
+.client-card-actions button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e6dcda;
+  background: #fff;
+  color: #514846;
+  cursor: pointer;
+}
+
+.client-card-actions button:hover {
+  border-color: #d71935;
+  color: #d71935;
+}
+
+.client-card-actions .deleteIcon {
   color: #e84c61;
   cursor: pointer;
   flex-shrink: 0;
-  margin-left: 10px;
 }
 
 @media(max-width:650px) {
@@ -99,7 +120,7 @@
     font-size: 13px;
   }
 
-  .deleteIcon {
+  .client-card-actions .deleteIcon {
     padding: 10px;
     width: 38px;
     height: 38px;

@@ -1,15 +1,18 @@
 import { useState } from "react"
 import { FaTimes } from "react-icons/fa"
-import { addEmployee } from "../services/authService"
+import { addEmployee, updateEmployee } from "../services/authService"
 import "./AddEmployeeModal.css"
 
 const JOB_TYPES = ["Intern", "Full Time", "Remote", "Part Time", "Custom"]
 
-function AddEmployeeModal({ onClose, refreshEmployees }) {
-  const [form, setForm] = useState({
-    name: "", address: "", phone: "", job_role: "", job_type: "Full Time",
-    custom_job_type: "", salary: "", joined_on: new Date().toISOString().slice(0, 10)
-  })
+function AddEmployeeModal({ onClose, refreshEmployees, employee = null }) {
+  const editing = Boolean(employee)
+  const [form, setForm] = useState(() => ({
+    name: employee?.name || "", address: employee?.address || "", phone: String(employee?.phone || ""),
+    job_role: employee?.job_role || "", job_type: employee?.job_type || "Full Time",
+    custom_job_type: employee?.custom_job_type || "", salary: employee?.salary ?? "",
+    joined_on: String(employee?.joined_on || new Date().toISOString().slice(0, 10)).slice(0, 10)
+  }))
   const [saving, setSaving] = useState(false)
 
   const updateField = (event) => {
@@ -27,9 +30,9 @@ function AddEmployeeModal({ onClose, refreshEmployees }) {
     if (Number(form.salary) < 0) return alert("Enter a valid salary")
 
     setSaving(true)
-    const { error } = await addEmployee(form)
+    const { error } = editing ? await updateEmployee(employee.id, form) : await addEmployee(form)
     setSaving(false)
-    if (error) return alert(error.message || "Could not create employee profile")
+    if (error) return alert(error.message || `Could not ${editing ? "update" : "create"} employee profile`)
     await refreshEmployees()
     onClose()
   }
@@ -38,7 +41,7 @@ function AddEmployeeModal({ onClose, refreshEmployees }) {
     <div className="modal-overlay" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div className="modal-box employee-entry-modal" role="dialog" aria-modal="true">
         <div className="modal-header">
-          <div><span className="modal-kicker">Team directory</span><h2>Create employee profile</h2></div>
+          <div><span className="modal-kicker">Team directory</span><h2>{editing ? "Edit employee profile" : "Create employee profile"}</h2></div>
           <button type="button" className="close-btn" onClick={onClose} aria-label="Close"><FaTimes /></button>
         </div>
         <form className="employee-form" onSubmit={submit}>
@@ -59,7 +62,7 @@ function AddEmployeeModal({ onClose, refreshEmployees }) {
           </div>
 
           <div className="modal-actions">
-            <button className="add-btn" type="submit" disabled={saving}>{saving ? "Creating..." : "Create profile"}</button>
+            <button className="add-btn" type="submit" disabled={saving}>{saving ? "Saving..." : editing ? "Save employee changes" : "Create profile"}</button>
             <button className="cancel-btn" type="button" onClick={onClose}>Cancel</button>
           </div>
         </form>

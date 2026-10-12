@@ -479,7 +479,9 @@
 .employee-card > p { margin: 0 0 18px; color: #6c6263; }
 .employee-card-meta { display: flex; justify-content: space-between; gap: 10px; padding: 12px 0; border-block: 1px solid #e9e0de; font-size: 12px; }
 .employee-card-meta strong { color: #a51d34; }
-.employee-card > button { width: 100%; margin-top: 14px; padding: 11px; background: #191717; color: #fff; font-weight: 900; cursor: pointer; }
+.employee-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.employee-card-actions button { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 11px; background: #191717; color: #fff; font-weight: 900; cursor: pointer; }
+.employee-card-actions button:last-child { border: 1px solid #191717; background: #fff; color: #191717; }
 .resource-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); gap: 14px; }
 .resource-admin-card { display: flex; flex-direction: column; min-width: 0; border: 1px solid #ded3d4; background: #fcfaf9; }
 .resource-admin-visual { position: relative; height: 180px; overflow: hidden; background: #191717; }
@@ -489,7 +491,7 @@
 .resource-admin-copy small { color: #a51d34; font-size: 10px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; }
 .resource-admin-copy h3 { margin: 9px 0 8px; font-size: 19px; line-height: 1.25; }
 .resource-admin-copy p { display: -webkit-box; overflow: hidden; margin: 0; color: #6c6263; font-size: 13px; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.resource-admin-actions { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid #ded3d4; }
+.resource-admin-actions { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid #ded3d4; }
 .resource-admin-actions button { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 12px; background: #fff; color: #191717; font-size: 12px; font-weight: 900; cursor: pointer; }
 .resource-admin-actions button+button { border-left: 1px solid #ded3d4; }
 .resource-admin-actions button.danger { color: #a51d34; }
