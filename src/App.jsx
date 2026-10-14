@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom"
 
 import ScrollToTop from "./ScrollToTop"
 
@@ -17,6 +17,7 @@ import EmployeeProfile from "./Pages/EmployeeProfile"
 import ProtectedRoute from "./Components/ProtectedRoute"
 import SeoManager from "./Components/SeoManager"
 import DiscoveryCallModal from "./Components/DiscoveryCallModal"
+import { ACCESS_PATH, WORKSPACE_PATH } from "./portalRoutes"
 
 function App(){
 
@@ -38,10 +39,10 @@ return(
 <Route path="/resources/:slug" element={<Resources/>}/>
 <Route path="/contact" element={<Contact/>}/>
 
-<Route path="/admin" element={<AdminLogin/>}/>
+<Route path={ACCESS_PATH} element={<AdminLogin/>}/>
 
 <Route
-path="/admin-dashboard"
+path={WORKSPACE_PATH}
 element={
 <ProtectedRoute>
 <AdminDashboard/>
@@ -50,7 +51,7 @@ element={
 />
 
 <Route
-path="/client/:id"
+path={`${WORKSPACE_PATH}/client/:id`}
 element={
 <ProtectedRoute>
 <ClientProfile/>
@@ -59,13 +60,15 @@ element={
 />
 
 <Route
-path="/employee/:id"
+path={`${WORKSPACE_PATH}/employee/:id`}
 element={
 <ProtectedRoute>
 <EmployeeProfile/>
 </ProtectedRoute>
 }
 />
+
+<Route path="*" element={<Navigate to="/" replace />}/>
 
 </Routes>
 

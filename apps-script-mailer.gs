@@ -89,6 +89,7 @@ function routeAction(action, payload, sessionToken) {
     updateEmployee: function () { return saveEmployee(payload, payload.id) },
     deleteEmployee: function () { return deleteEmployee(payload.id) },
     addPayout: function () { return addPayout(payload) },
+    updatePayout: function () { return updatePayout(payload) },
     getReceipt: function () { return getReceipt(payload.payout_id) },
     getResources: getResources,
     addResource: function () { return addResource(payload) },
@@ -273,6 +274,7 @@ function getEmployees() {
   const payouts = readObjects("payouts")
   return readObjects("employees").sort(newestFirst).map(function (employee) {
     employee.salary = Number(employee.salary || 0)
+    employee.joined_on = normalizeStoredDate(employee.joined_on)
     employee.payout_count = payouts.filter(function (item) { return item.employee_id === employee.id }).length
     return stripMeta(employee)
   })
@@ -282,6 +284,7 @@ function getEmployee(id) {
   const employee = readObjects("employees").find(function (item) { return item.id === String(id) })
   if (!employee) throw new Error("Employee not found")
   employee.salary = Number(employee.salary || 0)
+  employee.joined_on = normalizeStoredDate(employee.joined_on)
   employee.payouts = readObjects("payouts").filter(function (item) { return item.employee_id === employee.id }).sort(function (a, b) { return new Date(b.paid_on) - new Date(a.paid_on) }).map(function (item) {
     item.amount = Number(item.amount || 0)
     item.has_receipt = Boolean(item.receipt_file_id)
@@ -302,7 +305,7 @@ function saveEmployee(payload, id) {
     id: id || Utilities.getUuid(), name: String(payload.name).trim(), address: String(payload.address).trim(),
     phone: digits(payload.phone, 10), job_role: String(payload.job_role).trim(), job_type: payload.job_type,
     custom_job_type: payload.job_type === "Custom" ? String(payload.custom_job_type).trim() : "",
-    salary: amount(payload.salary), joined_on: payload.joined_on, status: "Active", updated_at: now
+    salary: amount(payload.salary), joined_on: normalizeDateValue(payload.joined_on, "Joining date"), status: "Active", updated_at: now
   }
   const duplicate = readObjects("employees").find(function (item) { return item.phone === data.phone && item.id !== id })
   if (duplicate) throw new Error("An employee with this phone number already exists")
@@ -328,8 +331,8 @@ function addPayout(payload) {
   let receiptId = ""
   if (payload.receipt_data) receiptId = saveReceipt(payload.receipt_data, payload.receipt_name, payload.receipt_type)
   const data = {
-    id: Utilities.getUuid(), employee_id: payload.employee_id, salary_month: payload.salary_month,
-    paid_on: payload.paid_on, amount: payoutAmount, receipt_file_id: receiptId,
+    id: Utilities.getUuid(), employee_id: payload.employee_id, salary_month: normalizeDateValue(payload.salary_month, "Salary month"),
+    paid_on: normalizeDateValue(payload.paid_on, "Pay date"), amount: payoutAmount, receipt_file_id: receiptId,
     receipt_name: receiptId ? String(payload.receipt_name || "receipt") : "",
     receipt_type: receiptId ? String(payload.receipt_type || "application/octet-stream") : "", created_at: new Date()
   }
@@ -337,6 +340,44 @@ function addPayout(payload) {
   delete data.receipt_file_id
   data.has_receipt = Boolean(receiptId)
   return data
+}
+
+function updatePayout(payload) {
+  const existing = readObjects("payouts").find(function (item) { return item.id === String(payload.id) })
+  if (!existing) throw new Error("Payout not found")
+  const payoutAmount = amount(payload.amount)
+  if (payoutAmount <= 0) throw new Error("Enter a valid payout amount")
+
+  let replacementReceiptId = ""
+  try {
+    if (payload.receipt_data) replacementReceiptId = saveReceipt(payload.receipt_data, payload.receipt_name, payload.receipt_type)
+    const updates = {
+      salary_month: normalizeDateValue(payload.salary_month, "Salary month"),
+      paid_on: normalizeDateValue(payload.paid_on, "Pay date"),
+      amount: payoutAmount,
+      receipt_file_id: replacementReceiptId || existing.receipt_file_id,
+      receipt_name: replacementReceiptId ? String(payload.receipt_name || "receipt") : existing.receipt_name,
+      receipt_type: replacementReceiptId ? String(payload.receipt_type || "application/octet-stream") : existing.receipt_type
+    }
+    updateRow("payouts", existing._row, updates)
+    if (replacementReceiptId && existing.receipt_file_id) {
+      try { DriveApp.getFileById(existing.receipt_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+    }
+    return {
+      id: existing.id,
+      employee_id: existing.employee_id,
+      salary_month: updates.salary_month,
+      paid_on: updates.paid_on,
+      amount: updates.amount,
+      receipt_name: updates.receipt_name,
+      receipt_type: updates.receipt_type,
+      created_at: existing.created_at,
+      has_receipt: Boolean(updates.receipt_file_id)
+    }
+  } catch (error) {
+    if (replacementReceiptId) try { DriveApp.getFileById(replacementReceiptId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) }
+    throw error
+  }
 }
 
 function saveReceipt(dataUrl, name, type) {
@@ -584,7 +625,7 @@ function readObjects(key) {
   const headers = TABLES[key]
   return sheet.getRange(2, 1, sheet.getLastRow() - 1, headers.length).getValues().map(function (row, index) {
     const object = { _row: index + 2 }
-    headers.forEach(function (header, column) { object[header] = serializeValue(row[column]) })
+    headers.forEach(function (header, column) { object[header] = serializeValue(row[column], header) })
     return object
   })
 }
@@ -644,12 +685,31 @@ function cleanEmail(value) { return String(value || "").trim().toLowerCase() }
 function amount(value) { const number = Number(value || 0); return isFinite(number) && number >= 0 ? Math.round(number * 100) / 100 : 0 }
 function parseJsonArray(value) { try { const parsed = JSON.parse(value || "[]"); return Array.isArray(parsed) ? parsed : [] } catch (error) { return [] } }
 function safeFileName(value) { return String(value || "receipt").replace(/[^a-zA-Z0-9._ -]/g, "_").slice(0, 120) }
-function serializeValue(value) { return value instanceof Date ? value.toISOString() : value }
+function normalizeDateValue(value, label) {
+  if (value instanceof Date && !isNaN(value.getTime())) return Utilities.formatDate(value, Session.getScriptTimeZone(), "yyyy-MM-dd")
+  const raw = String(value || "").trim()
+  let match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (match) return match[1] + "-" + match[2] + "-" + match[3]
+  match = raw.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/)
+  if (match) return match[3] + "-" + ("0" + match[2]).slice(-2) + "-" + ("0" + match[1]).slice(-2)
+  throw new Error((label || "Date") + " is required")
+}
+function normalizeStoredDate(value) {
+  if (!value) return ""
+  try { return normalizeDateValue(value, "Date") } catch (error) { return String(value) }
+}
+function serializeValue(value, field) {
+  if (!(value instanceof Date)) return value
+  const dateOnlyFields = ["joined_on", "work_start_date", "salary_month", "paid_on"]
+  return dateOnlyFields.indexOf(field) !== -1
+    ? Utilities.formatDate(value, Session.getScriptTimeZone(), "yyyy-MM-dd")
+    : value.toISOString()
+}
 function newestFirst(a, b) { return new Date(b.created_at) - new Date(a.created_at) }
 function stripMeta(object) { const clean = Object.assign({}, object); delete clean._row; return clean }
 function safeError(error) {
   const message = String(error && error.message ? error.message : "Request failed")
-  const allowed = ["Invalid", "Admin", "Client", "Employee", "Receipt", "Resource", "Select", "Enter", "Complete", "Unsupported", "Too many", "Database", "Phone", "Total", "Advance", "Monthly", "Work", "An employee"]
+  const allowed = ["Invalid", "Admin", "Client", "Employee", "Payout", "Receipt", "Resource", "Select", "Enter", "Complete", "Unsupported", "Too many", "Database", "Phone", "Total", "Advance", "Monthly", "Salary", "Pay", "Joining", "Work", "An employee"]
   return allowed.some(function (prefix) { return message.indexOf(prefix) === 0 }) ? message : "Request could not be completed"
 }
 function jsonResponse(value) { return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON) }

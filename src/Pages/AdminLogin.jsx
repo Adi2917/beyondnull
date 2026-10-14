@@ -6,6 +6,7 @@ import "./AdminLogin.css"
 
 import { checkAdminSession, loginAdmin } from "../services/authService"
 import ForgetPinModal from "../Components/ForgetPinModal"
+import { WORKSPACE_PATH } from "../portalRoutes"
 
 function AdminLogin(){
 
@@ -23,7 +24,7 @@ const [mode,setMode] = useState("")
 useEffect(()=>{
 
 if(checkAdminSession()){
-navigate("/admin-dashboard")
+navigate(WORKSPACE_PATH)
 }
 
 },[navigate])
@@ -50,7 +51,7 @@ return
 setMode("live")
 setMessage("Google Sheets backend connected. Login successful.")
 
-navigate("/admin-dashboard")
+navigate(WORKSPACE_PATH)
 
 }
 

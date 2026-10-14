@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import { FaEdit, FaTrash } from "react-icons/fa"
 import "./ClientCard.css"
+import { clientProfilePath } from "../portalRoutes"
 
 function ClientCard({client,onDelete,onEdit}){
 
@@ -12,7 +13,7 @@ return(
 
 <div
 className="clientMain"
-onClick={()=>navigate(`/client/${client.id}`)}
+onClick={()=>navigate(clientProfilePath(client.id))}
 >
 
 <div className="avatar">

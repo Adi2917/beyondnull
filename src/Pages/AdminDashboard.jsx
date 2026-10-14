@@ -10,6 +10,7 @@ import AddResourceModal from "../Components/AddResourceModal"
 import ConfirmDeleteModal from "../Components/ConfirmDeleteModal"
 import BrandLogo from "../Components/BrandLogo"
 import "./AdminDashboard.css"
+import { ACCESS_PATH, employeeProfilePath } from "../portalRoutes"
 
 function AdminDashboard() {
   const navigate = useNavigate()
@@ -39,7 +40,7 @@ function AdminDashboard() {
   }, [])
 
   useEffect(() => {
-    if (!checkAdminSession()) return navigate("/admin")
+    if (!checkAdminSession()) return navigate(ACCESS_PATH)
     let active = true
     Promise.all([getClients(), getEmployees(), getPublishedResources()]).then(([clientResult, employeeResult, resourceResult]) => {
       if (!active) return
@@ -90,7 +91,7 @@ function AdminDashboard() {
 
   const logout = () => {
     logoutAdmin()
-    navigate("/admin")
+    navigate(ACCESS_PATH)
   }
 
   return (
@@ -128,11 +129,11 @@ function AdminDashboard() {
           ) : activeTab === "clients" ? filteredClients.map((client) => (
             <ClientCard key={client.id} client={client} onEdit={setEditClient} onDelete={(id) => setDeleteId(id)} />
           )) : activeTab === "employees" ? filteredEmployees.map((employee) => (
-            <article className="employee-card" key={employee.id} onClick={() => navigate(`/employee/${employee.id}`)}>
+            <article className="employee-card" key={employee.id} onClick={() => navigate(employeeProfilePath(employee.id))}>
               <div className="employee-card-top"><div className="employee-avatar">{employee.name?.charAt(0).toUpperCase()}</div><span>{employee.job_type === "Custom" ? employee.custom_job_type : employee.job_type}</span></div>
               <h3>{employee.name}</h3><p>{employee.job_role}</p>
               <div className="employee-card-meta"><span>{employee.phone}</span><strong>Rs {Number(employee.salary || 0).toLocaleString("en-IN")}/mo</strong></div>
-              <div className="employee-card-actions"><button type="button" onClick={(event) => { event.stopPropagation(); navigate(`/employee/${employee.id}`) }}>View profile</button><button type="button" onClick={(event) => { event.stopPropagation(); setEditEmployee(employee) }}><FaEdit /> Edit</button></div>
+              <div className="employee-card-actions"><button type="button" onClick={(event) => { event.stopPropagation(); navigate(employeeProfilePath(employee.id)) }}>View profile</button><button type="button" onClick={(event) => { event.stopPropagation(); setEditEmployee(employee) }}><FaEdit /> Edit</button></div>
             </article>
           )) : filteredResources.map((resource) => (
             <article className="resource-admin-card" key={resource.id}>

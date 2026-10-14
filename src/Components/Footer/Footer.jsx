@@ -5,11 +5,25 @@ import {
   FaWhatsapp
 } from "react-icons/fa";
 import { FaEnvelope, FaLocationDot, FaPhone } from "react-icons/fa6";
-import { Link } from "react-router-dom";
+import { useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import BrandLogo from "../BrandLogo";
 import "./Footer.css";
+import { ACCESS_PATH } from "../../portalRoutes";
 
 function Footer() {
+  const navigate = useNavigate();
+  const secretClicks = useRef([]);
+
+  const openPrivateAccess = () => {
+    const now = Date.now();
+    secretClicks.current = [...secretClicks.current.filter((time) => now - time < 4000), now];
+    if (secretClicks.current.length >= 5) {
+      secretClicks.current = [];
+      navigate(ACCESS_PATH);
+    }
+  };
+
   return (
     <footer className="footer">
       <div className="footer-container">
@@ -31,7 +45,6 @@ function Footer() {
             <Link to="/results">Our Work</Link>
             <Link to="/resources">Resources</Link>
             <Link to="/contact">Contact</Link>
-            <Link to="/admin">Admin Login</Link>
           </div>
         </div>
 
@@ -65,7 +78,7 @@ function Footer() {
 
       <div className="footer-bottom">
         <div className="bottom-content">
-          <p>Copyright 2024 <span>BeyondNull</span>. All Rights Reserved.</p>
+          <p>Copyright 2024 <span onClick={openPrivateAccess}>BeyondNull</span>. All Rights Reserved.</p>
         </div>
       </div>
     </footer>

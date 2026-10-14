@@ -2,6 +2,7 @@ import { useState } from "react"
 import { FaTimes } from "react-icons/fa"
 import { addEmployee, updateEmployee } from "../services/authService"
 import "./AddEmployeeModal.css"
+import { toDateInputValue } from "../utils/date"
 
 const JOB_TYPES = ["Intern", "Full Time", "Remote", "Part Time", "Custom"]
 
@@ -11,7 +12,7 @@ function AddEmployeeModal({ onClose, refreshEmployees, employee = null }) {
     name: employee?.name || "", address: employee?.address || "", phone: String(employee?.phone || ""),
     job_role: employee?.job_role || "", job_type: employee?.job_type || "Full Time",
     custom_job_type: employee?.custom_job_type || "", salary: employee?.salary ?? "",
-    joined_on: String(employee?.joined_on || new Date().toISOString().slice(0, 10)).slice(0, 10)
+    joined_on: toDateInputValue(employee?.joined_on) || new Date().toISOString().slice(0, 10)
   }))
   const [saving, setSaving] = useState(false)
 

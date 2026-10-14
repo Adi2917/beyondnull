@@ -191,6 +191,11 @@ export async function addEmployeePayout(employeeId, payout) {
   return apiRequest("addPayout", { employee_id: employeeId, ...payout, amount: Number(payout.amount || 0) })
 }
 
+export async function updateEmployeePayout(payoutId, payout) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("updatePayout", { id: payoutId, ...payout, amount: Number(payout.amount || 0) })
+}
+
 export async function downloadEmployeeReceipt(payoutId) {
   if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
   return apiRequest("getReceipt", { payout_id: payoutId })
