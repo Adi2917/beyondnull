@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { FaArrowLeft, FaCalendarCheck, FaEdit, FaFileInvoice, FaTrash } from "react-icons/fa"
+import { FaArrowLeft, FaCalendarCheck, FaDownload, FaEdit, FaEye, FaFileInvoice, FaTrash } from "react-icons/fa"
 import { addEmployeePayout, deleteEmployee, downloadEmployeeReceipt, downloadPayoutProof, getEmployeeById, updateEmployeePayout } from "../services/authService"
 import "./EmployeeProfile.css"
 import { WORKSPACE_PATH } from "../portalRoutes"
@@ -108,12 +108,27 @@ function EmployeeProfile() {
     navigate(WORKSPACE_PATH)
   }
 
-  const openReceipt = async (payoutId) => {
+  const viewReceipt = async (payoutId) => {
+    const preview = window.open("", "_blank")
+    if (!preview) return alert("Please allow pop-ups to view the receipt")
+    preview.document.write("<p style='font-family:Arial;padding:24px'>Loading salary receipt...</p>")
+    const { data, error } = await downloadEmployeeReceipt(payoutId)
+    if (error) {
+      preview.close()
+      return alert(error.message || "Could not open receipt")
+    }
+    const response = await fetch(data.data)
+    const blobUrl = URL.createObjectURL(await response.blob())
+    preview.location.href = blobUrl
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+  }
+
+  const downloadReceipt = async (payoutId) => {
     const { data, error } = await downloadEmployeeReceipt(payoutId)
     if (error) return alert(error.message || "Could not download receipt")
     const link = document.createElement("a")
     link.href = data.data
-    link.download = data.name || "receipt"
+    link.download = data.name || "BeyondNull-salary-receipt.pdf"
     document.body.appendChild(link)
     link.click()
     link.remove()
@@ -169,7 +184,7 @@ function EmployeeProfile() {
 
       <section className="employee-panel payout-history">
         <div className="panel-heading"><FaFileInvoice /><div><h2>Payout history</h2><p>{employee.payouts?.length || 0} payment records</p></div></div>
-        {!employee.payouts?.length ? <div className="no-payouts">No payouts recorded yet.</div> : <div className="payout-table-wrap"><table><thead><tr><th>Salary month</th><th>Pay date</th><th>Salary</th><th>Extra</th><th>Total</th><th>Documents</th><th>Action</th></tr></thead><tbody>{employee.payouts.map((item) => <tr key={item.id}><td>{formatMonthValue(item.salary_month)}</td><td>{formatDateValue(item.paid_on)}</td><td>Rs {Number(item.base_salary || 0).toLocaleString("en-IN")}</td><td>{Number(item.extra_amount || 0) > 0 ? `${item.extra_label}: Rs ${Number(item.extra_amount).toLocaleString("en-IN")}` : "-"}</td><td><strong>Rs {Number(item.amount).toLocaleString("en-IN")}</strong></td><td><div className="payout-doc-actions">{item.has_receipt && <button className="receipt-download" onClick={() => openReceipt(item.id)}>Salary receipt</button>}{item.has_payment_proof && <button className="proof-download" onClick={() => openProof(item.id)}>Payment proof</button>}</div></td><td><button className="payout-edit-button" onClick={() => editPayout(item)}><FaEdit /> Edit</button></td></tr>)}</tbody></table></div>}
+        {!employee.payouts?.length ? <div className="no-payouts">No payouts recorded yet.</div> : <div className="payout-table-wrap"><table><thead><tr><th>Salary month</th><th>Pay date</th><th>Salary</th><th>Extra</th><th>Total</th><th>Documents</th><th>Action</th></tr></thead><tbody>{employee.payouts.map((item) => <tr key={item.id}><td>{formatMonthValue(item.salary_month)}</td><td>{formatDateValue(item.paid_on)}</td><td>Rs {Number(item.base_salary || 0).toLocaleString("en-IN")}</td><td>{Number(item.extra_amount || 0) > 0 ? `${item.extra_label}: Rs ${Number(item.extra_amount).toLocaleString("en-IN")}` : "-"}</td><td><strong>Rs {Number(item.amount).toLocaleString("en-IN")}</strong></td><td><div className="payout-doc-actions">{item.has_receipt && <><button className="receipt-view" onClick={() => viewReceipt(item.id)}><FaEye /> View receipt</button><button className="receipt-download" onClick={() => downloadReceipt(item.id)}><FaDownload /> Download PDF</button></>}{item.has_payment_proof && <button className="proof-download" onClick={() => openProof(item.id)}>Payment proof</button>}</div></td><td><button className="payout-edit-button" onClick={() => editPayout(item)}><FaEdit /> Edit</button></td></tr>)}</tbody></table></div>}
       </section>
     </main>
   )
