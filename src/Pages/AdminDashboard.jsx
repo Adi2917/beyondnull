@@ -132,7 +132,7 @@ function AdminDashboard() {
             <article className="employee-card" key={employee.id} onClick={() => navigate(employeeProfilePath(employee.id))}>
               <div className="employee-card-top"><div className="employee-avatar">{employee.name?.charAt(0).toUpperCase()}</div><span>{employee.job_type === "Custom" ? employee.custom_job_type : employee.job_type}</span></div>
               <h3>{employee.name}</h3><p>{employee.job_role}</p>
-              <div className="employee-card-meta"><span>{employee.phone}</span><strong>Rs {Number(employee.salary || 0).toLocaleString("en-IN")}/mo</strong></div>
+              <div className="employee-card-meta"><span>{employee.phone}</span><strong>{Number(employee.salary || 0) > 0 ? `Rs ${Number(employee.salary).toLocaleString("en-IN")}/mo` : "Salary not fixed"}</strong></div>
               <div className="employee-card-actions"><button type="button" onClick={(event) => { event.stopPropagation(); navigate(employeeProfilePath(employee.id)) }}>View profile</button><button type="button" onClick={(event) => { event.stopPropagation(); setEditEmployee(employee) }}><FaEdit /> Edit</button></div>
             </article>
           )) : filteredResources.map((resource) => (

@@ -80,7 +80,11 @@ function sanitizeEmployee(employee) {
     job_type: String(employee.job_type || "").trim(),
     custom_job_type: String(employee.custom_job_type || "").trim(),
     salary: Number(employee.salary || 0),
-    joined_on: employee.joined_on || new Date().toISOString().slice(0, 10)
+    joined_on: employee.joined_on || new Date().toISOString().slice(0, 10),
+    email: normalizeEmail(employee.email),
+    bank_name: String(employee.bank_name || "").trim(),
+    account_number: String(employee.account_number || "").replace(/\D/g, "").slice(0, 24),
+    ifsc_code: String(employee.ifsc_code || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11)
   }
 }
 
@@ -188,17 +192,22 @@ export async function deleteEmployee(id) {
 
 export async function addEmployeePayout(employeeId, payout) {
   if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
-  return apiRequest("addPayout", { employee_id: employeeId, ...payout, amount: Number(payout.amount || 0) })
+  return apiRequest("addPayout", { employee_id: employeeId, ...payout, base_salary: Number(payout.base_salary || 0), extra_amount: Number(payout.extra_amount || 0) })
 }
 
 export async function updateEmployeePayout(payoutId, payout) {
   if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
-  return apiRequest("updatePayout", { id: payoutId, ...payout, amount: Number(payout.amount || 0) })
+  return apiRequest("updatePayout", { id: payoutId, ...payout, base_salary: Number(payout.base_salary || 0), extra_amount: Number(payout.extra_amount || 0) })
 }
 
 export async function downloadEmployeeReceipt(payoutId) {
   if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
   return apiRequest("getReceipt", { payout_id: payoutId })
+}
+
+export async function downloadPayoutProof(payoutId) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("getPayoutProof", { payout_id: payoutId })
 }
 
 export async function getPublishedResources() {

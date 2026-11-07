@@ -5,12 +5,14 @@ const SESSION_HOURS = 12
 const RECEIPT_LIMIT_BYTES = 3 * 1024 * 1024
 const RESOURCE_IMAGE_LIMIT_BYTES = 2 * 1024 * 1024
 const RESOURCE_IMAGE_LIMIT = 5
+const OWNER_PHONES = ["7485875137", "6205475866", "6201689501"]
+const BRAND_ASSET_URL = "https://beyondnull.in"
 
 const TABLES = {
   clients: ["id", "name", "phone", "email", "address", "district", "status", "source", "notes", "created_at", "updated_at"],
   services: ["id", "client_id", "service_type", "billing_type", "total_amount", "advance_amount", "pending_amount", "monthly_package", "social_platforms", "work_start_date", "work_status", "created_at", "updated_at"],
-  employees: ["id", "name", "address", "phone", "job_role", "job_type", "custom_job_type", "salary", "joined_on", "status", "created_at", "updated_at"],
-  payouts: ["id", "employee_id", "salary_month", "paid_on", "amount", "receipt_file_id", "receipt_name", "receipt_type", "created_at"],
+  employees: ["id", "name", "address", "phone", "job_role", "job_type", "custom_job_type", "salary", "joined_on", "status", "created_at", "updated_at", "email", "bank_name", "account_number", "ifsc_code"],
+  payouts: ["id", "employee_id", "salary_month", "paid_on", "amount", "receipt_file_id", "receipt_name", "receipt_type", "created_at", "base_salary", "extra_label", "extra_amount", "generated_receipt_file_id", "email_sent_at"],
   sessions: ["id", "token_hash", "email", "role", "expires_at", "revoked_at", "created_at"],
   resets: ["id", "email", "phone", "otp_hash", "expires_at", "attempts", "used_at", "created_at"],
   resources: ["id", "slug", "category", "read_time", "title", "subtitle", "excerpt", "intro", "logo_file_id", "cover_file_id", "gallery_file_ids", "sections_json", "status", "created_at", "updated_at"]
@@ -32,6 +34,7 @@ function setupBeyondNullDatabase() {
     let sheet = spreadsheet.getSheetByName(SHEET_NAMES[key])
     if (!sheet) sheet = spreadsheet.insertSheet(SHEET_NAMES[key])
     if (sheet.getLastRow() === 0) sheet.appendRow(TABLES[key])
+    else sheet.getRange(1, 1, 1, TABLES[key].length).setValues([TABLES[key]])
     sheet.setFrozenRows(1)
     sheet.getRange(1, 1, 1, TABLES[key].length)
       .setBackground("#191717").setFontColor("#ffffff").setFontWeight("bold")
@@ -91,6 +94,7 @@ function routeAction(action, payload, sessionToken) {
     addPayout: function () { return addPayout(payload) },
     updatePayout: function () { return updatePayout(payload) },
     getReceipt: function () { return getReceipt(payload.payout_id) },
+    getPayoutProof: function () { return getPayoutProof(payload.payout_id) },
     getResources: getResources,
     addResource: function () { return addResource(payload) },
     updateResource: function () { return updateResource(payload) },
@@ -287,8 +291,13 @@ function getEmployee(id) {
   employee.joined_on = normalizeStoredDate(employee.joined_on)
   employee.payouts = readObjects("payouts").filter(function (item) { return item.employee_id === employee.id }).sort(function (a, b) { return new Date(b.paid_on) - new Date(a.paid_on) }).map(function (item) {
     item.amount = Number(item.amount || 0)
-    item.has_receipt = Boolean(item.receipt_file_id)
+    item.base_salary = Number(item.base_salary === "" ? item.amount : item.base_salary || 0)
+    item.extra_amount = Number(item.extra_amount || 0)
+    item.has_receipt = Boolean(item.generated_receipt_file_id || item.receipt_file_id)
+    item.has_payment_proof = Boolean(item.receipt_file_id)
+    item.email_sent = Boolean(item.email_sent_at)
     delete item.receipt_file_id
+    delete item.generated_receipt_file_id
     return stripMeta(item)
   })
   return stripMeta(employee)
@@ -300,13 +309,20 @@ function saveEmployee(payload, id) {
   if (!String(payload.name || "").trim() || !String(payload.address || "").trim() || !String(payload.job_role || "").trim()) throw new Error("Complete all required employee fields")
   if (jobTypes.indexOf(payload.job_type) === -1) throw new Error("Invalid job type")
   if (payload.job_type === "Custom" && !String(payload.custom_job_type || "").trim()) throw new Error("Enter custom job type")
+  const employeePhone = digits(payload.phone, 10)
+  const employeeSalary = amount(payload.salary)
+  if (OWNER_PHONES.indexOf(employeePhone) === -1 && employeeSalary <= 0) throw new Error("Monthly salary is required")
   const now = new Date()
   const data = {
     id: id || Utilities.getUuid(), name: String(payload.name).trim(), address: String(payload.address).trim(),
-    phone: digits(payload.phone, 10), job_role: String(payload.job_role).trim(), job_type: payload.job_type,
+    phone: employeePhone, job_role: String(payload.job_role).trim(), job_type: payload.job_type,
     custom_job_type: payload.job_type === "Custom" ? String(payload.custom_job_type).trim() : "",
-    salary: amount(payload.salary), joined_on: normalizeDateValue(payload.joined_on, "Joining date"), status: "Active", updated_at: now
+    salary: employeeSalary, joined_on: normalizeDateValue(payload.joined_on, "Joining date"), status: "Active", updated_at: now,
+    email: cleanEmail(payload.email), bank_name: String(payload.bank_name || "").trim().slice(0, 120),
+    account_number: digits(payload.account_number, 24), ifsc_code: String(payload.ifsc_code || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11)
   }
+  if (data.email && !/^\S+@\S+\.\S+$/.test(data.email)) throw new Error("Invalid employee email")
+  if (data.ifsc_code && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(data.ifsc_code)) throw new Error("Invalid IFSC code")
   const duplicate = readObjects("employees").find(function (item) { return item.phone === data.phone && item.id !== id })
   if (duplicate) throw new Error("An employee with this phone number already exists")
   if (id) {
@@ -319,83 +335,217 @@ function saveEmployee(payload, id) {
 
 function deleteEmployee(id) {
   const payoutRows = readObjects("payouts").filter(function (item) { return item.employee_id === id })
-  payoutRows.forEach(function (item) { if (item.receipt_file_id) try { DriveApp.getFileById(item.receipt_file_id).setTrashed(true) } catch (error) { console.warn(error) } })
+  payoutRows.forEach(function (item) {
+    ;[item.receipt_file_id, item.generated_receipt_file_id].filter(Boolean).forEach(function (fileId) {
+      try { DriveApp.getFileById(fileId).setTrashed(true) } catch (error) { console.warn(error) }
+    })
+  })
   deleteRowsWhere("payouts", "employee_id", id)
   return deleteRowsWhere("employees", "id", id) > 0
 }
 
 function addPayout(payload) {
-  if (!getEmployee(payload.employee_id)) throw new Error("Employee not found")
-  const payoutAmount = amount(payload.amount)
-  if (payoutAmount <= 0) throw new Error("Enter a valid payout amount")
-  let receiptId = ""
-  if (payload.receipt_data) receiptId = saveReceipt(payload.receipt_data, payload.receipt_name, payload.receipt_type)
-  const data = {
-    id: Utilities.getUuid(), employee_id: payload.employee_id, salary_month: normalizeDateValue(payload.salary_month, "Salary month"),
-    paid_on: normalizeDateValue(payload.paid_on, "Pay date"), amount: payoutAmount, receipt_file_id: receiptId,
-    receipt_name: receiptId ? String(payload.receipt_name || "receipt") : "",
-    receipt_type: receiptId ? String(payload.receipt_type || "application/octet-stream") : "", created_at: new Date()
+  const employee = getEmployee(payload.employee_id)
+  if (!employee) throw new Error("Employee not found")
+  if (!employee.email) throw new Error("Employee email is required before creating a payout")
+  const payout = normalizePayout(payload, Number(employee.salary || 0))
+  const payoutId = Utilities.getUuid()
+  let proofId = ""
+  let generatedId = ""
+  try {
+    if (payload.receipt_data) proofId = saveReceipt(payload.receipt_data, payload.receipt_name, payload.receipt_type)
+    const generated = createSalaryReceipt(employee, payout, payoutId)
+    generatedId = generated.fileId
+    sendSalaryReceiptEmail(employee, payout, generated.blob, generated.receiptNumber, false)
+    const now = new Date()
+    const data = {
+      id: payoutId, employee_id: payload.employee_id, salary_month: payout.salary_month,
+      paid_on: payout.paid_on, amount: payout.total_amount, receipt_file_id: proofId,
+      receipt_name: proofId ? String(payload.receipt_name || "payment-proof") : "",
+      receipt_type: proofId ? String(payload.receipt_type || "application/octet-stream") : "", created_at: now,
+      base_salary: payout.base_salary, extra_label: payout.extra_label, extra_amount: payout.extra_amount,
+      generated_receipt_file_id: generatedId, email_sent_at: now
+    }
+    appendObject("payouts", data)
+    return payoutResponse(data)
+  } catch (error) {
+    ;[proofId, generatedId].filter(Boolean).forEach(function (fileId) { try { DriveApp.getFileById(fileId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) } })
+    throw error
   }
-  appendObject("payouts", data)
-  delete data.receipt_file_id
-  data.has_receipt = Boolean(receiptId)
-  return data
 }
 
 function updatePayout(payload) {
   const existing = readObjects("payouts").find(function (item) { return item.id === String(payload.id) })
   if (!existing) throw new Error("Payout not found")
-  const payoutAmount = amount(payload.amount)
-  if (payoutAmount <= 0) throw new Error("Enter a valid payout amount")
+  const employee = getEmployee(existing.employee_id)
+  if (!employee.email) throw new Error("Employee email is required before updating a payout")
+  const previousBase = existing.base_salary === "" ? Number(existing.amount || employee.salary || 0) : Number(existing.base_salary || 0)
+  const payout = normalizePayout(payload, previousBase)
 
   let replacementReceiptId = ""
+  let generatedReceiptId = ""
   try {
     if (payload.receipt_data) replacementReceiptId = saveReceipt(payload.receipt_data, payload.receipt_name, payload.receipt_type)
+    const generated = createSalaryReceipt(employee, payout, existing.id)
+    generatedReceiptId = generated.fileId
+    sendSalaryReceiptEmail(employee, payout, generated.blob, generated.receiptNumber, true)
     const updates = {
-      salary_month: normalizeDateValue(payload.salary_month, "Salary month"),
-      paid_on: normalizeDateValue(payload.paid_on, "Pay date"),
-      amount: payoutAmount,
+      salary_month: payout.salary_month,
+      paid_on: payout.paid_on,
+      amount: payout.total_amount,
       receipt_file_id: replacementReceiptId || existing.receipt_file_id,
       receipt_name: replacementReceiptId ? String(payload.receipt_name || "receipt") : existing.receipt_name,
-      receipt_type: replacementReceiptId ? String(payload.receipt_type || "application/octet-stream") : existing.receipt_type
+      receipt_type: replacementReceiptId ? String(payload.receipt_type || "application/octet-stream") : existing.receipt_type,
+      base_salary: payout.base_salary,
+      extra_label: payout.extra_label,
+      extra_amount: payout.extra_amount,
+      generated_receipt_file_id: generatedReceiptId,
+      email_sent_at: new Date()
     }
     updateRow("payouts", existing._row, updates)
     if (replacementReceiptId && existing.receipt_file_id) {
       try { DriveApp.getFileById(existing.receipt_file_id).setTrashed(true) } catch (error) { console.warn(error) }
     }
-    return {
-      id: existing.id,
-      employee_id: existing.employee_id,
-      salary_month: updates.salary_month,
-      paid_on: updates.paid_on,
-      amount: updates.amount,
-      receipt_name: updates.receipt_name,
-      receipt_type: updates.receipt_type,
-      created_at: existing.created_at,
-      has_receipt: Boolean(updates.receipt_file_id)
-    }
+    if (existing.generated_receipt_file_id) try { DriveApp.getFileById(existing.generated_receipt_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+    return payoutResponse(Object.assign({}, existing, updates))
   } catch (error) {
     if (replacementReceiptId) try { DriveApp.getFileById(replacementReceiptId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) }
+    if (generatedReceiptId) try { DriveApp.getFileById(generatedReceiptId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) }
     throw error
+  }
+}
+
+function normalizePayout(payload, defaultBaseSalary) {
+  const baseSalary = payload.base_salary === undefined || payload.base_salary === "" ? amount(defaultBaseSalary) : amount(payload.base_salary)
+  const extraAmount = amount(payload.extra_amount)
+  const extraLabel = String(payload.extra_label || "").trim().slice(0, 100)
+  if (extraAmount > 0 && !extraLabel) throw new Error("Enter a label for the extra payment")
+  const totalAmount = Math.round((baseSalary + extraAmount) * 100) / 100
+  if (totalAmount <= 0) throw new Error("Enter a valid payout amount")
+  return {
+    salary_month: normalizeDateValue(payload.salary_month, "Salary month"),
+    paid_on: normalizeDateValue(payload.paid_on, "Pay date"),
+    base_salary: baseSalary,
+    extra_label: extraAmount > 0 ? extraLabel : "",
+    extra_amount: extraAmount,
+    total_amount: totalAmount
+  }
+}
+
+function payoutResponse(item) {
+  return {
+    id: item.id, employee_id: item.employee_id, salary_month: item.salary_month, paid_on: item.paid_on,
+    amount: Number(item.amount || 0), base_salary: Number(item.base_salary || 0), extra_label: item.extra_label || "",
+    extra_amount: Number(item.extra_amount || 0), receipt_name: item.receipt_name || "", receipt_type: item.receipt_type || "",
+    created_at: serializeValue(item.created_at), has_receipt: Boolean(item.generated_receipt_file_id || item.receipt_file_id),
+    has_payment_proof: Boolean(item.receipt_file_id), email_sent: Boolean(item.email_sent_at)
   }
 }
 
 function saveReceipt(dataUrl, name, type) {
   const match = String(dataUrl).match(/^data:([^;]+);base64,(.+)$/)
   if (!match) throw new Error("Invalid receipt file")
+  const contentType = String(type || match[1]).toLowerCase()
+  if (contentType !== "application/pdf" && contentType.indexOf("image/") !== 0) throw new Error("Receipt must be an image or PDF")
   const bytes = Utilities.base64Decode(match[2])
   if (bytes.length > RECEIPT_LIMIT_BYTES) throw new Error("Receipt must be smaller than 3 MB")
   const folderId = PropertiesService.getScriptProperties().getProperty("RECEIPT_FOLDER_ID")
   if (!folderId) throw new Error("Receipt folder is not configured")
-  return DriveApp.getFolderById(folderId).createFile(Utilities.newBlob(bytes, type || match[1], safeFileName(name))).getId()
+  return DriveApp.getFolderById(folderId).createFile(Utilities.newBlob(bytes, contentType, safeFileName(name))).getId()
 }
 
 function getReceipt(payoutId) {
   const payout = readObjects("payouts").find(function (item) { return item.id === String(payoutId) })
-  if (!payout || !payout.receipt_file_id) throw new Error("Receipt not found")
-  const blob = DriveApp.getFileById(payout.receipt_file_id).getBlob()
-  return { name: payout.receipt_name || blob.getName(), type: payout.receipt_type || blob.getContentType(), data: "data:" + (payout.receipt_type || blob.getContentType()) + ";base64," + Utilities.base64Encode(blob.getBytes()) }
+  const fileId = payout && (payout.generated_receipt_file_id || payout.receipt_file_id)
+  if (!fileId) throw new Error("Receipt not found")
+  const blob = DriveApp.getFileById(fileId).getBlob()
+  return fileDownloadResponse(blob, blob.getName())
 }
+
+function getPayoutProof(payoutId) {
+  const payout = readObjects("payouts").find(function (item) { return item.id === String(payoutId) })
+  if (!payout || !payout.receipt_file_id) throw new Error("Receipt proof not found")
+  const blob = DriveApp.getFileById(payout.receipt_file_id).getBlob()
+  return fileDownloadResponse(blob, payout.receipt_name || blob.getName(), payout.receipt_type)
+}
+
+function fileDownloadResponse(blob, name, type) {
+  const contentType = type || blob.getContentType()
+  return { name: name || blob.getName(), type: contentType, data: "data:" + contentType + ";base64," + Utilities.base64Encode(blob.getBytes()) }
+}
+
+function createSalaryReceipt(employee, payout, payoutId) {
+  const receiptNumber = "BN-PAY-" + payout.salary_month.slice(0, 7).replace("-", "") + "-" + String(payoutId).replace(/-/g, "").slice(0, 6).toUpperCase()
+  const fileName = safeFileName("BeyondNull-Salary-Receipt-" + employee.name + "-" + payout.salary_month.slice(0, 7)) + ".pdf"
+  const html = buildSalaryReceiptHtml(employee, payout, receiptNumber)
+  const pdfBlob = Utilities.newBlob(html, MimeType.HTML, fileName.replace(/\.pdf$/, ".html")).getAs(MimeType.PDF).setName(fileName)
+  const folderId = PropertiesService.getScriptProperties().getProperty("RECEIPT_FOLDER_ID")
+  if (!folderId) throw new Error("Receipt folder is not configured")
+  const file = DriveApp.getFolderById(folderId).createFile(pdfBlob)
+  return { fileId: file.getId(), blob: file.getBlob().setName(fileName), receiptNumber: receiptNumber }
+}
+
+function buildSalaryReceiptHtml(employee, payout, receiptNumber) {
+  const logo = inlinePublicAsset("/beyondnull-official-logo.jpg")
+  const signature = inlinePublicAsset("/aditya-signature.png")
+  const month = formatPayrollMonth(payout.salary_month)
+  const paidOn = formatPayrollDate(payout.paid_on)
+  const bankLine = [employee.bank_name, employee.account_number ? "A/C ending " + String(employee.account_number).slice(-4) : "", employee.ifsc_code].filter(Boolean).join(" | ") || "Not provided"
+  const extraRow = payout.extra_amount > 0
+    ? '<tr><td style="padding:11px 0;border-bottom:1px solid #eadcdf;color:#6c6263">' + escapeHtml(payout.extra_label) + '</td><td style="padding:11px 0;border-bottom:1px solid #eadcdf;text-align:right;font-weight:700">Rs ' + formatMoney(payout.extra_amount) + '</td></tr>'
+    : ""
+  const logoMarkup = logo
+    ? '<img src="' + logo + '" style="width:66px;height:66px;object-fit:contain;border-radius:50%">'
+    : '<div style="font-size:24px;font-weight:900">BEYOND<span style="color:#e31837">NULL</span></div>'
+  const signatureMarkup = signature
+    ? '<img src="' + signature + '" style="display:block;width:190px;height:62px;object-fit:contain;object-position:left center;margin:0 0 2px auto">'
+    : '<div style="height:55px"></div>'
+
+  return '<!doctype html><html><head><meta charset="UTF-8"></head><body style="margin:0;background:#f4efec;font-family:Arial,sans-serif;color:#191717">' +
+    '<div style="width:720px;margin:24px auto;background:#fff;border:1px solid #dfd4d5">' +
+      '<div style="height:9px;background:#e31837"></div>' +
+      '<div style="padding:30px 38px 24px;background:#191717;color:#fff">' +
+        '<table style="width:100%;border-collapse:collapse"><tr><td style="vertical-align:middle">' + logoMarkup + '</td><td style="text-align:right;vertical-align:middle"><div style="font-size:11px;letter-spacing:2px;color:#ef9bab;font-weight:700">PAYMENT ACKNOWLEDGEMENT</div><div style="font-size:29px;font-weight:800;margin-top:5px">Salary Receipt</div><div style="font-size:12px;color:#cdbfc1;margin-top:7px">' + escapeHtml(receiptNumber) + '</div></td></tr></table>' +
+      '</div>' +
+      '<div style="padding:32px 38px">' +
+        '<table style="width:100%;border-collapse:collapse;margin-bottom:27px"><tr><td><div style="font-size:11px;color:#a51d34;font-weight:800;letter-spacing:1px">PAID TO</div><div style="font-size:23px;font-weight:800;margin-top:6px">' + escapeHtml(employee.name) + '</div><div style="font-size:13px;color:#6c6263;margin-top:5px">' + escapeHtml(employee.job_role) + '</div></td><td style="text-align:right"><div style="font-size:11px;color:#765d61;font-weight:700">SALARY MONTH</div><div style="font-size:18px;font-weight:800;margin-top:6px">' + escapeHtml(month) + '</div><div style="font-size:12px;color:#6c6263;margin-top:5px">Paid on ' + escapeHtml(paidOn) + '</div></td></tr></table>' +
+        '<div style="background:#faf7f5;border-left:4px solid #e31837;padding:17px 20px;margin-bottom:24px"><div style="font-size:11px;color:#765d61;font-weight:700">PAYMENT ACCOUNT</div><div style="font-size:13px;font-weight:700;margin-top:6px">' + escapeHtml(bankLine) + '</div></div>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:14px"><tr><td style="padding:11px 0;border-bottom:1px solid #eadcdf;color:#6c6263">Monthly salary</td><td style="padding:11px 0;border-bottom:1px solid #eadcdf;text-align:right;font-weight:700">Rs ' + formatMoney(payout.base_salary) + '</td></tr>' + extraRow + '<tr><td style="padding:18px 0 10px;font-size:17px;font-weight:900">Total paid</td><td style="padding:18px 0 10px;text-align:right;font-size:23px;font-weight:900;color:#b4142c">Rs ' + formatMoney(payout.total_amount) + '</td></tr></table>' +
+        '<div style="margin-top:29px;padding-top:23px;border-top:1px solid #eadcdf"><table style="width:100%;border-collapse:collapse"><tr><td style="vertical-align:bottom"><div style="font-size:12px;color:#6c6263;line-height:1.7">This system-generated receipt confirms the salary payment recorded by BeyondNull.<br>For payroll queries, contact ' + escapeHtml(OFFICIAL_EMAIL) + '.</div></td><td style="width:220px;text-align:right;vertical-align:bottom">' + signatureMarkup + '<div style="font-size:13px;font-weight:800">Aditya Kumar</div><div style="font-size:11px;color:#765d61;margin-top:3px">Authorized Signatory</div><div style="font-size:11px;color:#a51d34;font-weight:800;margin-top:3px">Finance Department</div></td></tr></table></div>' +
+      '</div>' +
+      '<div style="padding:15px 38px;background:#faf7f5;border-top:1px solid #eadcdf;font-size:11px;color:#765d61;text-align:center">BeyondNull | Bangalore, Karnataka | beyoondnull@gmail.com</div>' +
+    '</div></body></html>'
+}
+
+function sendSalaryReceiptEmail(employee, payout, pdfBlob, receiptNumber, corrected) {
+  const month = formatPayrollMonth(payout.salary_month)
+  const subject = (corrected ? "[Updated] " : "") + "BeyondNull salary receipt - " + month
+  const plainBody = "Hello " + employee.name + ",\n\nGreetings from BeyondNull. Your salary payment for " + month + " has been recorded. Total paid: Rs " + formatMoney(payout.total_amount) + ".\n\nYour official salary receipt is attached.\n\nRegards,\nFinance Department\nBeyondNull"
+  const htmlBody = '<div style="margin:0;padding:30px 16px;background:#f5f1ee;font-family:Arial,sans-serif;color:#191717"><div style="max-width:620px;margin:auto;background:#fff;border:1px solid #eadcdf"><div style="padding:22px 28px;background:#191717;color:#fff;font-size:21px;font-weight:900">BEYOND<span style="color:#e31837">NULL</span></div><div style="padding:30px 28px"><p style="margin:0 0 16px;font-size:17px;font-weight:700">Hello ' + escapeHtml(employee.name) + ',</p><p style="margin:0 0 16px;line-height:1.7;color:#6c6263">Greetings from BeyondNull. Your salary payment for <strong>' + escapeHtml(month) + '</strong> has been recorded successfully.</p><div style="padding:18px 20px;background:#faf7f5;border-left:4px solid #e31837"><span style="display:block;font-size:11px;color:#765d61;font-weight:700">TOTAL PAID</span><strong style="display:block;margin-top:5px;font-size:26px;color:#b4142c">Rs ' + formatMoney(payout.total_amount) + '</strong><span style="display:block;margin-top:6px;font-size:12px;color:#765d61">Receipt ' + escapeHtml(receiptNumber) + '</span></div><p style="margin:20px 0 0;line-height:1.7;color:#6c6263">Your official salary receipt is attached as a PDF for your records.</p></div><div style="padding:20px 28px;border-top:1px solid #eadcdf;background:#faf7f5"><strong>Finance Department</strong><br><span style="font-size:12px;color:#765d61">BeyondNull</span></div></div></div>'
+  MailApp.sendEmail({ to: employee.email, subject: subject, name: "BeyondNull Finance", replyTo: OFFICIAL_EMAIL, body: plainBody, htmlBody: htmlBody, attachments: [pdfBlob] })
+}
+
+function inlinePublicAsset(path) {
+  try {
+    const response = UrlFetchApp.fetch(BRAND_ASSET_URL + path, { muteHttpExceptions: true, followRedirects: true })
+    if (response.getResponseCode() !== 200) return ""
+    const blob = response.getBlob()
+    return "data:" + blob.getContentType() + ";base64," + Utilities.base64Encode(blob.getBytes())
+  } catch (error) { console.warn(error); return "" }
+}
+
+function formatPayrollMonth(value) {
+  const date = new Date(normalizeDateValue(value, "Salary month") + "T00:00:00")
+  return Utilities.formatDate(date, Session.getScriptTimeZone(), "MMMM yyyy")
+}
+
+function formatPayrollDate(value) {
+  const date = new Date(normalizeDateValue(value, "Pay date") + "T00:00:00")
+  return Utilities.formatDate(date, Session.getScriptTimeZone(), "dd MMMM yyyy")
+}
+
+function formatMoney(value) { return Number(value || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") }
+function escapeHtml(value) { return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;") }
 
 function getResources() {
   ensureResourceStorage()
