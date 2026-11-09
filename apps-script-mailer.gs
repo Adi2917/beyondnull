@@ -880,8 +880,42 @@ function ensureFinanceStorage() {
 
 function ensureOpeningBalance() {
   if (!SHEET_NAMES.finance || !spreadsheet().getSheetByName(SHEET_NAMES.finance)) return
-  const existing = readObjects("finance").some(function (item) { return item.entry_type === "opening" })
-  if (!existing) appendObject("finance", { id: Utilities.getUuid(), entry_type: "opening", name: "Company opening balance", amount: FINANCE_OPENING_BALANCE, entry_date: FINANCE_OPENING_DATE, created_at: new Date(), updated_at: new Date() })
+  const properties = PropertiesService.getScriptProperties()
+  if (properties.getProperty("FINANCE_OPENING_LEDGER_V2")) return
+
+  const entries = readObjects("finance")
+  const hiddenOpenings = entries.filter(function (item) { return item.entry_type === "opening" })
+  const openingDate = new Date(FINANCE_OPENING_DATE + "T00:00:00")
+  const visibleOpening = entries.some(function (item) {
+    if (item.entry_type !== "income" || Number(item.amount || 0) !== FINANCE_OPENING_BALANCE) return false
+    const entryDate = new Date(normalizeStoredDate(item.entry_date) + "T00:00:00")
+    return !isNaN(entryDate.getTime()) && Math.abs(entryDate.getTime() - openingDate.getTime()) <= 7 * 86400000
+  })
+  const financeSheet = sheetFor("finance")
+
+  if (visibleOpening) {
+    hiddenOpenings.sort(function (a, b) { return b._row - a._row }).forEach(function (item) {
+      financeSheet.deleteRow(item._row)
+    })
+  } else if (hiddenOpenings.length) {
+    hiddenOpenings.sort(function (a, b) { return a._row - b._row })
+    const primary = hiddenOpenings[0]
+    updateRow("finance", primary._row, {
+      entry_type: "income", name: "Company opening balance", entry_date: FINANCE_OPENING_DATE,
+      notes: "Initial company balance", updated_at: new Date()
+    })
+    hiddenOpenings.slice(1).sort(function (a, b) { return b._row - a._row }).forEach(function (item) {
+      financeSheet.deleteRow(item._row)
+    })
+  } else {
+    appendObject("finance", {
+      id: Utilities.getUuid(), entry_type: "income", name: "Company opening balance",
+      amount: FINANCE_OPENING_BALANCE, entry_date: FINANCE_OPENING_DATE, notes: "Initial company balance",
+      created_at: new Date(), updated_at: new Date()
+    })
+  }
+
+  properties.setProperty("FINANCE_OPENING_LEDGER_V2", new Date().toISOString())
 }
 
 function getResources() {
