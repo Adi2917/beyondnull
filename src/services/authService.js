@@ -210,6 +210,26 @@ export async function downloadPayoutProof(payoutId) {
   return apiRequest("getPayoutProof", { payout_id: payoutId })
 }
 
+export async function getFinanceOverview(month) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("getFinanceOverview", { month })
+}
+
+export async function addFinanceEntry(entry) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("addFinanceEntry", { ...entry, amount: Number(entry.amount || 0) })
+}
+
+export async function deleteFinanceEntry(id) {
+  if (!getAdminToken()) return { data: false, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("deleteFinanceEntry", { id })
+}
+
+export async function downloadFinanceProof(id) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("getFinanceProof", { id })
+}
+
 export async function getPublishedResources() {
   const result = await apiRequest("getResources", {}, false)
   return { data: result.data || [], error: result.error }
