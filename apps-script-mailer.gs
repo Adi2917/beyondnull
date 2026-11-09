@@ -758,10 +758,13 @@ function getFinanceOverview(month, dateFrom, dateTo) {
   let otherExpenseTotal = 0
   const periodEntries = []
   transactions.forEach(function (item) {
-    if (item.source === "opening") { openingBalance += item.amount; return }
+    if (item.source === "opening") {
+      if (!customRange) openingBalance += item.amount
+      return
+    }
     const beforePeriod = customRange ? item.date < customFrom : item.month < selectedMonth
     const inPeriod = customRange ? item.date >= customFrom && item.date <= customTo : item.month === selectedMonth
-    if (beforePeriod) openingBalance += item.kind === "income" ? item.amount : -item.amount
+    if (!customRange && beforePeriod) openingBalance += item.kind === "income" ? item.amount : -item.amount
     if (!inPeriod) return
     periodEntries.push(item)
     if (item.kind === "income") incomeTotal += item.amount
