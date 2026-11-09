@@ -19,7 +19,8 @@ const TABLES = {
   sessions: ["id", "token_hash", "email", "role", "expires_at", "revoked_at", "created_at"],
   resets: ["id", "email", "phone", "otp_hash", "expires_at", "attempts", "used_at", "created_at"],
   resources: ["id", "slug", "category", "read_time", "title", "subtitle", "excerpt", "intro", "logo_file_id", "cover_file_id", "gallery_file_ids", "sections_json", "status", "created_at", "updated_at"],
-  finance: ["id", "entry_type", "name", "amount", "entry_date", "proof_file_id", "proof_name", "proof_type", "notes", "created_at", "updated_at"]
+  finance: ["id", "entry_type", "name", "amount", "entry_date", "proof_file_id", "proof_name", "proof_type", "notes", "created_at", "updated_at"],
+  client_payments: ["id", "client_id", "service_id", "source_key", "payment_type", "amount", "paid_on", "notes", "proof_file_id", "proof_name", "proof_type", "created_at", "updated_at"]
 }
 
 const SHEET_NAMES = {
@@ -30,7 +31,8 @@ const SHEET_NAMES = {
   sessions: "Sessions",
   resets: "PIN Resets",
   resources: "Resources",
-  finance: "Finance Ledger"
+  finance: "Finance Ledger",
+  client_payments: "Client Payments"
 }
 
 function setupBeyondNullDatabase() {
@@ -62,7 +64,11 @@ function setupBeyondNullDatabase() {
   if (!properties.getProperty("FINANCE_FOLDER_ID")) {
     properties.setProperty("FINANCE_FOLDER_ID", DriveApp.createFolder("BeyondNull Finance Proofs").getId())
   }
+  if (!properties.getProperty("CLIENT_PAYMENT_FOLDER_ID")) {
+    properties.setProperty("CLIENT_PAYMENT_FOLDER_ID", DriveApp.createFolder("BeyondNull Client Payment Proofs").getId())
+  }
   ensureOpeningBalance()
+  migrateExistingClientPayments()
   return "BeyondNull Google Sheets database is ready. Initial PIN: 111111"
 }
 
@@ -104,10 +110,14 @@ function routeAction(action, payload, sessionToken) {
     updatePayout: function () { return updatePayout(payload) },
     getReceipt: function () { return getReceipt(payload.payout_id) },
     getPayoutProof: function () { return getPayoutProof(payload.payout_id) },
-    getFinanceOverview: function () { return getFinanceOverview(payload.month) },
+    getFinanceOverview: function () { return getFinanceOverview(payload.month, payload.date_from, payload.date_to) },
     addFinanceEntry: function () { return addFinanceEntry(payload) },
     deleteFinanceEntry: function () { return deleteFinanceEntry(payload.id) },
     getFinanceProof: function () { return getFinanceProof(payload.id) },
+    addClientPayment: function () { return addClientPayment(payload) },
+    updateClientPayment: function () { return updateClientPayment(payload) },
+    deleteClientPayment: function () { return deleteClientPayment(payload.id) },
+    getClientPaymentProof: function () { return getClientPaymentProof(payload.id) },
     getResources: getResources,
     addResource: function () { return addResource(payload) },
     updateResource: function () { return updateResource(payload) },
@@ -199,9 +209,11 @@ function confirmPinReset(payload) {
 
 function getClients() {
   const services = readObjects("services")
+  const payments = readObjects("client_payments")
   return readObjects("clients").sort(newestFirst).map(function (client) {
     client.projects = services.filter(function (item) { return item.client_id === client.id }).map(normalizeService)
     client.services = client.projects.map(function (item) { return item.service_type })
+    client.payment_total = payments.filter(function (item) { return item.client_id === client.id }).reduce(function (sum, item) { return sum + Number(item.amount || 0) }, 0)
     return stripMeta(client)
   })
 }
@@ -211,6 +223,8 @@ function getClient(id) {
   if (!client) throw new Error("Client not found")
   client.projects = readObjects("services").filter(function (item) { return item.client_id === client.id }).map(normalizeService)
   client.services = client.projects.map(function (item) { return item.service_type })
+  client.payments = readObjects("client_payments").filter(function (item) { return item.client_id === client.id }).sort(function (a, b) { return new Date(b.paid_on) - new Date(a.paid_on) }).map(normalizeClientPayment)
+  client.payment_total = client.payments.reduce(function (sum, item) { return sum + Number(item.amount || 0) }, 0)
   return stripMeta(client)
 }
 
@@ -240,6 +254,7 @@ function saveClient(payload, id) {
     projects.forEach(function (project) {
       appendObject("services", Object.assign({}, project, { id: Utilities.getUuid(), client_id: clientId, created_at: now, updated_at: now }))
     })
+    syncClientServicePayments(clientId)
     return getClient(clientId)
   } finally { lock.releaseLock() }
 }
@@ -247,6 +262,10 @@ function saveClient(payload, id) {
 function deleteClient(id) {
   const lock = LockService.getScriptLock(); lock.waitLock(10000)
   try {
+    readObjects("client_payments").filter(function (item) { return item.client_id === id }).forEach(function (item) {
+      if (item.proof_file_id) try { DriveApp.getFileById(item.proof_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+    })
+    deleteRowsWhere("client_payments", "client_id", id)
     deleteRowsWhere("services", "client_id", id)
     return deleteRowsWhere("clients", "id", id) > 0
   } finally { lock.releaseLock() }
@@ -551,9 +570,125 @@ function formatPayrollDate(value) {
 function formatMoney(value) { return Number(value || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") }
 function escapeHtml(value) { return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;") }
 
-function getFinanceOverview(month) {
+function addClientPayment(payload) {
+  return saveClientPayment(payload)
+}
+
+function updateClientPayment(payload) {
+  return saveClientPayment(payload, payload.id)
+}
+
+function saveClientPayment(payload, id) {
+  const clientId = String(payload.client_id || "")
+  if (!readObjects("clients").some(function (item) { return item.id === clientId })) throw new Error("Client not found")
+  const paymentAmount = amount(payload.amount)
+  if (paymentAmount <= 0) throw new Error("Enter a valid client payment amount")
+  const paymentType = String(payload.payment_type || "Payment").trim().slice(0, 80)
+  const paidOn = normalizeDateValue(payload.paid_on, "Payment date")
+  let proofId = ""
+  try {
+    if (payload.proof_data) proofId = saveClientPaymentProof(payload.proof_data, payload.proof_name, payload.proof_type)
+    const now = new Date()
+    const data = {
+      client_id: clientId, service_id: String(payload.service_id || ""), payment_type: paymentType,
+      amount: paymentAmount, paid_on: paidOn, notes: String(payload.notes || "").trim().slice(0, 500), updated_at: now
+    }
+    if (id) {
+      const existing = readObjects("client_payments").find(function (item) { return item.id === String(id) })
+      if (!existing) throw new Error("Client payment not found")
+      data.proof_file_id = proofId || existing.proof_file_id
+      data.proof_name = proofId ? String(payload.proof_name || "payment-proof") : existing.proof_name
+      data.proof_type = proofId ? String(payload.proof_type || "application/octet-stream") : existing.proof_type
+      updateRow("client_payments", existing._row, data)
+      if (proofId && existing.proof_file_id) try { DriveApp.getFileById(existing.proof_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+      return normalizeClientPayment(Object.assign({}, existing, data))
+    }
+    data.id = Utilities.getUuid()
+    data.source_key = ""
+    data.proof_file_id = proofId
+    data.proof_name = proofId ? String(payload.proof_name || "payment-proof") : ""
+    data.proof_type = proofId ? String(payload.proof_type || "application/octet-stream") : ""
+    data.created_at = now
+    appendObject("client_payments", data)
+    return normalizeClientPayment(data)
+  } catch (error) {
+    if (proofId) try { DriveApp.getFileById(proofId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) }
+    throw error
+  }
+}
+
+function deleteClientPayment(id) {
+  const payment = readObjects("client_payments").find(function (item) { return item.id === String(id) })
+  if (!payment) throw new Error("Client payment not found")
+  if (payment.proof_file_id) try { DriveApp.getFileById(payment.proof_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+  return deleteRowsWhere("client_payments", "id", id) > 0
+}
+
+function getClientPaymentProof(id) {
+  const payment = readObjects("client_payments").find(function (item) { return item.id === String(id) })
+  if (!payment || !payment.proof_file_id) throw new Error("Client payment proof not found")
+  const blob = DriveApp.getFileById(payment.proof_file_id).getBlob()
+  return fileDownloadResponse(blob, payment.proof_name || blob.getName(), payment.proof_type)
+}
+
+function saveClientPaymentProof(dataUrl, name, type) {
+  const match = String(dataUrl).match(/^data:([^;]+);base64,(.+)$/)
+  if (!match) throw new Error("Invalid client payment proof")
+  const contentType = String(type || match[1]).toLowerCase()
+  if (contentType !== "application/pdf" && contentType.indexOf("image/") !== 0) throw new Error("Client payment proof must be an image or PDF")
+  const bytes = Utilities.base64Decode(match[2])
+  if (bytes.length > RECEIPT_LIMIT_BYTES) throw new Error("Client payment proof must be smaller than 3 MB")
+  const folderId = PropertiesService.getScriptProperties().getProperty("CLIENT_PAYMENT_FOLDER_ID")
+  if (!folderId) throw new Error("Client payment proof folder is not configured")
+  return DriveApp.getFolderById(folderId).createFile(Utilities.newBlob(bytes, contentType, safeFileName(name || "client-payment-proof"))).getId()
+}
+
+function normalizeClientPayment(item) {
+  return {
+    id: item.id, client_id: item.client_id, service_id: item.service_id || "", payment_type: item.payment_type || "Payment",
+    amount: Number(item.amount || 0), paid_on: normalizeStoredDate(item.paid_on), notes: item.notes || "",
+    has_proof: Boolean(item.proof_file_id), automatic: Boolean(item.source_key), created_at: serializeValue(item.created_at)
+  }
+}
+
+function clientPaymentSourceKey(service) {
+  return ["service", service.client_id, service.service_type].join("|")
+}
+
+function serviceInitialPayment(service) {
+  return service.billing_type === "monthly" ? Number(service.monthly_package || 0) : Number(service.advance_amount || 0)
+}
+
+function syncClientServicePayments(clientId) {
+  const existing = readObjects("client_payments")
+  readObjects("services").filter(function (service) { return service.client_id === clientId }).forEach(function (service) {
+    const value = serviceInitialPayment(service)
+    if (value <= 0) return
+    const sourceKey = clientPaymentSourceKey(service)
+    const found = existing.find(function (payment) { return payment.source_key === sourceKey })
+    const data = {
+      client_id: service.client_id, service_id: service.id, source_key: sourceKey,
+      payment_type: service.billing_type === "monthly" ? "Monthly payment" : "Advance",
+      amount: value, paid_on: normalizeStoredDate(service.work_start_date || service.created_at),
+      notes: "Imported from client service record", updated_at: new Date()
+    }
+    if (found) updateRow("client_payments", found._row, data)
+    else appendObject("client_payments", Object.assign({ id: Utilities.getUuid(), proof_file_id: "", proof_name: "", proof_type: "", created_at: new Date() }, data))
+  })
+}
+
+function migrateExistingClientPayments() {
+  readObjects("clients").forEach(function (client) { syncClientServicePayments(client.id) })
+}
+
+function getFinanceOverview(month, dateFrom, dateTo) {
   ensureFinanceStorage()
   const selectedMonth = /^\d{4}-\d{2}$/.test(String(month || "")) ? String(month) : financeMonthForDate(new Date())
+  const customFrom = dateFrom ? normalizeDateValue(dateFrom, "Start date") : ""
+  const customTo = dateTo ? normalizeDateValue(dateTo, "End date") : ""
+  if ((customFrom && !customTo) || (!customFrom && customTo)) throw new Error("Complete both custom finance dates")
+  if (customFrom && customFrom > customTo) throw new Error("Invalid custom finance date range")
+  const customRange = Boolean(customFrom && customTo)
   const clients = readObjects("clients")
   const clientNames = {}
   clients.forEach(function (client) { clientNames[client.id] = client.name })
@@ -574,14 +709,14 @@ function getFinanceOverview(month) {
     })
   })
 
-  readObjects("services").forEach(function (service) {
-    const received = Number(service.advance_amount || 0)
-    if (received <= 0) return
-    const paymentDate = normalizeStoredDate(service.work_start_date || service.created_at)
+  readObjects("client_payments").forEach(function (payment) {
+    const paymentDate = normalizeStoredDate(payment.paid_on)
     transactions.push({
-      id: "client-" + service.id, kind: "income", source: "client_payment",
-      name: (clientNames[service.client_id] || "Client") + " - " + service.service_type + " advance",
-      amount: received, date: paymentDate, month: financeMonthForDate(paymentDate), has_proof: false, managed: false
+      id: "client-" + payment.id, kind: "income", source: "client_payment",
+      name: (clientNames[payment.client_id] || "Client") + " - " + (payment.payment_type || "Payment"),
+      detail: payment.notes || "", amount: Number(payment.amount || 0), date: paymentDate,
+      month: financeMonthForDate(paymentDate), has_proof: Boolean(payment.proof_file_id),
+      client_payment_id: payment.id, client_id: payment.client_id, managed: false
     })
   })
 
@@ -599,27 +734,32 @@ function getFinanceOverview(month) {
   let incomeTotal = 0
   let salaryTotal = 0
   let otherExpenseTotal = 0
+  const periodEntries = []
   transactions.forEach(function (item) {
     if (item.source === "opening") { openingBalance += item.amount; return }
-    if (item.month < selectedMonth) openingBalance += item.kind === "income" ? item.amount : -item.amount
-    if (item.month !== selectedMonth) return
+    const beforePeriod = customRange ? item.date < customFrom : item.month < selectedMonth
+    const inPeriod = customRange ? item.date >= customFrom && item.date <= customTo : item.month === selectedMonth
+    if (beforePeriod) openingBalance += item.kind === "income" ? item.amount : -item.amount
+    if (!inPeriod) return
+    periodEntries.push(item)
     if (item.kind === "income") incomeTotal += item.amount
     else if (item.source === "salary") salaryTotal += item.amount
     else otherExpenseTotal += item.amount
   })
-  const monthEntries = transactions.filter(function (item) { return item.month === selectedMonth }).sort(function (a, b) { return new Date(b.date) - new Date(a.date) })
+  periodEntries.sort(function (a, b) { return new Date(b.date) - new Date(a.date) })
   const closingBalance = openingBalance + incomeTotal - salaryTotal - otherExpenseTotal
 
   return {
     month: selectedMonth,
-    cycle_start: selectedMonth + "-08",
-    cycle_end: nextMonthDate(selectedMonth) + "-07",
+    custom_range: customRange,
+    cycle_start: customRange ? customFrom : selectedMonth + "-08",
+    cycle_end: customRange ? customTo : nextMonthDate(selectedMonth) + "-07",
     opening_balance: Math.round(openingBalance * 100) / 100,
     income_total: Math.round(incomeTotal * 100) / 100,
     salary_total: Math.round(salaryTotal * 100) / 100,
     expense_total: Math.round(otherExpenseTotal * 100) / 100,
     closing_balance: Math.round(closingBalance * 100) / 100,
-    entries: monthEntries,
+    entries: periodEntries,
     available_months: financeAvailableMonths(transactions, selectedMonth)
   }
 }

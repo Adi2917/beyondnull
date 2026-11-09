@@ -164,6 +164,26 @@ export async function deleteClient(id) {
   return apiRequest("deleteClient", { id })
 }
 
+export async function addClientPayment(clientId, payment) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("addClientPayment", { client_id: clientId, ...payment, amount: Number(payment.amount || 0) })
+}
+
+export async function updateClientPayment(paymentId, clientId, payment) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("updateClientPayment", { id: paymentId, client_id: clientId, ...payment, amount: Number(payment.amount || 0) })
+}
+
+export async function deleteClientPayment(id) {
+  if (!getAdminToken()) return { data: false, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("deleteClientPayment", { id })
+}
+
+export async function downloadClientPaymentProof(id) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("getClientPaymentProof", { id })
+}
+
 export async function getEmployees() {
   if (!getAdminToken()) return { data: [], error: makeError("Admin session expired. Login again.") }
   const result = await apiRequest("getEmployees")
@@ -210,9 +230,9 @@ export async function downloadPayoutProof(payoutId) {
   return apiRequest("getPayoutProof", { payout_id: payoutId })
 }
 
-export async function getFinanceOverview(month) {
+export async function getFinanceOverview(month, dateFrom = "", dateTo = "") {
   if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
-  return apiRequest("getFinanceOverview", { month })
+  return apiRequest("getFinanceOverview", { month, date_from: dateFrom, date_to: dateTo })
 }
 
 export async function addFinanceEntry(entry) {

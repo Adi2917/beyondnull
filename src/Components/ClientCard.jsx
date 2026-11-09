@@ -28,6 +28,8 @@ onClick={()=>navigate(clientProfilePath(client.id))}
 
 <span>{client.district}</span>
 
+<strong className="client-received">Received: Rs {Number(client.payment_total || 0).toLocaleString("en-IN")}</strong>
+
 </div>
 
 </div>

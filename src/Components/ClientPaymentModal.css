@@ -1,0 +1,8 @@
+.client-payment-modal{width:min(720px,100%)}
+.client-payment-form{display:grid;gap:17px;padding:26px 28px 30px}
+.client-payment-form label{display:grid;gap:7px}
+.client-payment-form label>span{color:#4d4243;font-size:12px;font-weight:800}
+.client-payment-form input,.client-payment-form select,.client-payment-form textarea{width:100%;padding:13px 14px;border:1px solid #ded3d4;background:#fcfaf9;color:#191717;outline:none}
+.client-payment-form input:focus,.client-payment-form select:focus,.client-payment-form textarea:focus{border-color:#d71935;box-shadow:0 0 0 3px rgba(215,25,53,.08)}
+.client-payment-fields{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px}
+@media(max-width:650px){.client-payment-form{padding:21px 18px}.client-payment-fields{grid-template-columns:1fr}}

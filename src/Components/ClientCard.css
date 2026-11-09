@@ -67,6 +67,14 @@
   font-weight: 800;
 }
 
+.client-received {
+  display: block;
+  margin-top: 7px;
+  color: #087a51;
+  font-size: 11px;
+  font-weight: 900;
+}
+
 .client-card-actions {
   display: flex;
   gap: 6px;

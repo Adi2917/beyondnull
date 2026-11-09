@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { FaBookOpen, FaBriefcase, FaEdit, FaExternalLinkAlt, FaFileInvoiceDollar, FaHome, FaPlus, FaSignOutAlt, FaTrash, FaUsers, FaWallet } from "react-icons/fa"
-import { checkAdminSession, deleteFinanceEntry, deleteResource, downloadEmployeeReceipt, downloadFinanceProof, getClients, getEmployees, getFinanceOverview, getPublishedResources, logoutAdmin } from "../services/authService"
+import { checkAdminSession, deleteFinanceEntry, deleteResource, downloadClientPaymentProof, downloadEmployeeReceipt, downloadFinanceProof, getClients, getEmployees, getFinanceOverview, getPublishedResources, logoutAdmin } from "../services/authService"
 import ClientCard from "../Components/ClientCard"
 import SearchBar from "../Components/SearchBar"
 import AddClientModal from "../Components/AddClientModal"
@@ -20,6 +20,12 @@ const currentFinanceMonth = () => {
 }
 
 const financeMonthLabel = (month) => new Date(`${month}-01T00:00:00`).toLocaleDateString("en-IN", { month: "long", year: "numeric" })
+const currentCycleDates = () => {
+  const month = currentFinanceMonth()
+  const next = new Date(`${month}-01T00:00:00`)
+  next.setMonth(next.getMonth() + 1)
+  return { from: `${month}-08`, to: `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-07` }
+}
 const money = (value) => `Rs ${Number(value || 0).toLocaleString("en-IN")}`
 
 function AdminDashboard() {
@@ -30,6 +36,10 @@ function AdminDashboard() {
   const [resources, setResources] = useState([])
   const [finance, setFinance] = useState(null)
   const [financeMonth, setFinanceMonth] = useState(currentFinanceMonth)
+  const [financeMode, setFinanceMode] = useState("month")
+  const [financeFrom, setFinanceFrom] = useState(() => currentCycleDates().from)
+  const [financeTo, setFinanceTo] = useState(() => currentCycleDates().to)
+  const [financeFilter, setFinanceFilter] = useState("all")
   const [search, setSearch] = useState("")
   const [showAddClient, setShowAddClient] = useState(false)
   const [showAddEmployee, setShowAddEmployee] = useState(false)
@@ -44,14 +54,15 @@ function AdminDashboard() {
 
   const fetchRecords = useCallback(async () => {
     setLoading(true)
-    const [clientResult, employeeResult, resourceResult, financeResult] = await Promise.all([getClients(), getEmployees(), getPublishedResources(), getFinanceOverview(financeMonth)])
+    const customDates = financeMode === "custom" ? [financeFrom, financeTo] : ["", ""]
+    const [clientResult, employeeResult, resourceResult, financeResult] = await Promise.all([getClients(), getEmployees(), getPublishedResources(), getFinanceOverview(financeMonth, ...customDates)])
     setClients(clientResult.data || [])
     setEmployees(employeeResult.data || [])
     setResources(resourceResult.data || [])
     setFinance(financeResult.data || null)
     setBackendErrors({ clients: clientResult.error, employees: employeeResult.error, resources: resourceResult.error, finance: financeResult.error })
     setLoading(false)
-  }, [financeMonth])
+  }, [financeFrom, financeMode, financeMonth, financeTo])
 
   useEffect(() => {
     if (!checkAdminSession()) return navigate(ACCESS_PATH)
@@ -74,7 +85,14 @@ function AdminDashboard() {
     return [resource.title, resource.subtitle, resource.category].some((value) => String(value || "").toLowerCase().includes(query))
   }), [resources, search])
 
-  const visibleRecords = activeTab === "clients" ? filteredClients : activeTab === "employees" ? filteredEmployees : activeTab === "resources" ? filteredResources : finance?.entries || []
+  const filteredFinanceEntries = useMemo(() => (finance?.entries || []).filter((entry) => {
+    if (financeFilter === "in") return entry.kind === "income"
+    if (financeFilter === "out") return entry.kind === "expense"
+    if (financeFilter === "salary") return entry.source === "salary"
+    return true
+  }), [finance, financeFilter])
+
+  const visibleRecords = activeTab === "clients" ? filteredClients : activeTab === "employees" ? filteredEmployees : activeTab === "resources" ? filteredResources : filteredFinanceEntries
 
   const tabCopy = {
     clients: { eyebrow: "Client records", title: "Business pipeline", action: "Add client" },
@@ -109,6 +127,17 @@ function AdminDashboard() {
     const link = document.createElement("a")
     link.href = data.data
     link.download = data.name || "finance-proof"
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  }
+
+  const openClientPaymentProof = async (entry) => {
+    const { data, error } = await downloadClientPaymentProof(entry.client_payment_id)
+    if (error) return alert(error.message || "Could not download client payment proof")
+    const link = document.createElement("a")
+    link.href = data.data
+    link.download = data.name || "client-payment-proof"
     document.body.appendChild(link)
     link.click()
     link.remove()
@@ -155,13 +184,17 @@ function AdminDashboard() {
       <section className="records-shell">
         <div className="dashboard-top">
           <div className="sectionTitle"><span>{tabCopy.eyebrow}</span><h2>{tabCopy.title}</h2></div>
-          {activeTab === "finance" ? <div className="finance-toolbar"><label><span>Finance month</span><select value={financeMonth} onChange={(event) => setFinanceMonth(event.target.value)}>{(finance?.available_months || [financeMonth]).map((month) => <option key={month} value={month}>{financeMonthLabel(month)}</option>)}</select></label><button className="finance-income-btn" onClick={() => setFinanceEntryType("income")}><FaPlus /> Add funds</button><button className="finance-expense-btn" onClick={() => setFinanceEntryType("expense")}><FaPlus /> Add expense</button></div> : <><SearchBar search={search} setSearch={setSearch} /><button className="addClientBtn" onClick={openAddModal}><FaPlus /> {tabCopy.action}</button></>}
+          {activeTab === "finance" ? <div className="finance-toolbar">
+            <div className="finance-mode-switch"><button className={financeMode === "month" ? "active" : ""} onClick={() => setFinanceMode("month")}>Monthly cycle</button><button className={financeMode === "custom" ? "active" : ""} onClick={() => setFinanceMode("custom")}>Custom dates</button></div>
+            {financeMode === "month" ? <label><span>Finance month</span><select value={financeMonth} onChange={(event) => setFinanceMonth(event.target.value)}>{(finance?.available_months || [financeMonth]).map((month) => <option key={month} value={month}>{financeMonthLabel(month)}</option>)}</select></label> : <><label><span>From</span><input type="date" value={financeFrom} onChange={(event) => setFinanceFrom(event.target.value)} /></label><label><span>To</span><input type="date" value={financeTo} onChange={(event) => setFinanceTo(event.target.value)} /></label></>}
+            <button className="finance-income-btn" onClick={() => setFinanceEntryType("income")}><FaPlus /> Add funds</button><button className="finance-expense-btn" onClick={() => setFinanceEntryType("expense")}><FaPlus /> Add expense</button>
+          </div> : <><SearchBar search={search} setSearch={setSearch} /><button className="addClientBtn" onClick={openAddModal}><FaPlus /> {tabCopy.action}</button></>}
         </div>
 
         {backendErrors[activeTab] && <div className="backend-notice">{backendErrors[activeTab].message || "Records could not be loaded. Check the Google Apps Script deployment."}</div>}
 
         {activeTab === "finance" ? <div className="finance-panel">
-          <div className="finance-cycle-note"><FaFileInvoiceDollar /><div><strong>{financeMonthLabel(financeMonth)} cycle</strong><span>{finance?.cycle_start ? `${new Date(`${finance.cycle_start}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} to ${new Date(`${finance.cycle_end}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : "8th to next month 7th"}</span></div></div>
+          <div className="finance-cycle-note"><FaFileInvoiceDollar /><div><strong>{finance?.custom_range ? "Custom finance report" : `${financeMonthLabel(financeMonth)} cycle`}</strong><span>{finance?.cycle_start ? `${new Date(`${finance.cycle_start}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} to ${new Date(`${finance.cycle_end}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : financeMode === "custom" ? "Select both dates" : "8th to next month 7th"}</span></div></div>
           <div className="finance-summary-grid">
             <article><span>Opening / carry</span><strong>{money(finance?.opening_balance)}</strong><small>Balance before this cycle</small></article>
             <article className="finance-positive"><span>Money received</span><strong>{money(finance?.income_total)}</strong><small>Client advances + added funds</small></article>
@@ -170,8 +203,9 @@ function AdminDashboard() {
             <article className="finance-closing"><span>Closing balance</span><strong>{money(finance?.closing_balance)}</strong><small>Live company balance</small></article>
           </div>
           <div className="finance-ledger">
-            <div className="finance-ledger-head"><div><span>Cycle transactions</span><h3>Income and spending ledger</h3></div><b>{finance?.entries?.length || 0} entries</b></div>
-            {!finance?.entries?.length ? <div className="empty"><strong>{loading ? "Loading finance records..." : "No transactions in this cycle"}</strong><span>Client payments, salaries, funds and expenses will appear here.</span></div> : <div className="finance-table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Proof</th><th>Action</th></tr></thead><tbody>{finance.entries.map((entry) => <tr key={entry.id}><td>{new Date(`${entry.date}T00:00:00`).toLocaleDateString("en-IN")}</td><td><span className={`finance-type ${entry.kind}`}>{entry.source === "client_payment" ? "Client payment" : entry.source === "salary" ? "Salary" : entry.source === "manual_expense" ? "Expense" : "Added funds"}</span></td><td>{entry.name}</td><td className={entry.kind === "income" ? "amount-in" : "amount-out"}>{entry.kind === "income" ? "+" : "-"}{money(entry.amount)}</td><td>{entry.has_proof && entry.managed ? <button className="finance-proof-btn" onClick={() => openFinanceProof(entry)}>View proof</button> : entry.source === "salary" && entry.has_proof ? <button className="finance-proof-btn" onClick={() => viewSalaryReceipt(entry)}>View receipt</button> : "-"}</td><td>{entry.managed ? <button className="finance-delete-btn" onClick={() => removeFinanceEntry(entry)}><FaTrash /> Delete</button> : <span className="finance-auto">Automatic</span>}</td></tr>)}</tbody></table></div>}
+            <div className="finance-ledger-head"><div><span>Transactions</span><h3>Income and spending ledger</h3></div><b>{filteredFinanceEntries.length} of {finance?.entries?.length || 0} entries</b></div>
+            <div className="finance-filters" aria-label="Finance transaction filters">{[{ id: "all", label: "All" }, { id: "in", label: "Amount in" }, { id: "out", label: "Amount out" }, { id: "salary", label: "Salary" }].map((filter) => <button type="button" className={financeFilter === filter.id ? "active" : ""} key={filter.id} onClick={() => setFinanceFilter(filter.id)}>{filter.label}</button>)}</div>
+            {!filteredFinanceEntries.length ? <div className="empty"><strong>{loading ? "Loading finance records..." : "No matching transactions"}</strong><span>Change the date range or transaction filter.</span></div> : <div className="finance-table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Proof</th><th>Action</th></tr></thead><tbody>{filteredFinanceEntries.map((entry) => <tr key={entry.id}><td>{new Date(`${entry.date}T00:00:00`).toLocaleDateString("en-IN")}</td><td><span className={`finance-type ${entry.kind}`}>{entry.source === "client_payment" ? "Client payment" : entry.source === "salary" ? "Salary" : entry.source === "manual_expense" ? "Expense" : "Added funds"}</span></td><td><strong className="finance-entry-name">{entry.name}</strong>{entry.detail ? <small className="finance-entry-detail">{entry.detail}</small> : null}</td><td className={entry.kind === "income" ? "amount-in" : "amount-out"}>{entry.kind === "income" ? "+" : "-"}{money(entry.amount)}</td><td>{entry.source === "client_payment" && entry.has_proof ? <button className="finance-proof-btn" onClick={() => openClientPaymentProof(entry)}>View proof</button> : entry.has_proof && entry.managed ? <button className="finance-proof-btn" onClick={() => openFinanceProof(entry)}>View proof</button> : entry.source === "salary" && entry.has_proof ? <button className="finance-proof-btn" onClick={() => viewSalaryReceipt(entry)}>View receipt</button> : "-"}</td><td>{entry.managed ? <button className="finance-delete-btn" onClick={() => removeFinanceEntry(entry)}><FaTrash /> Delete</button> : entry.source === "client_payment" ? <button className="finance-profile-link" onClick={() => navigate(`/workspace-7x29/client/${entry.client_id}`)}>Client profile</button> : <span className="finance-auto">Automatic</span>}</td></tr>)}</tbody></table></div>}
           </div>
         </div> : <div className={activeTab === "clients" ? "clientGrid" : activeTab === "employees" ? "employeeGrid" : "resource-admin-grid"}>
           {visibleRecords.length === 0 ? (
