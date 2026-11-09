@@ -68,7 +68,7 @@ function setupBeyondNullDatabase() {
     properties.setProperty("CLIENT_PAYMENT_FOLDER_ID", DriveApp.createFolder("BeyondNull Client Payment Proofs").getId())
   }
   ensureOpeningBalance()
-  migrateExistingClientPayments()
+  ensureClientPaymentStorage()
   return "BeyondNull Google Sheets database is ready. Initial PIN: 111111"
 }
 
@@ -208,6 +208,7 @@ function confirmPinReset(payload) {
 }
 
 function getClients() {
+  ensureClientPaymentStorage()
   const services = readObjects("services")
   const payments = readObjects("client_payments")
   return readObjects("clients").sort(newestFirst).map(function (client) {
@@ -219,6 +220,7 @@ function getClients() {
 }
 
 function getClient(id) {
+  ensureClientPaymentStorage()
   const client = readObjects("clients").find(function (item) { return item.id === String(id) })
   if (!client) throw new Error("Client not found")
   client.projects = readObjects("services").filter(function (item) { return item.client_id === client.id }).map(normalizeService)
@@ -229,6 +231,7 @@ function getClient(id) {
 }
 
 function saveClient(payload, id) {
+  ensureClientPaymentStorage()
   validatePhone(payload.phone)
   if (!String(payload.name || "").trim()) throw new Error("Client name is required")
   const projects = validateProjects(payload.projects)
@@ -260,6 +263,7 @@ function saveClient(payload, id) {
 }
 
 function deleteClient(id) {
+  ensureClientPaymentStorage()
   const lock = LockService.getScriptLock(); lock.waitLock(10000)
   try {
     readObjects("client_payments").filter(function (item) { return item.client_id === id }).forEach(function (item) {
@@ -579,6 +583,7 @@ function updateClientPayment(payload) {
 }
 
 function saveClientPayment(payload, id) {
+  ensureClientPaymentStorage()
   const clientId = String(payload.client_id || "")
   if (!readObjects("clients").some(function (item) { return item.id === clientId })) throw new Error("Client not found")
   const paymentAmount = amount(payload.amount)
@@ -618,6 +623,7 @@ function saveClientPayment(payload, id) {
 }
 
 function deleteClientPayment(id) {
+  ensureClientPaymentStorage()
   const payment = readObjects("client_payments").find(function (item) { return item.id === String(id) })
   if (!payment) throw new Error("Client payment not found")
   if (payment.proof_file_id) try { DriveApp.getFileById(payment.proof_file_id).setTrashed(true) } catch (error) { console.warn(error) }
@@ -625,6 +631,7 @@ function deleteClientPayment(id) {
 }
 
 function getClientPaymentProof(id) {
+  ensureClientPaymentStorage()
   const payment = readObjects("client_payments").find(function (item) { return item.id === String(id) })
   if (!payment || !payment.proof_file_id) throw new Error("Client payment proof not found")
   const blob = DriveApp.getFileById(payment.proof_file_id).getBlob()
@@ -681,8 +688,34 @@ function migrateExistingClientPayments() {
   readObjects("clients").forEach(function (client) { syncClientServicePayments(client.id) })
 }
 
+function ensureClientPaymentStorage() {
+  const lock = LockService.getScriptLock()
+  lock.waitLock(10000)
+  try {
+    const target = spreadsheet()
+    let sheet = target.getSheetByName(SHEET_NAMES.client_payments)
+    if (!sheet) sheet = target.insertSheet(SHEET_NAMES.client_payments)
+    if (sheet.getLastRow() === 0) sheet.appendRow(TABLES.client_payments)
+    else sheet.getRange(1, 1, 1, TABLES.client_payments.length).setValues([TABLES.client_payments])
+    sheet.setFrozenRows(1)
+    sheet.getRange(1, 1, 1, TABLES.client_payments.length).setBackground("#191717").setFontColor("#ffffff").setFontWeight("bold")
+
+    const properties = PropertiesService.getScriptProperties()
+    if (!properties.getProperty("CLIENT_PAYMENT_FOLDER_ID")) {
+      properties.setProperty("CLIENT_PAYMENT_FOLDER_ID", DriveApp.createFolder("BeyondNull Client Payment Proofs").getId())
+    }
+    if (!properties.getProperty("CLIENT_PAYMENTS_MIGRATED_V1") && target.getSheetByName(SHEET_NAMES.clients) && target.getSheetByName(SHEET_NAMES.services)) {
+      migrateExistingClientPayments()
+      properties.setProperty("CLIENT_PAYMENTS_MIGRATED_V1", new Date().toISOString())
+    }
+  } finally {
+    lock.releaseLock()
+  }
+}
+
 function getFinanceOverview(month, dateFrom, dateTo) {
   ensureFinanceStorage()
+  ensureClientPaymentStorage()
   const selectedMonth = /^\d{4}-\d{2}$/.test(String(month || "")) ? String(month) : financeMonthForDate(new Date())
   const customFrom = dateFrom ? normalizeDateValue(dateFrom, "Start date") : ""
   const customTo = dateTo ? normalizeDateValue(dateTo, "End date") : ""
