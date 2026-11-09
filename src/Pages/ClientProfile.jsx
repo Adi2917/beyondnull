@@ -99,7 +99,9 @@ function ClientProfile() {
             <div className="info-item" key={field.name}><span>{field.label}</span>{editMode ? <input name={field.name} value={form[field.name] || ""} onChange={handleChange} /> : <p>{client[field.name] || field.empty}</p>}</div>
           ))}
           <div className="info-item"><span>Added on</span><p>{new Date(client.created_at).toLocaleDateString("en-IN")}</p></div>
-          <div className="info-item payment-total"><span>Total received</span><p>{money(client.payment_total)}</p></div>
+          <div className="info-item"><span>Service total</span><p>{money(client.contract_total)}</p></div>
+          <div className="info-item payment-total"><span>Paid (recorded payments)</span><p>{money(client.payment_total)}</p></div>
+          <div className="info-item payment-pending"><span>Pending</span><p>{money(client.pending_amount)}</p></div>
         </div>
 
         <section className="services">
@@ -108,7 +110,7 @@ function ClientProfile() {
             {projects?.length ? projects.map((project) => (
               <article className="profile-project" key={project.id || `${project.service_type}-${project.work_start_date}`}>
                 <div><strong>{project.service_type}</strong><span>{project.work_start_date ? `Started ${displayDate(project.work_start_date)}` : "Start date not set"}</span></div>
-                {project.billing_type === "project" ? <p>Total: {money(project.total_amount)} / Advance: {money(project.advance_amount)} / Pending: {money(project.pending_amount)}</p> : <p>Monthly: {money(project.monthly_package)} / {(project.social_platforms || []).join(", ")}</p>}
+                {project.billing_type === "project" ? <p>Project total: {money(project.total_amount)}. Payments are recorded separately below.</p> : <p>Monthly package: {money(project.monthly_package)} / {(project.social_platforms || []).join(", ")}</p>}
                 {editMode ? <select value={project.work_status} onChange={(event) => updateProjectStatus(project.service_type, event.target.value)}><option>Running</option><option>Paused</option><option>{project.billing_type === "project" ? "Delivered" : "Stopped"}</option></select> : <b className={`project-status ${project.work_status?.toLowerCase()}`}>{project.work_status}</b>}
               </article>
             )) : <p className="no-services">No structured services recorded</p>}
@@ -118,7 +120,7 @@ function ClientProfile() {
         <section className="client-payment-section">
           <div className="profile-section-head"><div><span>Finance history</span><h3>Client payments</h3></div><button type="button" onClick={() => setPaymentModal({ mode: "add" })}><FaPlus /> Add payment</button></div>
           {!client.payments?.length ? <div className="client-payment-empty">No payment recorded yet.</div> : <div className="client-payment-table"><table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Details</th><th>Proof</th><th>Actions</th></tr></thead><tbody>{client.payments.map((payment) => (
-            <tr key={payment.id}><td>{displayDate(payment.paid_on)}</td><td>{payment.payment_type}{payment.automatic ? <small>Imported</small> : null}</td><td className="client-payment-amount">{money(payment.amount)}</td><td>{payment.notes || "-"}</td><td>{payment.has_proof ? <button type="button" className="payment-proof" onClick={() => downloadProof(payment)}><FaDownload /> View</button> : "-"}</td><td><div className="payment-actions"><button type="button" onClick={() => setPaymentModal({ mode: "edit", payment })}><FaEdit /></button><button type="button" onClick={() => removePayment(payment)}><FaTrash /></button></div></td></tr>
+            <tr key={payment.id}><td>{displayDate(payment.paid_on)}</td><td>{payment.payment_type}</td><td className="client-payment-amount">{money(payment.amount)}</td><td>{payment.notes || "-"}</td><td>{payment.has_proof ? <button type="button" className="payment-proof" onClick={() => downloadProof(payment)}><FaDownload /> View</button> : "-"}</td><td><div className="payment-actions"><button type="button" onClick={() => setPaymentModal({ mode: "edit", payment })}><FaEdit /></button><button type="button" onClick={() => removePayment(payment)}><FaTrash /></button></div></td></tr>
           ))}</tbody></table></div>}
         </section>
 

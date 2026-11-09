@@ -28,7 +28,11 @@ onClick={()=>navigate(clientProfilePath(client.id))}
 
 <span>{client.district}</span>
 
-<strong className="client-received">Received: Rs {Number(client.payment_total || 0).toLocaleString("en-IN")}</strong>
+<div className="client-money">
+  <small>Total <b>Rs {Number(client.contract_total || 0).toLocaleString("en-IN")}</b></small>
+  <small>Paid <b>Rs {Number(client.payment_total || 0).toLocaleString("en-IN")}</b></small>
+  <small>Pending <b>Rs {Number(client.pending_amount || 0).toLocaleString("en-IN")}</b></small>
+</div>
 
 </div>
 

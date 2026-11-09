@@ -215,6 +215,8 @@ function getClients() {
     client.projects = services.filter(function (item) { return item.client_id === client.id }).map(normalizeService)
     client.services = client.projects.map(function (item) { return item.service_type })
     client.payment_total = payments.filter(function (item) { return item.client_id === client.id }).reduce(function (sum, item) { return sum + Number(item.amount || 0) }, 0)
+    client.contract_total = client.projects.reduce(function (sum, item) { return sum + serviceContractAmount(item) }, 0)
+    client.pending_amount = Math.max(client.contract_total - client.payment_total, 0)
     return stripMeta(client)
   })
 }
@@ -227,6 +229,8 @@ function getClient(id) {
   client.services = client.projects.map(function (item) { return item.service_type })
   client.payments = readObjects("client_payments").filter(function (item) { return item.client_id === client.id }).sort(function (a, b) { return new Date(b.paid_on) - new Date(a.paid_on) }).map(normalizeClientPayment)
   client.payment_total = client.payments.reduce(function (sum, item) { return sum + Number(item.amount || 0) }, 0)
+  client.contract_total = client.projects.reduce(function (sum, item) { return sum + serviceContractAmount(item) }, 0)
+  client.pending_amount = Math.max(client.contract_total - client.payment_total, 0)
   return stripMeta(client)
 }
 
@@ -257,9 +261,8 @@ function saveClient(payload, id) {
     projects.forEach(function (project) {
       appendObject("services", Object.assign({}, project, { id: Utilities.getUuid(), client_id: clientId, created_at: now, updated_at: now }))
     })
-    syncClientServicePayments(clientId)
-    return getClient(clientId)
   } finally { lock.releaseLock() }
+  return getClient(clientId)
 }
 
 function deleteClient(id) {
@@ -286,16 +289,15 @@ function validateProjects(projects) {
     const monthly = service.indexOf("Social Media") === 0
     const platforms = Array.isArray(item.social_platforms) ? item.social_platforms.filter(function (name) { return allowedPlatforms.indexOf(name) !== -1 }) : []
     if (monthly && !platforms.length) throw new Error("Select at least one social platform")
-    const total = amount(item.total_amount), advance = amount(item.advance_amount), monthlyPackage = amount(item.monthly_package)
+    const total = amount(item.total_amount), monthlyPackage = amount(item.monthly_package)
     if (!monthly && total <= 0) throw new Error("Total project amount is required")
-    if (!monthly && advance > total) throw new Error("Advance cannot exceed total amount")
     if (monthly && monthlyPackage <= 0) throw new Error("Monthly package is required")
     const status = allowedStatus.indexOf(item.work_status) !== -1 ? item.work_status : "Running"
     if ((!monthly && status === "Stopped") || (monthly && status === "Delivered")) throw new Error("Invalid work status")
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(item.work_start_date || ""))) throw new Error("Work start date is required")
     return {
       service_type: service, billing_type: monthly ? "monthly" : "project", total_amount: monthly ? "" : total,
-      advance_amount: monthly ? "" : advance, pending_amount: monthly ? "" : Math.max(total - advance, 0),
+      advance_amount: "", pending_amount: monthly ? "" : total,
       monthly_package: monthly ? monthlyPackage : "", social_platforms: JSON.stringify(platforms),
       work_start_date: item.work_start_date, work_status: status
     }
@@ -308,6 +310,10 @@ function normalizeService(item) {
     item[key] = item[key] === "" ? null : Number(item[key])
   })
   return stripMeta(item)
+}
+
+function serviceContractAmount(item) {
+  return Number(item.billing_type === "monthly" ? item.monthly_package : item.total_amount || 0)
 }
 
 function getEmployees() {
@@ -654,38 +660,21 @@ function normalizeClientPayment(item) {
   return {
     id: item.id, client_id: item.client_id, service_id: item.service_id || "", payment_type: item.payment_type || "Payment",
     amount: Number(item.amount || 0), paid_on: normalizeStoredDate(item.paid_on), notes: item.notes || "",
-    has_proof: Boolean(item.proof_file_id), automatic: Boolean(item.source_key), created_at: serializeValue(item.created_at)
+    has_proof: Boolean(item.proof_file_id), created_at: serializeValue(item.created_at)
   }
 }
 
-function clientPaymentSourceKey(service) {
-  return ["service", service.client_id, service.service_type].join("|")
-}
-
-function serviceInitialPayment(service) {
-  return service.billing_type === "monthly" ? Number(service.monthly_package || 0) : Number(service.advance_amount || 0)
-}
-
-function syncClientServicePayments(clientId) {
-  const existing = readObjects("client_payments")
-  readObjects("services").filter(function (service) { return service.client_id === clientId }).forEach(function (service) {
-    const value = serviceInitialPayment(service)
-    if (value <= 0) return
-    const sourceKey = clientPaymentSourceKey(service)
-    const found = existing.find(function (payment) { return payment.source_key === sourceKey })
-    const data = {
-      client_id: service.client_id, service_id: service.id, source_key: sourceKey,
-      payment_type: service.billing_type === "monthly" ? "Monthly payment" : "Advance",
-      amount: value, paid_on: normalizeStoredDate(service.work_start_date || service.created_at),
-      notes: "Imported from client service record", updated_at: new Date()
-    }
-    if (found) updateRow("client_payments", found._row, data)
-    else appendObject("client_payments", Object.assign({ id: Utilities.getUuid(), proof_file_id: "", proof_name: "", proof_type: "", created_at: new Date() }, data))
-  })
-}
-
-function migrateExistingClientPayments() {
-  readObjects("clients").forEach(function (client) { syncClientServicePayments(client.id) })
+function removeInferredClientPayments() {
+  const sheet = sheetFor("client_payments")
+  readObjects("client_payments")
+    .filter(function (payment) { return Boolean(payment.source_key) })
+    .sort(function (a, b) { return b._row - a._row })
+    .forEach(function (payment) {
+      if (payment.proof_file_id) {
+        try { DriveApp.getFileById(payment.proof_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+      }
+      sheet.deleteRow(payment._row)
+    })
 }
 
 function ensureClientPaymentStorage() {
@@ -704,9 +693,9 @@ function ensureClientPaymentStorage() {
     if (!properties.getProperty("CLIENT_PAYMENT_FOLDER_ID")) {
       properties.setProperty("CLIENT_PAYMENT_FOLDER_ID", DriveApp.createFolder("BeyondNull Client Payment Proofs").getId())
     }
-    if (!properties.getProperty("CLIENT_PAYMENTS_MIGRATED_V1") && target.getSheetByName(SHEET_NAMES.clients) && target.getSheetByName(SHEET_NAMES.services)) {
-      migrateExistingClientPayments()
-      properties.setProperty("CLIENT_PAYMENTS_MIGRATED_V1", new Date().toISOString())
+    if (!properties.getProperty("CLIENT_PAYMENTS_EXPLICIT_V2")) {
+      removeInferredClientPayments()
+      properties.setProperty("CLIENT_PAYMENTS_EXPLICIT_V2", new Date().toISOString())
     }
   } finally {
     lock.releaseLock()

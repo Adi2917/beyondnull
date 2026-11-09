@@ -131,6 +131,7 @@ margin-top:5px;
 }
 
 .payment-total{background:#191717;color:#fff}.payment-total span{color:#cdbfc1}.payment-total p{color:#fff;font-size:20px}
+.payment-pending{background:#fff1f2;border:1px solid #fecdd3}.payment-pending span{color:#9f1239}.payment-pending p{color:#b4142c;font-size:20px}
 
 .services{
 

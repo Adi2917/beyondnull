@@ -15,7 +15,6 @@ const emptyProject = (service) => ({
   service_type: service.name,
   billing_type: service.billing,
   total_amount: "",
-  advance_amount: "",
   monthly_package: "",
   social_platforms: [],
   work_start_date: new Date().toISOString().slice(0, 10),
@@ -31,7 +30,7 @@ function AddClientModal({ onClose, refreshClients, client = null }) {
   const [projects, setProjects] = useState(() => (client?.projects || []).map((project) => ({
     ...project,
     total_amount: project.total_amount ?? "",
-    advance_amount: project.advance_amount ?? "",
+    advance_amount: "",
     monthly_package: project.monthly_package ?? "",
     social_platforms: project.social_platforms || []
   })))
@@ -75,7 +74,6 @@ function AddClientModal({ onClose, refreshClients, client = null }) {
       if (!project.work_start_date) return alert(`Select work start date for ${project.service_type}`)
       if (project.billing_type === "project") {
         if (Number(project.total_amount) <= 0) return alert(`Enter total amount for ${project.service_type}`)
-        if (Number(project.advance_amount) > Number(project.total_amount)) return alert("Advance amount cannot exceed total amount")
       } else {
         if (!project.social_platforms.length) return alert(`Select at least one platform for ${project.service_type}`)
         if (Number(project.monthly_package) <= 0) return alert(`Enter monthly package for ${project.service_type}`)
@@ -83,7 +81,7 @@ function AddClientModal({ onClose, refreshClients, client = null }) {
     }
 
     setSaving(true)
-    const payload = { ...form, package_amount: "", services: selectedNames, projects }
+    const payload = { ...form, package_amount: "", services: selectedNames, projects: projects.map((project) => ({ ...project, advance_amount: "" })) }
     const { error } = editing ? await updateClient(client.id, payload) : await addClient(payload)
     setSaving(false)
     if (error) return alert(error.message || `Could not ${editing ? "update" : "add"} client`)
@@ -124,15 +122,12 @@ function AddClientModal({ onClose, refreshClients, client = null }) {
 
           {projects.map((project, index) => {
             const definition = SERVICES.find((item) => item.name === project.service_type)
-            const pending = Math.max(0, Number(project.total_amount || 0) - Number(project.advance_amount || 0))
             return (
               <section className="form-section service-detail" key={project.service_type}>
                 <SectionHeading number={String(index + 3).padStart(2, "0")} title={project.service_type} text={project.billing_type === "project" ? "Project billing and delivery tracking." : "Monthly package and platform tracking."} />
                 {project.billing_type === "project" ? (
-                  <div className="field-grid three-columns">
+                  <div className="field-grid">
                     <label><span>Total amount *</span><input type="number" min="0" value={project.total_amount} onChange={(e) => updateProject(project.service_type, "total_amount", e.target.value)} required /></label>
-                    <label><span>Advance paid</span><input type="number" min="0" value={project.advance_amount} onChange={(e) => updateProject(project.service_type, "advance_amount", e.target.value)} /></label>
-                    <label><span>Pending amount</span><input value={`Rs ${pending.toLocaleString("en-IN")}`} readOnly /></label>
                   </div>
                 ) : (
                   <>
