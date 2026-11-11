@@ -1,23 +1,35 @@
 (function () {
   const projects = [
-    { name: "Razvi Decor", display: "Razvi<br>Decor", ghost: "RAZVI", category: "Interior & decor", type: "Website", line: "Crafted spaces, translated to screen", url: "https://razvi-decor.vercel.app/" },
-    { name: "Aarunya Yoga", display: "Aarunya<br>Yoga", ghost: "AARUNYA", category: "Wellness & yoga", type: "Website", line: "A calm interface with living energy", url: "https://aarunya-yoga.vercel.app/" },
-    { name: "Caake Treet", display: "Caake<br>Treet", ghost: "CAKE", category: "Food & bakery", type: "Commerce", line: "A visual storefront made to feel delicious", url: "https://caake-treet.vercel.app/" },
-    { name: "Connect Your School", display: "Connect<br>Your School", ghost: "CONNECT", category: "Education technology", type: "Platform", line: "One connected operating layer for schools", url: "https://connectyourschool.in/" },
-    { name: "Social Controller", display: "Social<br>Controller", ghost: "SOCIAL", category: "Social media SaaS", type: "Product", line: "Control the entire content operation", url: "https://socialcontroller.online/" },
-    { name: "Little Wings Pre-School", display: "Little Wings<br>Pre-School", ghost: "WINGS", category: "Early education", type: "Website", line: "A playful first impression for young minds", url: "https://little-wings-pre-school-purnea.vercel.app/" }
+    { name: "Razvi Decor", display: "Razvi<br>Decor", ghost: "RAZVI", category: "Interior & decor", type: "Website", line: "Crafted spaces, translated to screen", image: "./projects/razvi.png", url: "https://razvi-decor.vercel.app/" },
+    { name: "Aarunya Yoga", display: "Aarunya<br>Yoga", ghost: "AARUNYA", category: "Wellness & yoga", type: "Website", line: "A calm interface with living energy", image: "./projects/aarunya.png", url: "https://aarunya-yoga.vercel.app/" },
+    { name: "Caake Treet", display: "Caake<br>Treet", ghost: "CAKE", category: "Food & bakery", type: "Commerce", line: "A visual storefront made to feel delicious", image: "./projects/caake.png", url: "https://caake-treet.vercel.app/" },
+    { name: "Connect Your School", display: "Connect<br>Your School", ghost: "CONNECT", category: "Education technology", type: "Platform", line: "One connected operating layer for schools", image: "./projects/connect.png", url: "https://connectyourschool.in/" },
+    { name: "Social Controller", display: "Social<br>Controller", ghost: "SOCIAL", category: "Social media SaaS", type: "Product", line: "Control the entire content operation", image: "/products/social-controller.png", url: "https://socialcontroller.online/" },
+    { name: "Little Wings Pre-School", display: "Little Wings<br>Pre-School", ghost: "WINGS", category: "Early education", type: "Website", line: "A playful first impression for young minds", image: "./projects/wings.png", url: "https://little-wings-pre-school-purnea.vercel.app/" }
   ]
   const intro = document.querySelector(".intro")
   const introNumber = intro.querySelector("strong")
   const introBar = intro.querySelector(".intro-progress i")
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches
+  const query = new URLSearchParams(location.search)
+  const requestedSection = query.get("section")
+  const deepLinked = Boolean(location.hash) || query.has("skipIntro") || Boolean(requestedSection)
+  if (deepLinked) intro.style.display = "none"
+  if (deepLinked) addEventListener("load", () => {
+    const target = document.querySelector(requestedSection ? "#" + requestedSection : location.hash)
+    setTimeout(() => {
+      document.documentElement.style.scrollBehavior = "auto"
+      if (target) scrollTo(0, target.offsetTop)
+      requestAnimationFrame(() => { document.documentElement.style.scrollBehavior = "" })
+    }, 100)
+  })
   let count = 0
   const finishIntro = () => {
     introNumber.textContent = "100"
     introBar.style.width = "100%"
     setTimeout(() => intro.classList.add("done"), reducedMotion ? 0 : 300)
   }
-  if (reducedMotion) finishIntro()
+  if (reducedMotion || deepLinked) finishIntro()
   else {
     const counter = setInterval(() => {
       count = Math.min(100, count + Math.max(1, Math.ceil((100 - count) / 8)))
@@ -52,7 +64,7 @@
 
   const selector = document.querySelector(".project-selector")
   const focus = document.querySelector(".project-focus")
-  const focusFrame = focus.querySelector("iframe")
+  const focusFrame = focus.querySelector(".focus-shot")
   let activeProject = 0
 
   projects.forEach((project, index) => {
@@ -75,7 +87,8 @@
       focus.querySelector(".focus-copy small").textContent = project.line
       focus.querySelector("h3").innerHTML = project.display
       focus.querySelector(".browser-bar b").textContent = project.url.replace(/^https?:\/\//, "").replace(/\/$/, "")
-      focusFrame.src = project.url
+      focusFrame.src = project.image
+      focusFrame.alt = project.name + " website preview"
       selector.querySelectorAll("button").forEach((button, i) => button.classList.toggle("active", i === activeProject))
       focus.classList.remove("switching")
     }, reducedMotion ? 0 : 220)

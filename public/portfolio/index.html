@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./portfolio.css">
+  <link rel="stylesheet" href="./portfolio-v4.css">
 </head>
 <body>
   <div class="intro" aria-live="polite">
@@ -65,6 +66,15 @@
       <div class="scroll-stamp" aria-hidden="true"><span>SCROLL&nbsp;&nbsp;SCROLL&nbsp;&nbsp;</span><b>&darr;</b></div>
     </section>
 
+    <section class="studio-story">
+      <div class="story-lead"><span>What BeyondNull actually does</span><h2>We turn scattered digital effort into <i>one direction.</i></h2></div>
+      <div class="story-grid">
+        <article><b>01 / Find the signal</b><h3>Strategy before output.</h3><p>We understand the business, audience and buying journey before deciding what should be designed, built or promoted.</p></article>
+        <article><b>02 / Build the system</b><h3>Connected, not decorative.</h3><p>Identity, websites, content and campaigns are designed as one operating system, so every touchpoint reinforces the next.</p></article>
+        <article><b>03 / Create momentum</b><h3>Launch is the beginning.</h3><p>We measure attention, enquiries and conversion, then keep improving the parts that move the business forward.</p></article>
+      </div>
+    </section>
+
     <section class="manifesto">
       <div class="manifesto-label"><span>01</span><p>The BeyondNull approach</p></div>
       <p class="manifesto-copy">We do not decorate screens. We engineer <em>attention, clarity and movement</em> across every digital touchpoint.</p>
@@ -93,7 +103,7 @@
           </div>
           <button class="focus-browser open-project" type="button" aria-label="Open live project preview">
             <span class="browser-bar"><i></i><i></i><i></i><b>razvi-decor.vercel.app</b></span>
-            <iframe src="https://razvi-decor.vercel.app/" title="Selected project live preview" tabindex="-1"></iframe>
+            <img class="focus-shot" src="./projects/razvi.png" alt="Razvi Decor website preview">
             <span class="window-cover"><b>Enter live experience</b><i>&nearr;</i></span>
           </button>
         </article>
@@ -135,18 +145,23 @@
 
     <section class="product-lab" id="products">
       <div class="lab-heading"><span>04 / Beyond client work</span><h2>We do not only deliver.<br><i>We build platforms.</i></h2><p>Owned digital products shaped from real operational problems, designed to turn scattered work into one clear system.</p></div>
-      <div class="lab-grid">
-        <article data-url="https://connectyourschool.in/" data-index="P1"><span>Education operating system</span><img src="/products/connect-your-school.png" alt="Connect Your School platform"><div><h3>Connect Your School</h3><p>Admissions, communication and school operations connected through one focused digital layer.</p><button class="lab-open" type="button">Explore platform <b>&nearr;</b></button></div></article>
-        <article data-url="https://socialcontroller.online/" data-index="P2"><span>Social media workspace</span><img src="/products/social-controller.png" alt="Social Controller platform"><div><h3>Social Controller</h3><p>A purpose-built control room for planning content, managing workflows and keeping social execution moving.</p><button class="lab-open" type="button">Explore platform <b>&nearr;</b></button></div></article>
-      </div>
+      <article class="product-world school-world" data-url="https://connectyourschool.in/" data-index="P1">
+        <div class="product-copy"><span>Product 01 / Education technology</span><h3>Connect<br>Your School</h3><p class="product-promise">A connected operating layer for modern schools.</p><p>Built for institutions that are still juggling admissions, communication and daily administration across disconnected tools. Connect Your School brings the important work into one focused platform.</p><ul><li>Admissions and enquiry flow</li><li>School-parent communication</li><li>Operational visibility</li></ul><button class="lab-open" type="button">Enter the platform <b>&nearr;</b></button></div>
+        <div class="product-visual"><span>Built for clarity at every level</span><img src="./projects/connect.png" alt="Connect Your School website and platform preview"><b>CYS / 01</b></div>
+      </article>
+      <article class="product-world social-world" data-url="https://socialcontroller.online/" data-index="P2">
+        <div class="product-copy"><span>Product 02 / Marketing operations</span><h3>Social<br>Controller</h3><p class="product-promise">The control room behind consistent social media.</p><p>Created for teams that need more than another calendar. Social Controller organizes planning, approvals, execution and visibility so content operations keep moving without losing the strategy.</p><ul><li>Content planning and workflow</li><li>Team coordination</li><li>Execution visibility</li></ul><button class="lab-open" type="button">Enter the platform <b>&nearr;</b></button></div>
+        <div class="product-visual"><span>Plan. Coordinate. Publish. Improve.</span><img src="/products/social-controller.png" alt="Social Controller product preview"><b>SC / 02</b></div>
+      </article>
       <div class="platform-stack"><span>THE BEYONDNULL SYSTEM</span><div><b>Strategy</b><i>+</i><b>Design</b><i>+</i><b>Technology</b><i>+</i><b>Distribution</b></div></div>
     </section>
 
     <section class="finale">
       <div class="finale-lines" aria-hidden="true"></div>
-      <span>End of portfolio / Start of something new</span>
-      <h2>Your brand is not<br>meant to <i>blend in.</i></h2>
-      <a href="mailto:beyoondnull@gmail.com"><span>Build your next world</span><b>&nearr;</b></a>
+      <span>Have a business, an idea, or a difficult digital problem?</span>
+      <h2>Let us make the<br>next move <i>matter.</i></h2>
+      <p>From the first strategic decision to the product, campaign and growth system behind it, BeyondNull can build the complete digital direction.</p>
+      <a href="mailto:beyoondnull@gmail.com"><span>Start a conversation</span><b>&nearr;</b></a>
       <div class="finale-footer"><span>BeyondNull &copy; 2026</span><span>Bangalore / Purnea / Everywhere online</span></div>
     </section>
   </main>
