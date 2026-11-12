@@ -3,7 +3,7 @@
     { name: "Razvi Decor", display: "Razvi<br>Decor", ghost: "RAZVI", category: "Interior & decor", type: "Website", line: "Crafted spaces, translated to screen", image: "./projects/razvi.png", url: "https://razvi-decor.vercel.app/" },
     { name: "Aarunya Yoga", display: "Aarunya<br>Yoga", ghost: "AARUNYA", category: "Wellness & yoga", type: "Website", line: "A calm interface with living energy", image: "./projects/aarunya.png", url: "https://aarunya-yoga.vercel.app/" },
     { name: "Caake Treet", display: "Caake<br>Treet", ghost: "CAKE", category: "Food & bakery", type: "Commerce", line: "A visual storefront made to feel delicious", image: "./projects/caake.png", url: "https://caake-treet.vercel.app/" },
-    { name: "Connect Your School", display: "Connect<br>Your School", ghost: "CONNECT", category: "Education technology", type: "Platform", line: "One connected operating layer for schools", image: "./projects/connect.png", url: "https://connectyourschool.in/" },
+    { name: "Connect Your School", display: "Connect<br>Your School", ghost: "CONNECT", category: "Education technology", type: "Platform", line: "One connected operating layer for schools", image: "./projects/connect.png", url: "https://connectyourschool.in/", embeddable: false },
     { name: "Social Controller", display: "Social<br>Controller", ghost: "SOCIAL", category: "Social media SaaS", type: "Product", line: "Control the entire content operation", image: "/products/social-controller.png", url: "https://socialcontroller.online/" },
     { name: "Little Wings Pre-School", display: "Little Wings<br>Pre-School", ghost: "WINGS", category: "Early education", type: "Website", line: "A playful first impression for young minds", image: "./projects/wings.png", url: "https://little-wings-pre-school-purnea.vercel.app/" }
   ]
@@ -27,7 +27,7 @@
   const finishIntro = () => {
     introNumber.textContent = "100"
     introBar.style.width = "100%"
-    setTimeout(() => intro.classList.add("done"), reducedMotion ? 0 : 300)
+    setTimeout(() => intro.classList.add("done"), reducedMotion ? 0 : 650)
   }
   if (reducedMotion || deepLinked) finishIntro()
   else {
@@ -99,16 +99,28 @@
 
   const modal = document.querySelector(".preview-modal")
   const modalFrame = modal.querySelector("iframe")
+  const modalFallback = modal.querySelector(".preview-fallback")
+  const modalFallbackImage = modalFallback.querySelector("img")
+  const modalNote = modal.querySelector(".preview-note")
   const loading = modal.querySelector(".preview-loading")
   const closeButton = modal.querySelector(".close-preview")
 
-  function openModal(url, title, index) {
+  function openModal(url, title, index, options) {
+    const settings = options || {}
+    const useSnapshot = settings.embeddable === false
     modal.querySelector("h2").textContent = title
     modal.querySelector(".preview-count").textContent = index
     modal.querySelector(".preview-url").textContent = url.replace(/^https?:\/\//, "")
     modal.querySelector("footer a").href = url
-    loading.classList.remove("hidden")
-    modalFrame.src = url
+    modal.classList.toggle("snapshot-preview", useSnapshot)
+    modalFallback.setAttribute("aria-hidden", String(!useSnapshot))
+    modalFallbackImage.src = useSnapshot ? settings.image : ""
+    modalFallbackImage.alt = useSnapshot ? title + " website preview" : ""
+    modalNote.textContent = useSnapshot
+      ? "Protected preview: this website blocks iframe embedding for visitor security."
+      : "Interactive live preview. Some websites may limit embedded navigation."
+    loading.classList.toggle("hidden", useSnapshot)
+    modalFrame.src = useSnapshot ? "about:blank" : url
     modal.classList.add("open")
     modal.setAttribute("aria-hidden", "false")
     document.body.classList.add("modal-open")
@@ -118,18 +130,26 @@
     modal.classList.remove("open")
     modal.setAttribute("aria-hidden", "true")
     document.body.classList.remove("modal-open")
-    setTimeout(() => { modalFrame.src = "about:blank" }, 350)
+    setTimeout(() => {
+      modalFrame.src = "about:blank"
+      modal.classList.remove("snapshot-preview")
+      modalFallbackImage.src = ""
+    }, 350)
   }
 
   focus.querySelector(".open-project").addEventListener("click", () => {
     const project = projects[activeProject]
-    openModal(project.url, project.name, String(activeProject + 1).padStart(2, "0"))
+    openModal(project.url, project.name, String(activeProject + 1).padStart(2, "0"), project)
   })
   document.querySelectorAll(".lab-open").forEach((button) => button.addEventListener("click", () => {
     const card = button.closest("article")
-    openModal(card.dataset.url, card.querySelector("h3").textContent, card.dataset.index)
+    const image = card.querySelector("img").getAttribute("src")
+    const embeddable = !card.dataset.url.includes("connectyourschool.in")
+    openModal(card.dataset.url, card.querySelector("h3").textContent, card.dataset.index, { image: image, embeddable: embeddable })
   }))
-  modalFrame.addEventListener("load", () => setTimeout(() => loading.classList.add("hidden"), 450))
+  modalFrame.addEventListener("load", () => {
+    if (!modal.classList.contains("snapshot-preview")) setTimeout(() => loading.classList.add("hidden"), 450)
+  })
   closeButton.addEventListener("click", closeModal)
   modal.addEventListener("mousedown", (event) => { if (event.target === modal) closeModal() })
   addEventListener("keydown", (event) => { if (event.key === "Escape" && modal.classList.contains("open")) closeModal() })
