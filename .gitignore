@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 .codex-tmp/
+/Adhyeta-Classes/
 
 # Editor directories and files
 .vscode/*
