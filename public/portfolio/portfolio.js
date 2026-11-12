@@ -27,7 +27,7 @@
   const finishIntro = () => {
     introNumber.textContent = "100"
     introBar.style.width = "100%"
-    setTimeout(() => intro.classList.add("done"), reducedMotion ? 0 : 650)
+    setTimeout(() => intro.classList.add("done"), reducedMotion ? 0 : 2000)
   }
   if (reducedMotion || deepLinked) finishIntro()
   else {
