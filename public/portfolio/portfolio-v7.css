@@ -32,27 +32,96 @@ body {
 }
 
 .brand {
-  gap: 15px;
+  gap: 14px;
+  min-width: 0;
   color: var(--ink);
-  font-size: 18px;
-  letter-spacing: .035em;
+  font-size: 22px;
+  letter-spacing: .025em;
 }
 
-.brand img {
-  width: 76px;
-  height: 60px;
+.brand > span:last-child {
+  white-space: nowrap;
+}
+
+.brand-mark {
+  display: grid;
+  flex: 0 0 84px;
+  width: 84px;
+  height: 68px;
+  place-items: center;
+  overflow: hidden;
+  background: transparent;
+  mix-blend-mode: multiply;
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   object-position: center;
-  background: #fff;
-  border: 1px solid rgba(24, 60, 50, .14);
-  border-radius: 4px;
+  background: transparent;
   filter: none;
-  box-shadow: 0 8px 24px rgba(24, 60, 50, .11);
+  transform: scale(1.62);
 }
 
 .brand strong { color: var(--ink); }
-.portfolio-label { color: #596c64; }
-.portfolio-label b { color: var(--ink); }
+.nav-actions {
+  display: flex;
+  justify-self: end;
+  align-items: center;
+  gap: 18px;
+}
+.portfolio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #596c64;
+  font: 10px var(--mono);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.portfolio-label:before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4e7b65;
+  box-shadow: 0 0 0 5px rgba(78, 123, 101, .12);
+}
+.whatsapp-link {
+  position: relative;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(24, 60, 50, .28);
+  border-radius: 50%;
+  color: #f7f5ee;
+  background: var(--ink);
+  text-decoration: none;
+  transition: transform .25s ease, background .25s ease, box-shadow .25s ease;
+}
+.whatsapp-link:before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(247, 245, 238, .22);
+  border-radius: inherit;
+}
+.whatsapp-link svg {
+  position: relative;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.whatsapp-link:hover {
+  background: #26745b;
+  box-shadow: 0 10px 28px rgba(24, 60, 50, .2);
+  transform: translateY(-2px);
+}
 
 .intro {
   background: var(--cream);
@@ -253,13 +322,23 @@ body {
 
 @media (max-width: 600px) {
   .topbar {
-    height: 92px;
-    padding: 0 16px;
+    display: flex !important;
+    height: 88px;
+    padding: 0 12px;
+    justify-content: space-between;
+    gap: 8px;
     background: rgba(247, 245, 238, .95);
   }
-  .brand { gap: 12px; font-size: 17px; letter-spacing: .025em; }
-  .brand img { width: 68px; height: 56px; }
-  .hero { padding-top: 118px; background: #dfead8; }
+  .brand { flex: 0 1 auto; gap: 8px; font-size: clamp(15px, 4.6vw, 18px); letter-spacing: .012em; }
+  .brand > span:last-child { display: inline !important; }
+  .brand-mark { display: grid !important; flex-basis: 56px; width: 56px; height: 52px; }
+  .brand-mark img { transform: scale(1.7); }
+  .nav-actions { display: flex !important; flex: 0 0 auto; margin-left: auto; gap: 9px; visibility: visible !important; opacity: 1 !important; }
+  .portfolio-label { display: inline-flex !important; gap: 6px; font-size: 9px; letter-spacing: .08em; visibility: visible !important; }
+  .portfolio-label:before { width: 5px; height: 5px; box-shadow: 0 0 0 3px rgba(78, 123, 101, .12); }
+  .whatsapp-link { width: 40px; height: 40px; }
+  .whatsapp-link svg { width: 18px; height: 18px; }
+  .hero { padding-top: 112px; background: #dfead8; }
   .hero h1 { font-size: clamp(50px, 15.8vw, 70px); }
   .hero-bottom p { color: #52655d; }
   .orbit-one { width: 120vw; }
@@ -268,4 +347,13 @@ body {
   .intro p { font-size: 14px; }
   .intro h2 { color: #60716a; font-size: 21px; }
   .focus-browser { box-shadow: 7px 9px 0 #8ca895; }
+}
+
+@media (max-width: 360px) {
+  .topbar { padding-inline: 9px; }
+  .brand { gap: 5px; font-size: 16px; }
+  .brand-mark { flex-basis: 48px; width: 48px; height: 46px; }
+  .nav-actions { gap: 6px; }
+  .portfolio-label { gap: 4px; font-size: 8px; letter-spacing: .04em; }
+  .whatsapp-link { width: 36px; height: 36px; }
 }
