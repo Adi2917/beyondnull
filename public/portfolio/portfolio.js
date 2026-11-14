@@ -110,6 +110,7 @@
     const settings = options || {}
     const useSnapshot = settings.embeddable === false
     modal.classList.remove("linkedin-profile-preview")
+    modal.querySelector(".preview-kind").textContent = "Live project"
     modal.querySelector("h2").textContent = title
     modal.querySelector(".preview-count").textContent = index
     modal.querySelector(".preview-url").textContent = url.replace(/^https?:\/\//, "")
@@ -132,6 +133,7 @@
     const name = card.dataset.name
     const photo = card.dataset.photo
     const avatar = linkedinPreview.querySelector(".linkedin-preview-avatar")
+    modal.querySelector(".preview-kind").textContent = "LinkedIn profile"
     modal.querySelector("h2").textContent = name
     modal.querySelector(".preview-count").textContent = String(index + 1).padStart(2, "0")
     modal.querySelector(".preview-url").textContent = card.dataset.url.replace(/^https?:\/\//, "")
