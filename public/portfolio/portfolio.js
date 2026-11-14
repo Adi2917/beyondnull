@@ -104,10 +104,12 @@
   const modalNote = modal.querySelector(".preview-note")
   const loading = modal.querySelector(".preview-loading")
   const closeButton = modal.querySelector(".close-preview")
+  const linkedinPreview = modal.querySelector(".linkedin-preview")
 
   function openModal(url, title, index, options) {
     const settings = options || {}
     const useSnapshot = settings.embeddable === false
+    modal.classList.remove("linkedin-profile-preview")
     modal.querySelector("h2").textContent = title
     modal.querySelector(".preview-count").textContent = index
     modal.querySelector(".preview-url").textContent = url.replace(/^https?:\/\//, "")
@@ -126,14 +128,38 @@
     document.body.classList.add("modal-open")
     closeButton.focus()
   }
+  function openLinkedinModal(card, index) {
+    const name = card.dataset.name
+    const photo = card.dataset.photo
+    const avatar = linkedinPreview.querySelector(".linkedin-preview-avatar")
+    modal.querySelector("h2").textContent = name
+    modal.querySelector(".preview-count").textContent = String(index + 1).padStart(2, "0")
+    modal.querySelector(".preview-url").textContent = card.dataset.url.replace(/^https?:\/\//, "")
+    modal.querySelector("footer a").href = card.dataset.url
+    modal.querySelector("footer a").innerHTML = "Open LinkedIn profile <span>&nearr;</span>"
+    modalNote.textContent = "Profile snapshot. LinkedIn blocks embedded browsing, so the original profile opens securely in a new tab."
+    linkedinPreview.querySelector("h3").textContent = name
+    linkedinPreview.querySelector("p").textContent = card.dataset.role
+    linkedinPreview.querySelector(".linkedin-preview-card > b").textContent = card.dataset.result
+    avatar.innerHTML = photo ? '<img src="' + photo + '" alt="' + name + '">' : card.dataset.initials
+    modalFrame.src = "about:blank"
+    modal.classList.remove("snapshot-preview")
+    modal.classList.add("linkedin-profile-preview", "open")
+    modal.setAttribute("aria-hidden", "false")
+    linkedinPreview.setAttribute("aria-hidden", "false")
+    document.body.classList.add("modal-open")
+    closeButton.focus()
+  }
   function closeModal() {
     modal.classList.remove("open")
     modal.setAttribute("aria-hidden", "true")
     document.body.classList.remove("modal-open")
     setTimeout(() => {
       modalFrame.src = "about:blank"
-      modal.classList.remove("snapshot-preview")
+      modal.classList.remove("snapshot-preview", "linkedin-profile-preview")
       modalFallbackImage.src = ""
+      linkedinPreview.setAttribute("aria-hidden", "true")
+      modal.querySelector("footer a").innerHTML = "Open original website <span>&nearr;</span>"
     }, 350)
   }
 
@@ -146,6 +172,9 @@
     const image = card.querySelector("img").getAttribute("src")
     const embeddable = !card.dataset.url.includes("connectyourschool.in")
     openModal(card.dataset.url, card.querySelector("h3").textContent, card.dataset.index, { image: image, embeddable: embeddable })
+  }))
+  document.querySelectorAll(".open-linkedin").forEach((button, index) => button.addEventListener("click", () => {
+    openLinkedinModal(button.closest(".linkedin-case"), index)
   }))
   modalFrame.addEventListener("load", () => {
     if (!modal.classList.contains("snapshot-preview")) setTimeout(() => loading.classList.add("hidden"), 450)
@@ -160,7 +189,7 @@
       cursor.style.left = event.clientX + "px"
       cursor.style.top = event.clientY + "px"
     })
-    document.querySelectorAll(".open-project,.lab-open").forEach((item) => {
+    document.querySelectorAll(".open-project,.lab-open,.open-linkedin").forEach((item) => {
       item.addEventListener("mouseenter", () => cursor.classList.add("active"))
       item.addEventListener("mouseleave", () => cursor.classList.remove("active"))
     })
