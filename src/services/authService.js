@@ -184,6 +184,16 @@ export async function downloadClientPaymentProof(id) {
   return apiRequest("getClientPaymentProof", { id })
 }
 
+export async function downloadClientPaymentReceipt(id) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("getClientPaymentReceipt", { id })
+}
+
+export async function sendClientPaymentReceipt(id) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("sendClientPaymentReceipt", { id })
+}
+
 export async function getEmployees() {
   if (!getAdminToken()) return { data: [], error: makeError("Admin session expired. Login again.") }
   const result = await apiRequest("getEmployees")

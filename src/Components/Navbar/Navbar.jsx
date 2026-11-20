@@ -46,6 +46,7 @@ function Navbar() {
           <Link className={pathname === "/about" ? "active" : ""} aria-current={pathname === "/about" ? "page" : undefined} to="/about" onClick={() => setMenuOpen(false)}>Who We Are</Link>
           <Link className={pathname === "/services" ? "active" : ""} aria-current={pathname === "/services" ? "page" : undefined} to="/services" onClick={() => setMenuOpen(false)}>Services</Link>
           <Link className={pathname === "/results" ? "active" : ""} aria-current={pathname === "/results" ? "page" : undefined} to="/results" onClick={() => setMenuOpen(false)}>Our Work</Link>
+          <a className="portfolio-nav-link" href="/portfolio/" onClick={() => setMenuOpen(false)}>Portfolio</a>
           <Link className={pathname === "/resources" ? "active" : ""} aria-current={pathname === "/resources" ? "page" : undefined} to="/resources" onClick={() => setMenuOpen(false)}>Resources</Link>
           <Link className={pathname === "/contact" ? "active" : ""} aria-current={pathname === "/contact" ? "page" : undefined} to="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
           <button

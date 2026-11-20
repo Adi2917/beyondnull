@@ -81,6 +81,14 @@
   width: 100%;
 }
 
+.menu > a.portfolio-nav-link {
+  padding: 10px 14px;
+  color: var(--bn-red);
+  border: 1px solid rgba(180, 20, 43, .28);
+}
+.menu > a.portfolio-nav-link::after { display: none; }
+.menu > a.portfolio-nav-link:hover { color: #fff; background: var(--bn-red); }
+
 .nav-discovery-btn {
   min-height: 42px;
   padding: 0 18px;
@@ -219,6 +227,8 @@
     color: var(--bn-red);
     border-color: var(--bn-red);
   }
+
+  .menu > a.portfolio-nav-link { color: var(--bn-red); }
 
   .nav-discovery-btn {
     position: relative;

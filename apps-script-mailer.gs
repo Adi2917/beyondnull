@@ -18,7 +18,7 @@ const TABLES = {
   resets: ["id", "email", "phone", "otp_hash", "expires_at", "attempts", "used_at", "created_at"],
   resources: ["id", "slug", "category", "read_time", "title", "subtitle", "excerpt", "intro", "logo_file_id", "cover_file_id", "gallery_file_ids", "sections_json", "status", "created_at", "updated_at"],
   finance: ["id", "entry_type", "name", "amount", "entry_date", "proof_file_id", "proof_name", "proof_type", "notes", "created_at", "updated_at"],
-  client_payments: ["id", "client_id", "service_id", "source_key", "payment_type", "amount", "paid_on", "notes", "proof_file_id", "proof_name", "proof_type", "created_at", "updated_at"]
+  client_payments: ["id", "client_id", "service_id", "source_key", "payment_type", "amount", "paid_on", "notes", "proof_file_id", "proof_name", "proof_type", "created_at", "updated_at", "generated_receipt_file_id", "email_sent_at"]
 }
 
 const SHEET_NAMES = {
@@ -116,6 +116,8 @@ function routeAction(action, payload, sessionToken) {
     updateClientPayment: function () { return updateClientPayment(payload) },
     deleteClientPayment: function () { return deleteClientPayment(payload.id) },
     getClientPaymentProof: function () { return getClientPaymentProof(payload.id) },
+    getClientPaymentReceipt: function () { return getClientPaymentReceipt(payload.id) },
+    sendClientPaymentReceipt: function () { return sendExistingClientPaymentReceipt(payload.id) },
     getResources: getResources,
     addResource: function () { return addResource(payload) },
     updateResource: function () { return updateResource(payload) },
@@ -268,7 +270,9 @@ function deleteClient(id) {
   const lock = LockService.getScriptLock(); lock.waitLock(10000)
   try {
     readObjects("client_payments").filter(function (item) { return item.client_id === id }).forEach(function (item) {
-      if (item.proof_file_id) try { DriveApp.getFileById(item.proof_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+      ;[item.proof_file_id, item.generated_receipt_file_id].filter(Boolean).forEach(function (fileId) {
+        try { DriveApp.getFileById(fileId).setTrashed(true) } catch (error) { console.warn(error) }
+      })
     })
     deleteRowsWhere("client_payments", "client_id", id)
     deleteRowsWhere("services", "client_id", id)
@@ -589,12 +593,14 @@ function updateClientPayment(payload) {
 function saveClientPayment(payload, id) {
   ensureClientPaymentStorage()
   const clientId = String(payload.client_id || "")
-  if (!readObjects("clients").some(function (item) { return item.id === clientId })) throw new Error("Client not found")
+  const client = readObjects("clients").find(function (item) { return item.id === clientId })
+  if (!client) throw new Error("Client not found")
   const paymentAmount = amount(payload.amount)
   if (paymentAmount <= 0) throw new Error("Enter a valid client payment amount")
   const paymentType = String(payload.payment_type || "Payment").trim().slice(0, 80)
   const paidOn = normalizeDateValue(payload.paid_on, "Payment date")
   let proofId = ""
+  let generatedReceiptId = ""
   try {
     if (payload.proof_data) proofId = saveClientPaymentProof(payload.proof_data, payload.proof_name, payload.proof_type)
     const now = new Date()
@@ -608,8 +614,11 @@ function saveClientPayment(payload, id) {
       data.proof_file_id = proofId || existing.proof_file_id
       data.proof_name = proofId ? String(payload.proof_name || "payment-proof") : existing.proof_name
       data.proof_type = proofId ? String(payload.proof_type || "application/octet-stream") : existing.proof_type
+      data.generated_receipt_file_id = ""
+      data.email_sent_at = ""
       updateRow("client_payments", existing._row, data)
       if (proofId && existing.proof_file_id) try { DriveApp.getFileById(existing.proof_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+      if (existing.generated_receipt_file_id) try { DriveApp.getFileById(existing.generated_receipt_file_id).setTrashed(true) } catch (error) { console.warn(error) }
       return normalizeClientPayment(Object.assign({}, existing, data))
     }
     data.id = Utilities.getUuid()
@@ -618,10 +627,17 @@ function saveClientPayment(payload, id) {
     data.proof_name = proofId ? String(payload.proof_name || "payment-proof") : ""
     data.proof_type = proofId ? String(payload.proof_type || "application/octet-stream") : ""
     data.created_at = now
+    if (!client.email) throw new Error("Client email is required before adding a payment")
+    const generated = createClientPaymentReceipt(client, data)
+    generatedReceiptId = generated.fileId
+    sendClientPaymentReceiptEmail(client, data, generated.blob, generated.receiptNumber, false)
+    data.generated_receipt_file_id = generatedReceiptId
+    data.email_sent_at = now
     appendObject("client_payments", data)
     return normalizeClientPayment(data)
   } catch (error) {
     if (proofId) try { DriveApp.getFileById(proofId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) }
+    if (generatedReceiptId) try { DriveApp.getFileById(generatedReceiptId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) }
     throw error
   }
 }
@@ -631,6 +647,7 @@ function deleteClientPayment(id) {
   const payment = readObjects("client_payments").find(function (item) { return item.id === String(id) })
   if (!payment) throw new Error("Client payment not found")
   if (payment.proof_file_id) try { DriveApp.getFileById(payment.proof_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+  if (payment.generated_receipt_file_id) try { DriveApp.getFileById(payment.generated_receipt_file_id).setTrashed(true) } catch (error) { console.warn(error) }
   return deleteRowsWhere("client_payments", "id", id) > 0
 }
 
@@ -640,6 +657,35 @@ function getClientPaymentProof(id) {
   if (!payment || !payment.proof_file_id) throw new Error("Client payment proof not found")
   const blob = DriveApp.getFileById(payment.proof_file_id).getBlob()
   return fileDownloadResponse(blob, payment.proof_name || blob.getName(), payment.proof_type)
+}
+
+function getClientPaymentReceipt(id) {
+  ensureClientPaymentStorage()
+  const payment = readObjects("client_payments").find(function (item) { return item.id === String(id) })
+  if (!payment || !payment.generated_receipt_file_id) throw new Error("Client payment receipt not found")
+  const blob = DriveApp.getFileById(payment.generated_receipt_file_id).getBlob()
+  return fileDownloadResponse(blob, blob.getName(), blob.getContentType())
+}
+
+function sendExistingClientPaymentReceipt(id) {
+  ensureClientPaymentStorage()
+  const payment = readObjects("client_payments").find(function (item) { return item.id === String(id) })
+  if (!payment) throw new Error("Client payment not found")
+  const client = readObjects("clients").find(function (item) { return item.id === payment.client_id })
+  if (!client) throw new Error("Client not found")
+  if (!client.email) throw new Error("Client email is required before sending a receipt")
+  let generatedReceiptId = ""
+  try {
+    const generated = createClientPaymentReceipt(client, payment)
+    generatedReceiptId = generated.fileId
+    sendClientPaymentReceiptEmail(client, payment, generated.blob, generated.receiptNumber, Boolean(payment.email_sent_at))
+    updateRow("client_payments", payment._row, { generated_receipt_file_id: generatedReceiptId, email_sent_at: new Date(), updated_at: new Date() })
+    if (payment.generated_receipt_file_id) try { DriveApp.getFileById(payment.generated_receipt_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+    return normalizeClientPayment(Object.assign({}, payment, { generated_receipt_file_id: generatedReceiptId, email_sent_at: new Date() }))
+  } catch (error) {
+    if (generatedReceiptId) try { DriveApp.getFileById(generatedReceiptId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) }
+    throw error
+  }
 }
 
 function saveClientPaymentProof(dataUrl, name, type) {
@@ -654,11 +700,54 @@ function saveClientPaymentProof(dataUrl, name, type) {
   return DriveApp.getFolderById(folderId).createFile(Utilities.newBlob(bytes, contentType, safeFileName(name || "client-payment-proof"))).getId()
 }
 
+function createClientPaymentReceipt(client, payment) {
+  const receiptNumber = "BN-REC-" + String(payment.paid_on).replace(/-/g, "") + "-" + String(payment.id).replace(/-/g, "").slice(0, 6).toUpperCase()
+  const fileName = safeFileName("BeyondNull-Payment-Receipt-" + client.name + "-" + payment.paid_on) + ".pdf"
+  const html = buildClientPaymentReceiptHtml(client, payment, receiptNumber)
+  const pdfBlob = Utilities.newBlob(html, MimeType.HTML, fileName.replace(/\.pdf$/, ".html")).getAs(MimeType.PDF).setName(fileName)
+  const folderId = PropertiesService.getScriptProperties().getProperty("CLIENT_PAYMENT_FOLDER_ID")
+  if (!folderId) throw new Error("Client payment receipt folder is not configured")
+  const file = DriveApp.getFolderById(folderId).createFile(pdfBlob)
+  return { fileId: file.getId(), blob: file.getBlob().setName(fileName), receiptNumber: receiptNumber }
+}
+
+function buildClientPaymentReceiptHtml(client, payment, receiptNumber) {
+  const logo = "data:image/png;base64," + PAYROLL_LOGO_BASE64
+  const signature = "data:image/png;base64," + PAYROLL_SIGNATURE_BASE64
+  const clientDetails = [client.email, client.phone, client.district].filter(Boolean).join(" | ")
+  const note = String(payment.notes || "").trim()
+  return '<!doctype html><html><head><meta charset="UTF-8"></head><body style="margin:0;background:#f4efec;font-family:Arial,sans-serif;color:#191717">' +
+    '<div style="width:720px;margin:24px auto;background:#fff;border:1px solid #dfd4d5">' +
+      '<div style="height:9px;background:#e31837"></div>' +
+      '<div style="padding:27px 38px;background:#191717;color:#fff"><table style="width:100%;border-collapse:collapse"><tr>' +
+        '<td><img src="' + logo + '" style="width:66px;height:66px;object-fit:contain;border-radius:50%"></td>' +
+        '<td style="text-align:right"><div style="font-size:11px;letter-spacing:2px;color:#ef9bab;font-weight:700">PAYMENT ACKNOWLEDGEMENT</div><div style="font-size:29px;font-weight:800;margin-top:5px">Payment Receipt</div><div style="font-size:12px;color:#cdbfc1;margin-top:7px">' + escapeHtml(receiptNumber) + '</div></td>' +
+      '</tr></table></div>' +
+      '<div style="padding:34px 38px">' +
+        '<div style="padding:17px 20px;margin-bottom:28px;border-left:4px solid #e31837;background:#faf7f5"><div style="font-size:11px;color:#a51d34;font-weight:800;letter-spacing:1px">PAYMENT RECEIVED</div><div style="margin-top:7px;font-size:14px;color:#6c6263">Thank you. This receipt confirms that your payment has been recorded by BeyondNull.</div></div>' +
+        '<table style="width:100%;border-collapse:collapse;margin-bottom:25px"><tr><td><div style="font-size:11px;color:#765d61;font-weight:700">RECEIVED FROM</div><div style="font-size:24px;font-weight:800;margin-top:6px">' + escapeHtml(client.name) + '</div><div style="font-size:12px;color:#6c6263;margin-top:6px">' + escapeHtml(clientDetails) + '</div></td><td style="text-align:right"><div style="font-size:11px;color:#765d61;font-weight:700">PAYMENT DATE</div><div style="font-size:17px;font-weight:800;margin-top:6px">' + escapeHtml(formatPayrollDate(payment.paid_on)) + '</div></td></tr></table>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:14px"><tr><td style="padding:12px 0;border-bottom:1px solid #eadcdf;color:#6c6263">Payment for</td><td style="padding:12px 0;border-bottom:1px solid #eadcdf;text-align:right;font-weight:700">' + escapeHtml(payment.payment_type || "Payment") + '</td></tr>' +
+        (note ? '<tr><td style="padding:12px 0;border-bottom:1px solid #eadcdf;color:#6c6263">Details</td><td style="padding:12px 0;border-bottom:1px solid #eadcdf;text-align:right;font-weight:700">' + escapeHtml(note) + '</td></tr>' : '') +
+        '<tr><td style="padding:21px 0 12px;font-size:17px;font-weight:900">Amount received</td><td style="padding:21px 0 12px;text-align:right;font-size:27px;font-weight:900;color:#b4142c">Rs ' + formatMoney(payment.amount) + '</td></tr></table>' +
+        '<div style="margin-top:18px;padding:14px 17px;background:#191717;color:#fff"><table style="width:100%"><tr><td style="font-size:11px;letter-spacing:1px">PAYMENT STATUS</td><td style="text-align:right;color:#ff7084;font-size:12px;font-weight:900">RECEIVED</td></tr></table></div>' +
+        '<div style="margin-top:33px;padding-top:23px;border-top:1px solid #eadcdf"><table style="width:100%;border-collapse:collapse"><tr><td style="vertical-align:bottom"><div style="font-size:12px;color:#6c6263;line-height:1.7">This is an official system-generated payment receipt.<br>For billing queries, contact ' + escapeHtml(OFFICIAL_EMAIL) + '.</div></td><td style="width:220px;text-align:right;vertical-align:bottom"><img src="' + signature + '" style="display:block;width:190px;height:62px;object-fit:contain;object-position:left center;margin:0 0 2px auto"><div style="font-size:13px;font-weight:800">Aditya Kumar</div><div style="font-size:11px;color:#765d61;margin-top:3px">Authorized Signatory</div><div style="font-size:11px;color:#a51d34;font-weight:800;margin-top:3px">Finance Department</div></td></tr></table></div>' +
+      '</div><div style="padding:15px 38px;background:#faf7f5;border-top:1px solid #eadcdf;font-size:11px;color:#765d61;text-align:center">BeyondNull | Bangalore, Karnataka | beyoondnull@gmail.com</div>' +
+    '</div></body></html>'
+}
+
+function sendClientPaymentReceiptEmail(client, payment, pdfBlob, receiptNumber, resent) {
+  const subject = (resent ? "[Resent] " : "") + "BeyondNull payment receipt - " + receiptNumber
+  const plainBody = "Hello " + client.name + ",\n\nThank you for your payment of Rs " + formatMoney(payment.amount) + " received on " + formatPayrollDate(payment.paid_on) + ". Your official BeyondNull payment receipt is attached.\n\nRegards,\nFinance Department\nBeyondNull"
+  const htmlBody = '<div style="margin:0;padding:30px 16px;background:#f5f1ee;font-family:Arial,sans-serif;color:#191717"><div style="max-width:620px;margin:auto;background:#fff;border:1px solid #eadcdf"><div style="padding:22px 28px;background:#191717;color:#fff;font-size:21px;font-weight:900">BEYOND<span style="color:#e31837">NULL</span></div><div style="padding:30px 28px"><p style="margin:0 0 16px;font-size:17px;font-weight:700">Hello ' + escapeHtml(client.name) + ',</p><p style="margin:0 0 16px;line-height:1.7;color:#6c6263">Thank you. We have recorded your payment received on <strong>' + escapeHtml(formatPayrollDate(payment.paid_on)) + '</strong>.</p><div style="padding:18px 20px;background:#faf7f5;border-left:4px solid #e31837"><span style="display:block;font-size:11px;color:#765d61;font-weight:700">AMOUNT RECEIVED</span><strong style="display:block;margin-top:5px;font-size:26px;color:#b4142c">Rs ' + formatMoney(payment.amount) + '</strong><span style="display:block;margin-top:6px;font-size:12px;color:#765d61">Receipt ' + escapeHtml(receiptNumber) + '</span></div><p style="margin:20px 0 0;line-height:1.7;color:#6c6263">Your official payment receipt is attached as a PDF for your records.</p></div><div style="padding:20px 28px;border-top:1px solid #eadcdf;background:#faf7f5"><strong>Finance Department</strong><br><span style="font-size:12px;color:#765d61">BeyondNull</span></div></div></div>'
+  MailApp.sendEmail({ to: client.email, subject: subject, name: "BeyondNull Finance", replyTo: OFFICIAL_EMAIL, body: plainBody, htmlBody: htmlBody, attachments: [pdfBlob] })
+}
+
 function normalizeClientPayment(item) {
   return {
     id: item.id, client_id: item.client_id, service_id: item.service_id || "", payment_type: item.payment_type || "Payment",
     amount: Number(item.amount || 0), paid_on: normalizeStoredDate(item.paid_on), notes: item.notes || "",
-    has_proof: Boolean(item.proof_file_id), created_at: serializeValue(item.created_at)
+    has_proof: Boolean(item.proof_file_id), has_receipt: Boolean(item.generated_receipt_file_id),
+    email_sent: Boolean(item.email_sent_at), email_sent_at: serializeValue(item.email_sent_at), created_at: serializeValue(item.created_at)
   }
 }
 
@@ -668,9 +757,9 @@ function removeInferredClientPayments() {
     .filter(function (payment) { return Boolean(payment.source_key) })
     .sort(function (a, b) { return b._row - a._row })
     .forEach(function (payment) {
-      if (payment.proof_file_id) {
-        try { DriveApp.getFileById(payment.proof_file_id).setTrashed(true) } catch (error) { console.warn(error) }
-      }
+      ;[payment.proof_file_id, payment.generated_receipt_file_id].filter(Boolean).forEach(function (fileId) {
+        try { DriveApp.getFileById(fileId).setTrashed(true) } catch (error) { console.warn(error) }
+      })
       sheet.deleteRow(payment._row)
     })
 }

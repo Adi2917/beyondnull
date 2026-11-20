@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { FaDownload, FaEdit, FaPlus, FaTrash } from "react-icons/fa"
+import { FaDownload, FaEdit, FaEnvelope, FaFileInvoiceDollar, FaPlus, FaTrash } from "react-icons/fa"
 import ClientPaymentModal from "../Components/ClientPaymentModal"
-import { deleteClient as removeClient, deleteClientPayment, downloadClientPaymentProof, getClientById, updateClient as saveClient } from "../services/authService"
+import { deleteClient as removeClient, deleteClientPayment, downloadClientPaymentProof, downloadClientPaymentReceipt, getClientById, sendClientPaymentReceipt, updateClient as saveClient } from "../services/authService"
 import "./ClientProfile.css"
 
 const money = (value) => `Rs ${Number(value || 0).toLocaleString("en-IN")}`
@@ -16,6 +16,7 @@ function ClientProfile() {
   const [editMode, setEditMode] = useState(false)
   const [form, setForm] = useState({})
   const [paymentModal, setPaymentModal] = useState(null)
+  const [sendingReceipt, setSendingReceipt] = useState("")
 
   const fetchClient = useCallback(async () => {
     const { data, error } = await getClientById(id)
@@ -77,6 +78,28 @@ function ClientProfile() {
     link.remove()
   }
 
+  const downloadReceipt = async (payment) => {
+    const { data, error } = await downloadClientPaymentReceipt(payment.id)
+    if (error) return alert(error.message || "Could not download payment receipt")
+    const link = document.createElement("a")
+    link.href = data.data
+    link.download = data.name || "BeyondNull-payment-receipt.pdf"
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  }
+
+  const emailReceipt = async (payment) => {
+    if (!client.email) return alert("Add the client email before sending a receipt")
+    if (payment.email_sent && !window.confirm(`Resend this receipt to ${client.email}?`)) return
+    setSendingReceipt(payment.id)
+    const { error } = await sendClientPaymentReceipt(payment.id)
+    setSendingReceipt("")
+    if (error) return alert(error.message || "Could not email payment receipt")
+    alert(`Payment receipt sent to ${client.email}`)
+    await fetchClient()
+  }
+
   if (loading) return <div className="profile-loading">Loading client...</div>
   if (!client) return <div className="profile-loading">Client not found</div>
 
@@ -119,8 +142,8 @@ function ClientProfile() {
 
         <section className="client-payment-section">
           <div className="profile-section-head"><div><span>Finance history</span><h3>Client payments</h3></div><button type="button" onClick={() => setPaymentModal({ mode: "add" })}><FaPlus /> Add payment</button></div>
-          {!client.payments?.length ? <div className="client-payment-empty">No payment recorded yet.</div> : <div className="client-payment-table"><table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Details</th><th>Proof</th><th>Actions</th></tr></thead><tbody>{client.payments.map((payment) => (
-            <tr key={payment.id}><td>{displayDate(payment.paid_on)}</td><td>{payment.payment_type}</td><td className="client-payment-amount">{money(payment.amount)}</td><td>{payment.notes || "-"}</td><td>{payment.has_proof ? <button type="button" className="payment-proof" onClick={() => downloadProof(payment)}><FaDownload /> View</button> : "-"}</td><td><div className="payment-actions"><button type="button" onClick={() => setPaymentModal({ mode: "edit", payment })}><FaEdit /></button><button type="button" onClick={() => removePayment(payment)}><FaTrash /></button></div></td></tr>
+          {!client.payments?.length ? <div className="client-payment-empty">No payment recorded yet.</div> : <div className="client-payment-table"><table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Details</th><th>Proof</th><th>Receipt</th><th>Actions</th></tr></thead><tbody>{client.payments.map((payment) => (
+            <tr key={payment.id}><td>{displayDate(payment.paid_on)}</td><td>{payment.payment_type}</td><td className="client-payment-amount">{money(payment.amount)}</td><td>{payment.notes || "-"}</td><td>{payment.has_proof ? <button type="button" className="payment-proof" onClick={() => downloadProof(payment)}><FaDownload /> View</button> : "-"}</td><td><div className="receipt-actions"><button type="button" className="payment-receipt-send" disabled={sendingReceipt === payment.id} onClick={() => emailReceipt(payment)} title={payment.email_sent ? "Resend receipt email" : "Email receipt"}><FaEnvelope /> {sendingReceipt === payment.id ? "Sending..." : payment.email_sent ? "Resend" : "Send"}</button>{payment.has_receipt && <button type="button" className="payment-receipt-view" onClick={() => downloadReceipt(payment)} title="Download receipt PDF"><FaFileInvoiceDollar /> PDF</button>}</div></td><td><div className="payment-actions"><button type="button" title="Edit payment" onClick={() => setPaymentModal({ mode: "edit", payment })}><FaEdit /></button><button type="button" title="Delete payment" onClick={() => removePayment(payment)}><FaTrash /></button></div></td></tr>
           ))}</tbody></table></div>}
         </section>
 
