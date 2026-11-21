@@ -641,13 +641,17 @@ function sendSalaryReceiptEmail(employee, payout, pdfBlob, receiptNumber, correc
 }
 
 function formatPayrollMonth(value) {
-  const date = new Date(normalizeDateValue(value, "Salary month") + "T00:00:00")
-  return Utilities.formatDate(date, Session.getScriptTimeZone(), "MMMM yyyy")
+  const normalized = normalizeDateValue(value, "Salary month")
+  const parts = normalized.split("-")
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+  return monthNames[Number(parts[1]) - 1] + " " + parts[0]
 }
 
 function formatPayrollDate(value) {
-  const date = new Date(normalizeDateValue(value, "Pay date") + "T00:00:00")
-  return Utilities.formatDate(date, Session.getScriptTimeZone(), "dd MMMM yyyy")
+  const normalized = normalizeDateValue(value, "Pay date")
+  const parts = normalized.split("-")
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+  return parts[2] + " " + monthNames[Number(parts[1]) - 1] + " " + parts[0]
 }
 
 function formatMoney(value) { return Number(value || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") }
