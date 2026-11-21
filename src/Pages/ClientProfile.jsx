@@ -104,6 +104,8 @@ function ClientProfile() {
   if (!client) return <div className="profile-loading">Client not found</div>
 
   const projects = editMode ? form.projects : client.projects
+  const projectServices = (client.projects || []).filter((service) => service.billing_type === "project")
+  const monthlyServices = (client.projects || []).filter((service) => service.billing_type === "monthly")
 
   return (
     <main className="client-profile">
@@ -122,9 +124,12 @@ function ClientProfile() {
             <div className="info-item" key={field.name}><span>{field.label}</span>{editMode ? <input name={field.name} value={form[field.name] || ""} onChange={handleChange} /> : <p>{client[field.name] || field.empty}</p>}</div>
           ))}
           <div className="info-item"><span>Added on</span><p>{new Date(client.created_at).toLocaleDateString("en-IN")}</p></div>
-          <div className="info-item"><span>Website / app project total</span><p>{money(client.contract_total)}</p></div>
-          <div className="info-item payment-total"><span>Website / app paid</span><p>{money(client.payment_total)}</p></div>
-          <div className="info-item payment-pending"><span>Website / app pending</span><p>{money(client.pending_amount)}</p></div>
+          {projectServices.length > 0 && <>
+            <div className="info-item"><span>Project total</span><p>{money(client.contract_total)}</p></div>
+            <div className="info-item payment-total"><span>Project paid</span><p>{money(client.payment_total)}</p></div>
+            <div className="info-item payment-pending"><span>Project pending</span><p>{money(client.pending_amount)}</p></div>
+          </>}
+          {monthlyServices.map((service) => <div className="info-item" key={`monthly-${service.id}`}><span>{service.service_type}</span><p>Monthly package: {money(service.monthly_package)}</p></div>)}
         </div>
 
         <section className="services">
@@ -133,7 +138,7 @@ function ClientProfile() {
             {projects?.length ? projects.map((project) => (
               <article className="profile-project" key={project.id || `${project.service_type}-${project.work_start_date}`}>
                 <div><strong>{project.service_type}</strong><span>{project.work_start_date ? `Started ${displayDate(project.work_start_date)}` : "Start date not set"}</span></div>
-                {project.billing_type === "project" ? <p>Project total: {money(project.total_amount)} · Paid: {money(project.paid_amount)} · Remaining: {money(project.balance_amount)}</p> : <p>Monthly package: {money(project.monthly_package)} · This month paid: {money(project.paid_amount)} · Remaining: {money(project.balance_amount)} / {(project.social_platforms || []).join(", ")}</p>}
+                {project.billing_type === "project" ? <p>Project total: {money(project.total_amount)} | Paid: {money(project.paid_amount)} | Remaining: {money(project.balance_amount)}</p> : <p>Monthly package: {money(project.monthly_package)} | {(project.social_platforms || []).join(", ")}</p>}
                 {editMode ? <select value={project.work_status} onChange={(event) => updateProjectStatus(project.service_type, event.target.value)}><option>Running</option><option>Paused</option><option>{project.billing_type === "project" ? "Delivered" : "Stopped"}</option></select> : <b className={`project-status ${project.work_status?.toLowerCase()}`}>{project.work_status}</b>}
               </article>
             )) : <p className="no-services">No structured services recorded</p>}

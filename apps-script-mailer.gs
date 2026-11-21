@@ -369,15 +369,20 @@ function hydrateClientPayments(clientId, services, payments, persistChanges) {
     const total = Number(monthly ? service.monthly_package : service.total_amount || 0)
     const balanceKey = service.id + ":" + (billingPeriod || "project")
     runningPaid[balanceKey] = Number(runningPaid[balanceKey] || 0) + Number(payment.amount || 0)
+    const normalizedPaymentType = monthly && ["Monthly payment", "Partial monthly payment"].indexOf(payment.payment_type) === -1
+      ? (Number(payment.amount || 0) < total ? "Partial monthly payment" : "Monthly payment")
+      : payment.payment_type
     const updates = {
       service_id: service.id, service_name: service.service_type, billing_period: billingPeriod,
-      service_total: total, balance_after: Math.max(Math.round((total - runningPaid[balanceKey]) * 100) / 100, 0)
+      service_total: total, balance_after: Math.max(Math.round((total - runningPaid[balanceKey]) * 100) / 100, 0),
+      payment_type: normalizedPaymentType
     }
     const changed = String(payment.service_id || "") !== updates.service_id ||
       String(payment.service_name || "") !== updates.service_name ||
       String(payment.billing_period || "") !== updates.billing_period ||
       Number(payment.service_total || 0) !== updates.service_total ||
-      Number(payment.balance_after || 0) !== updates.balance_after
+      Number(payment.balance_after || 0) !== updates.balance_after ||
+      String(payment.payment_type || "") !== String(updates.payment_type || "")
     Object.assign(payment, updates)
     if (persistChanges && changed && payment._row) updateRow("client_payments", payment._row, updates)
   })

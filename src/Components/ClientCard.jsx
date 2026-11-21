@@ -6,6 +6,9 @@ import { clientProfilePath } from "../portalRoutes"
 function ClientCard({client,onDelete,onEdit}){
 
 const navigate = useNavigate()
+const projectServices = (client.projects || []).filter((service) => service.billing_type === "project")
+const monthlyServices = (client.projects || []).filter((service) => service.billing_type === "monthly")
+const monthlyPackage = monthlyServices.reduce((sum, service) => sum + Number(service.monthly_package || 0), 0)
 
 return(
 
@@ -29,9 +32,14 @@ onClick={()=>navigate(clientProfilePath(client.id))}
 <span>{client.district}</span>
 
 <div className="client-money">
-  <small>Total <b>Rs {Number(client.contract_total || 0).toLocaleString("en-IN")}</b></small>
-  <small>Paid <b>Rs {Number(client.payment_total || 0).toLocaleString("en-IN")}</b></small>
-  <small>Pending <b>Rs {Number(client.pending_amount || 0).toLocaleString("en-IN")}</b></small>
+  {projectServices.length > 0 ? <>
+    <small>Total <b>Rs {Number(client.contract_total || 0).toLocaleString("en-IN")}</b></small>
+    <small>Paid <b>Rs {Number(client.payment_total || 0).toLocaleString("en-IN")}</b></small>
+    <small>Pending <b>Rs {Number(client.pending_amount || 0).toLocaleString("en-IN")}</b></small>
+  </> : <>
+    <small>Service <b>{monthlyServices.map((service) => service.service_type).join(", ")}</b></small>
+    <small>Monthly package <b>Rs {monthlyPackage.toLocaleString("en-IN")}</b></small>
+  </>}
 </div>
 
 </div>
