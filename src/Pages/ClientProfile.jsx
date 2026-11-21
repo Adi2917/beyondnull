@@ -123,7 +123,7 @@ function ClientProfile() {
           ))}
           <div className="info-item"><span>Added on</span><p>{new Date(client.created_at).toLocaleDateString("en-IN")}</p></div>
           <div className="info-item"><span>Service total</span><p>{money(client.contract_total)}</p></div>
-          <div className="info-item payment-total"><span>Paid (recorded payments)</span><p>{money(client.payment_total)}</p></div>
+          <div className="info-item payment-total"><span>Paid toward current obligations</span><p>{money(client.payment_total)}</p></div>
           <div className="info-item payment-pending"><span>Pending</span><p>{money(client.pending_amount)}</p></div>
         </div>
 
@@ -133,7 +133,7 @@ function ClientProfile() {
             {projects?.length ? projects.map((project) => (
               <article className="profile-project" key={project.id || `${project.service_type}-${project.work_start_date}`}>
                 <div><strong>{project.service_type}</strong><span>{project.work_start_date ? `Started ${displayDate(project.work_start_date)}` : "Start date not set"}</span></div>
-                {project.billing_type === "project" ? <p>Project total: {money(project.total_amount)}. Payments are recorded separately below.</p> : <p>Monthly package: {money(project.monthly_package)} / {(project.social_platforms || []).join(", ")}</p>}
+                {project.billing_type === "project" ? <p>Project total: {money(project.total_amount)} · Paid: {money(project.paid_amount)} · Remaining: {money(project.balance_amount)}</p> : <p>Monthly package: {money(project.monthly_package)} · This month paid: {money(project.paid_amount)} · Remaining: {money(project.balance_amount)} / {(project.social_platforms || []).join(", ")}</p>}
                 {editMode ? <select value={project.work_status} onChange={(event) => updateProjectStatus(project.service_type, event.target.value)}><option>Running</option><option>Paused</option><option>{project.billing_type === "project" ? "Delivered" : "Stopped"}</option></select> : <b className={`project-status ${project.work_status?.toLowerCase()}`}>{project.work_status}</b>}
               </article>
             )) : <p className="no-services">No structured services recorded</p>}
@@ -142,8 +142,8 @@ function ClientProfile() {
 
         <section className="client-payment-section">
           <div className="profile-section-head"><div><span>Finance history</span><h3>Client payments</h3></div><button type="button" onClick={() => setPaymentModal({ mode: "add" })}><FaPlus /> Add payment</button></div>
-          {!client.payments?.length ? <div className="client-payment-empty">No payment recorded yet.</div> : <div className="client-payment-table"><table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Details</th><th>Proof</th><th>Receipt</th><th>Actions</th></tr></thead><tbody>{client.payments.map((payment) => (
-            <tr key={payment.id}><td>{displayDate(payment.paid_on)}</td><td>{payment.payment_type}</td><td className="client-payment-amount">{money(payment.amount)}</td><td>{payment.notes || "-"}</td><td>{payment.has_proof ? <button type="button" className="payment-proof" onClick={() => downloadProof(payment)}><FaDownload /> View</button> : "-"}</td><td><div className="receipt-actions"><button type="button" className="payment-receipt-send" disabled={sendingReceipt === payment.id} onClick={() => emailReceipt(payment)} title={payment.email_sent ? "Resend receipt email" : "Email receipt"}><FaEnvelope /> {sendingReceipt === payment.id ? "Sending..." : payment.email_sent ? "Resend" : "Send"}</button>{payment.has_receipt && <button type="button" className="payment-receipt-view" onClick={() => downloadReceipt(payment)} title="Download receipt PDF"><FaFileInvoiceDollar /> PDF</button>}</div></td><td><div className="payment-actions"><button type="button" title="Edit payment" onClick={() => setPaymentModal({ mode: "edit", payment })}><FaEdit /></button><button type="button" title="Delete payment" onClick={() => removePayment(payment)}><FaTrash /></button></div></td></tr>
+          {!client.payments?.length ? <div className="client-payment-empty">No payment recorded yet.</div> : <div className="client-payment-table"><table><thead><tr><th>Date</th><th>Service</th><th>Mode / period</th><th>Amount</th><th>Remaining</th><th>Proof</th><th>Receipt</th><th>Actions</th></tr></thead><tbody>{client.payments.map((payment) => (
+            <tr key={payment.id}><td>{displayDate(payment.paid_on)}</td><td>{payment.service_name || client.projects?.find((item) => item.id === payment.service_id)?.service_type || "Legacy payment"}</td><td>{payment.payment_type}{payment.billing_period ? ` / ${new Date(`${payment.billing_period}-01T00:00:00`).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}` : ""}</td><td className="client-payment-amount">{money(payment.amount)}</td><td>{payment.service_total ? money(payment.balance_after) : "-"}</td><td>{payment.has_proof ? <button type="button" className="payment-proof" onClick={() => downloadProof(payment)}><FaDownload /> View</button> : "-"}</td><td><div className="receipt-actions"><button type="button" className="payment-receipt-send" disabled={sendingReceipt === payment.id} onClick={() => emailReceipt(payment)} title={payment.email_sent ? "Resend receipt email" : "Email receipt"}><FaEnvelope /> {sendingReceipt === payment.id ? "Sending..." : payment.email_sent ? "Resend" : "Send"}</button>{payment.has_receipt && <button type="button" className="payment-receipt-view" onClick={() => downloadReceipt(payment)} title="Download receipt PDF"><FaFileInvoiceDollar /> PDF</button>}</div></td><td><div className="payment-actions"><button type="button" title="Edit payment" onClick={() => setPaymentModal({ mode: "edit", payment })}><FaEdit /></button><button type="button" title="Delete payment" onClick={() => removePayment(payment)}><FaTrash /></button></div></td></tr>
           ))}</tbody></table></div>}
         </section>
 
@@ -154,7 +154,7 @@ function ClientProfile() {
           <button className="back-btn" onClick={() => navigate(-1)}>Back</button>
         </div>
       </section>
-      {paymentModal && <ClientPaymentModal clientId={id} payment={paymentModal.mode === "edit" ? paymentModal.payment : null} onClose={() => setPaymentModal(null)} onSaved={fetchClient} />}
+      {paymentModal && <ClientPaymentModal client={client} payment={paymentModal.mode === "edit" ? paymentModal.payment : null} onClose={() => setPaymentModal(null)} onSaved={fetchClient} />}
     </main>
   )
 }

@@ -5,4 +5,13 @@
 .client-payment-form input,.client-payment-form select,.client-payment-form textarea{width:100%;padding:13px 14px;border:1px solid #ded3d4;background:#fcfaf9;color:#191717;outline:none}
 .client-payment-form input:focus,.client-payment-form select:focus,.client-payment-form textarea:focus{border-color:#d71935;box-shadow:0 0 0 3px rgba(215,25,53,.08)}
 .client-payment-fields{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px}
+.service-payment-fields{grid-template-columns:1.35fr 1fr 1fr}
+.payment-detail-fields{grid-template-columns:1fr 1fr}
+.payment-balance-summary{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #ded3d4;background:#f8f4f2}
+.payment-balance-summary div{display:grid;gap:7px;padding:15px;border-right:1px solid #ded3d4}
+.payment-balance-summary div:last-child{border-right:0}
+.payment-balance-summary span{color:#765d61;font-size:10px;font-weight:800;text-transform:uppercase}
+.payment-balance-summary strong{font-size:16px}
+.payment-balance-summary .balance-after strong{color:#b4142c}
 @media(max-width:650px){.client-payment-form{padding:21px 18px}.client-payment-fields{grid-template-columns:1fr}}
+@media(max-width:650px){.payment-balance-summary{grid-template-columns:1fr 1fr}.payment-balance-summary div:nth-child(2){border-right:0}.payment-balance-summary div:nth-child(-n+2){border-bottom:1px solid #ded3d4}}

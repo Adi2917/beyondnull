@@ -18,7 +18,7 @@ const TABLES = {
   resets: ["id", "email", "phone", "otp_hash", "expires_at", "attempts", "used_at", "created_at"],
   resources: ["id", "slug", "category", "read_time", "title", "subtitle", "excerpt", "intro", "logo_file_id", "cover_file_id", "gallery_file_ids", "sections_json", "status", "created_at", "updated_at"],
   finance: ["id", "entry_type", "name", "amount", "entry_date", "proof_file_id", "proof_name", "proof_type", "notes", "created_at", "updated_at"],
-  client_payments: ["id", "client_id", "service_id", "source_key", "payment_type", "amount", "paid_on", "notes", "proof_file_id", "proof_name", "proof_type", "created_at", "updated_at", "generated_receipt_file_id", "email_sent_at"]
+  client_payments: ["id", "client_id", "service_id", "source_key", "payment_type", "amount", "paid_on", "notes", "proof_file_id", "proof_name", "proof_type", "created_at", "updated_at", "generated_receipt_file_id", "email_sent_at", "billing_period", "service_name", "service_total", "balance_after"]
 }
 
 const SHEET_NAMES = {
@@ -212,9 +212,9 @@ function getClients() {
   const services = readObjects("services")
   const payments = readObjects("client_payments")
   return readObjects("clients").sort(newestFirst).map(function (client) {
-    client.projects = services.filter(function (item) { return item.client_id === client.id }).map(normalizeService)
+    client.projects = services.filter(function (item) { return item.client_id === client.id }).map(function (item) { return addServicePaymentSummary(normalizeService(item), payments) })
     client.services = client.projects.map(function (item) { return item.service_type })
-    client.payment_total = payments.filter(function (item) { return item.client_id === client.id }).reduce(function (sum, item) { return sum + Number(item.amount || 0) }, 0)
+    client.payment_total = client.projects.reduce(function (sum, item) { return sum + Number(item.paid_amount || 0) }, 0)
     client.contract_total = client.projects.reduce(function (sum, item) { return sum + serviceContractAmount(item) }, 0)
     client.pending_amount = Math.max(client.contract_total - client.payment_total, 0)
     return stripMeta(client)
@@ -225,10 +225,11 @@ function getClient(id) {
   ensureClientPaymentStorage()
   const client = readObjects("clients").find(function (item) { return item.id === String(id) })
   if (!client) throw new Error("Client not found")
-  client.projects = readObjects("services").filter(function (item) { return item.client_id === client.id }).map(normalizeService)
+  const rawPayments = readObjects("client_payments").filter(function (item) { return item.client_id === client.id })
+  client.projects = readObjects("services").filter(function (item) { return item.client_id === client.id }).map(function (item) { return addServicePaymentSummary(normalizeService(item), rawPayments) })
   client.services = client.projects.map(function (item) { return item.service_type })
-  client.payments = readObjects("client_payments").filter(function (item) { return item.client_id === client.id }).sort(function (a, b) { return new Date(b.paid_on) - new Date(a.paid_on) }).map(normalizeClientPayment)
-  client.payment_total = client.payments.reduce(function (sum, item) { return sum + Number(item.amount || 0) }, 0)
+  client.payments = rawPayments.sort(function (a, b) { return new Date(b.paid_on) - new Date(a.paid_on) }).map(normalizeClientPayment)
+  client.payment_total = client.projects.reduce(function (sum, item) { return sum + Number(item.paid_amount || 0) }, 0)
   client.contract_total = client.projects.reduce(function (sum, item) { return sum + serviceContractAmount(item) }, 0)
   client.pending_amount = Math.max(client.contract_total - client.payment_total, 0)
   return stripMeta(client)
@@ -316,6 +317,19 @@ function normalizeService(item) {
 
 function serviceContractAmount(item) {
   return Number(item.billing_type === "monthly" ? item.monthly_package : item.total_amount || 0)
+}
+
+function addServicePaymentSummary(service, payments) {
+  const currentPeriod = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM")
+  const relevant = payments.filter(function (payment) {
+    if (payment.service_id !== service.id) return false
+    return service.billing_type !== "monthly" || String(payment.billing_period || normalizeStoredDate(payment.paid_on).slice(0, 7)) === currentPeriod
+  })
+  const total = serviceContractAmount(service)
+  service.payment_period = service.billing_type === "monthly" ? currentPeriod : "project"
+  service.paid_amount = relevant.reduce(function (sum, payment) { return sum + Number(payment.amount || 0) }, 0)
+  service.balance_amount = Math.max(Math.round((total - service.paid_amount) * 100) / 100, 0)
+  return service
 }
 
 function getEmployees() {
@@ -597,16 +611,33 @@ function saveClientPayment(payload, id) {
   if (!client) throw new Error("Client not found")
   const paymentAmount = amount(payload.amount)
   if (paymentAmount <= 0) throw new Error("Enter a valid client payment amount")
-  const paymentType = String(payload.payment_type || "Payment").trim().slice(0, 80)
+  const serviceId = String(payload.service_id || "")
+  const service = readObjects("services").find(function (item) { return item.id === serviceId && item.client_id === clientId })
+  if (!service) throw new Error("Select a valid client service")
+  const monthly = service.billing_type === "monthly"
+  const allowedTypes = monthly ? ["Monthly payment", "Partial monthly payment"] : ["Advance", "Installment", "Full payment"]
+  const paymentType = String(payload.payment_type || "").trim()
+  if (allowedTypes.indexOf(paymentType) === -1) throw new Error("Select a valid payment type")
   const paidOn = normalizeDateValue(payload.paid_on, "Payment date")
+  const billingPeriod = monthly && /^\d{4}-\d{2}$/.test(String(payload.billing_period || "")) ? String(payload.billing_period) : ""
+  if (monthly && !billingPeriod) throw new Error("Select the monthly billing period")
+  const serviceTotal = Number(monthly ? service.monthly_package : service.total_amount || 0)
+  const relatedPaid = readObjects("client_payments").filter(function (item) {
+    if (item.id === String(id || "") || item.service_id !== serviceId) return false
+    return !monthly || String(item.billing_period || normalizeStoredDate(item.paid_on).slice(0, 7)) === billingPeriod
+  }).reduce(function (sum, item) { return sum + Number(item.amount || 0) }, 0)
+  const availableBalance = Math.max(Math.round((serviceTotal - relatedPaid) * 100) / 100, 0)
+  if (paymentAmount > availableBalance) throw new Error("Payment amount cannot exceed the remaining balance")
+  const balanceAfter = Math.max(Math.round((availableBalance - paymentAmount) * 100) / 100, 0)
   let proofId = ""
   let generatedReceiptId = ""
   try {
     if (payload.proof_data) proofId = saveClientPaymentProof(payload.proof_data, payload.proof_name, payload.proof_type)
     const now = new Date()
     const data = {
-      client_id: clientId, service_id: String(payload.service_id || ""), payment_type: paymentType,
-      amount: paymentAmount, paid_on: paidOn, notes: String(payload.notes || "").trim().slice(0, 500), updated_at: now
+      client_id: clientId, service_id: serviceId, payment_type: paymentType,
+      amount: paymentAmount, paid_on: paidOn, notes: String(payload.notes || "").trim().slice(0, 500), updated_at: now,
+      billing_period: billingPeriod, service_name: service.service_type, service_total: serviceTotal, balance_after: balanceAfter
     }
     if (id) {
       const existing = readObjects("client_payments").find(function (item) { return item.id === String(id) })
@@ -716,6 +747,8 @@ function buildClientPaymentReceiptHtml(client, payment, receiptNumber) {
   const signature = "data:image/png;base64," + PAYROLL_SIGNATURE_BASE64
   const clientDetails = [client.email, client.phone, client.district].filter(Boolean).join(" | ")
   const note = String(payment.notes || "").trim()
+  const serviceName = payment.service_name || payment.payment_type || "Payment"
+  const periodLabel = payment.billing_period ? formatPayrollMonth(payment.billing_period + "-01") : ""
   return '<!doctype html><html><head><meta charset="UTF-8"></head><body style="margin:0;background:#f4efec;font-family:Arial,sans-serif;color:#191717">' +
     '<div style="width:720px;margin:24px auto;background:#fff;border:1px solid #dfd4d5">' +
       '<div style="height:9px;background:#e31837"></div>' +
@@ -725,9 +758,11 @@ function buildClientPaymentReceiptHtml(client, payment, receiptNumber) {
       '</tr></table></div>' +
       '<div style="padding:34px 38px">' +
         '<table style="width:100%;border-collapse:collapse;margin-bottom:25px"><tr><td><div style="font-size:11px;color:#765d61;font-weight:700">RECEIVED FROM</div><div style="font-size:24px;font-weight:800;margin-top:6px">' + escapeHtml(client.name) + '</div><div style="font-size:12px;color:#6c6263;margin-top:6px">' + escapeHtml(clientDetails) + '</div></td><td style="text-align:right"><div style="font-size:11px;color:#765d61;font-weight:700">PAYMENT DATE</div><div style="font-size:17px;font-weight:800;margin-top:6px">' + escapeHtml(formatPayrollDate(payment.paid_on)) + '</div></td></tr></table>' +
-        '<table style="width:100%;border-collapse:collapse;font-size:14px"><tr><td style="padding:12px 0;border-bottom:1px solid #eadcdf;color:#6c6263">' + escapeHtml(payment.payment_type || "Payment") + '</td><td style="padding:12px 0;border-bottom:1px solid #eadcdf;text-align:right;font-weight:700">Rs ' + formatMoney(payment.amount) + '</td></tr>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:14px"><tr><td style="padding:12px 0;border-bottom:1px solid #eadcdf;color:#6c6263">' + escapeHtml(serviceName + " - " + (payment.payment_type || "Payment") + (periodLabel ? " (" + periodLabel + ")" : "")) + '</td><td style="padding:12px 0;border-bottom:1px solid #eadcdf;text-align:right;font-weight:700">Rs ' + formatMoney(payment.amount) + '</td></tr>' +
         (note ? '<tr><td style="padding:12px 0;border-bottom:1px solid #eadcdf;color:#6c6263">Details</td><td style="padding:12px 0;border-bottom:1px solid #eadcdf;text-align:right;font-weight:700">' + escapeHtml(note) + '</td></tr>' : '') +
-        '<tr><td style="padding:21px 0 12px;font-size:17px;font-weight:900">Total received</td><td style="padding:21px 0 12px;text-align:right;font-size:27px;font-weight:900;color:#b4142c">Rs ' + formatMoney(payment.amount) + '</td></tr></table>' +
+        '<tr><td style="padding:16px 0 8px;color:#6c6263">Service value' + (periodLabel ? " for " + escapeHtml(periodLabel) : "") + '</td><td style="padding:16px 0 8px;text-align:right;font-weight:700">Rs ' + formatMoney(payment.service_total) + '</td></tr>' +
+        '<tr><td style="padding:8px 0;color:#6c6263">Balance remaining</td><td style="padding:8px 0;text-align:right;font-weight:700">Rs ' + formatMoney(payment.balance_after) + '</td></tr>' +
+        '<tr><td style="padding:18px 0 12px;border-top:1px solid #eadcdf;font-size:17px;font-weight:900">Total received</td><td style="padding:18px 0 12px;border-top:1px solid #eadcdf;text-align:right;font-size:27px;font-weight:900;color:#b4142c">Rs ' + formatMoney(payment.amount) + '</td></tr></table>' +
         '<div style="margin-top:48px;padding-top:23px;border-top:1px solid #eadcdf"><table style="width:100%;border-collapse:collapse"><tr><td style="vertical-align:bottom"><div style="font-size:12px;color:#6c6263;line-height:1.7">This system-generated receipt confirms the client payment recorded by BeyondNull.<br>For billing queries, contact ' + escapeHtml(OFFICIAL_EMAIL) + '.</div></td><td style="width:220px;text-align:right;vertical-align:bottom"><img src="' + signature + '" style="display:block;width:190px;height:62px;object-fit:contain;object-position:left center;margin:0 0 2px auto"><div style="font-size:13px;font-weight:800">Aditya Kumar</div><div style="font-size:11px;color:#765d61;margin-top:3px">Authorized Signatory</div><div style="font-size:11px;color:#a51d34;font-weight:800;margin-top:3px">Finance Department</div></td></tr></table></div>' +
       '</div><div style="padding:15px 38px;background:#faf7f5;border-top:1px solid #eadcdf;font-size:11px;color:#765d61;text-align:center">BeyondNull | Bangalore, Karnataka | beyoondnull@gmail.com</div>' +
     '</div></body></html>'
@@ -744,6 +779,8 @@ function normalizeClientPayment(item) {
   return {
     id: item.id, client_id: item.client_id, service_id: item.service_id || "", payment_type: item.payment_type || "Payment",
     amount: Number(item.amount || 0), paid_on: normalizeStoredDate(item.paid_on), notes: item.notes || "",
+    billing_period: item.billing_period || "", service_name: item.service_name || "",
+    service_total: Number(item.service_total || 0), balance_after: Number(item.balance_after || 0),
     has_proof: Boolean(item.proof_file_id), has_receipt: Boolean(item.generated_receipt_file_id),
     email_sent: Boolean(item.email_sent_at), email_sent_at: serializeValue(item.email_sent_at), created_at: serializeValue(item.created_at)
   }
