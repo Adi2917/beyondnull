@@ -38,6 +38,7 @@ function setupBeyondNullDatabase() {
   Object.keys(TABLES).forEach(function (key) {
     let sheet = spreadsheet.getSheetByName(SHEET_NAMES[key])
     if (!sheet) sheet = spreadsheet.insertSheet(SHEET_NAMES[key])
+    ensureSheetColumns(sheet, TABLES[key].length)
     if (sheet.getLastRow() === 0) sheet.appendRow(TABLES[key])
     else sheet.getRange(1, 1, 1, TABLES[key].length).setValues([TABLES[key]])
     sheet.setFrozenRows(1)
@@ -250,17 +251,31 @@ function saveClient(payload, id) {
       email: cleanEmail(payload.email), address: String(payload.address || "").trim(),
       district: String(payload.district || "").trim(), status: "Active", source: "Admin Panel", notes: "", updated_at: now
     }
+    const existingServices = id ? readObjects("services").filter(function (item) { return item.client_id === id }) : []
     if (id) {
       const existing = findRow("clients", "id", id)
       if (!existing) throw new Error("Client not found")
       updateRow("clients", existing.rowNumber, clientData)
-      deleteRowsWhere("services", "client_id", id)
     } else {
       clientData.created_at = now
       appendObject("clients", clientData)
     }
+    const retainedServiceIds = []
     projects.forEach(function (project) {
-      appendObject("services", Object.assign({}, project, { id: Utilities.getUuid(), client_id: clientId, created_at: now, updated_at: now }))
+      const existingService = existingServices.find(function (item) {
+        return (project.id && item.id === project.id) || (!project.id && item.service_type === project.service_type)
+      })
+      if (existingService) {
+        retainedServiceIds.push(existingService.id)
+        updateRow("services", existingService._row, Object.assign({}, project, { id: existingService.id, client_id: clientId, updated_at: now }))
+      } else {
+        const serviceId = Utilities.getUuid()
+        retainedServiceIds.push(serviceId)
+        appendObject("services", Object.assign({}, project, { id: serviceId, client_id: clientId, created_at: now, updated_at: now }))
+      }
+    })
+    existingServices.filter(function (item) { return retainedServiceIds.indexOf(item.id) === -1 }).sort(function (a, b) { return b._row - a._row }).forEach(function (item) {
+      sheetFor("services").deleteRow(item._row)
     })
   } finally { lock.releaseLock() }
   return getClient(clientId)
@@ -299,6 +314,7 @@ function validateProjects(projects) {
     if ((!monthly && status === "Stopped") || (monthly && status === "Delivered")) throw new Error("Invalid work status")
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(item.work_start_date || ""))) throw new Error("Work start date is required")
     return {
+      id: String(item.id || ""),
       service_type: service, billing_type: monthly ? "monthly" : "project", total_amount: monthly ? "" : total,
       advance_amount: "", pending_amount: monthly ? "" : total,
       monthly_package: monthly ? monthlyPackage : "", social_platforms: JSON.stringify(platforms),
@@ -705,18 +721,47 @@ function sendExistingClientPaymentReceipt(id) {
   const client = readObjects("clients").find(function (item) { return item.id === payment.client_id })
   if (!client) throw new Error("Client not found")
   if (!client.email) throw new Error("Client email is required before sending a receipt")
+  const receiptPayment = preparePaymentReceiptDetails(payment)
   let generatedReceiptId = ""
   try {
-    const generated = createClientPaymentReceipt(client, payment)
+    const generated = createClientPaymentReceipt(client, receiptPayment)
     generatedReceiptId = generated.fileId
-    sendClientPaymentReceiptEmail(client, payment, generated.blob, generated.receiptNumber, Boolean(payment.email_sent_at))
-    updateRow("client_payments", payment._row, { generated_receipt_file_id: generatedReceiptId, email_sent_at: new Date(), updated_at: new Date() })
+    sendClientPaymentReceiptEmail(client, receiptPayment, generated.blob, generated.receiptNumber, Boolean(payment.email_sent_at))
+    const receiptUpdates = {
+      generated_receipt_file_id: generatedReceiptId, email_sent_at: new Date(), updated_at: new Date(),
+      service_id: receiptPayment.service_id, service_name: receiptPayment.service_name,
+      service_total: receiptPayment.service_total, balance_after: receiptPayment.balance_after,
+      billing_period: receiptPayment.billing_period
+    }
+    updateRow("client_payments", payment._row, receiptUpdates)
     if (payment.generated_receipt_file_id) try { DriveApp.getFileById(payment.generated_receipt_file_id).setTrashed(true) } catch (error) { console.warn(error) }
-    return normalizeClientPayment(Object.assign({}, payment, { generated_receipt_file_id: generatedReceiptId, email_sent_at: new Date() }))
+    return normalizeClientPayment(Object.assign({}, payment, receiptUpdates))
   } catch (error) {
     if (generatedReceiptId) try { DriveApp.getFileById(generatedReceiptId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) }
     throw error
   }
+}
+
+function preparePaymentReceiptDetails(payment) {
+  if (payment.service_id && payment.service_name && Number(payment.service_total || 0) > 0) return payment
+  const services = readObjects("services").filter(function (item) { return item.client_id === payment.client_id })
+  const service = services.find(function (item) { return item.id === payment.service_id }) ||
+    services.find(function (item) { return item.service_type === payment.service_name }) ||
+    (services.length === 1 ? services[0] : null)
+  if (!service) return payment
+  const monthly = service.billing_type === "monthly"
+  const billingPeriod = monthly ? String(payment.billing_period || normalizeStoredDate(payment.paid_on).slice(0, 7)) : ""
+  const serviceTotal = Number(monthly ? service.monthly_package : service.total_amount || 0)
+  const paidThroughReceipt = readObjects("client_payments").filter(function (item) {
+    if (item.client_id !== payment.client_id || normalizeStoredDate(item.paid_on) > normalizeStoredDate(payment.paid_on)) return false
+    const sameService = item.service_id === service.id || (!item.service_id && services.length === 1)
+    if (!sameService) return false
+    return !monthly || String(item.billing_period || normalizeStoredDate(item.paid_on).slice(0, 7)) === billingPeriod
+  }).reduce(function (sum, item) { return sum + Number(item.amount || 0) }, 0)
+  return Object.assign({}, payment, {
+    service_id: service.id, service_name: service.service_type, billing_period: billingPeriod,
+    service_total: serviceTotal, balance_after: Math.max(Math.round((serviceTotal - paidThroughReceipt) * 100) / 100, 0)
+  })
 }
 
 function saveClientPaymentProof(dataUrl, name, type) {
@@ -806,6 +851,7 @@ function ensureClientPaymentStorage() {
     const target = spreadsheet()
     let sheet = target.getSheetByName(SHEET_NAMES.client_payments)
     if (!sheet) sheet = target.insertSheet(SHEET_NAMES.client_payments)
+    ensureSheetColumns(sheet, TABLES.client_payments.length)
     if (sheet.getLastRow() === 0) sheet.appendRow(TABLES.client_payments)
     else sheet.getRange(1, 1, 1, TABLES.client_payments.length).setValues([TABLES.client_payments])
     sheet.setFrozenRows(1)
@@ -1221,6 +1267,10 @@ function parseRequest(e) {
 }
 
 function spreadsheet() { return SpreadsheetApp.openById(SHEET_ID) }
+function ensureSheetColumns(sheet, requiredColumns) {
+  const missingColumns = requiredColumns - sheet.getMaxColumns()
+  if (missingColumns > 0) sheet.insertColumnsAfter(sheet.getMaxColumns(), missingColumns)
+}
 function sheetFor(key) {
   const sheet = spreadsheet().getSheetByName(SHEET_NAMES[key])
   if (!sheet) throw new Error("Database is not initialized. Run setupBeyondNullDatabase first.")
