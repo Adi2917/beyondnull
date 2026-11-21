@@ -213,10 +213,12 @@ function getClients() {
   const services = readObjects("services")
   const payments = readObjects("client_payments")
   return readObjects("clients").sort(newestFirst).map(function (client) {
-    client.projects = services.filter(function (item) { return item.client_id === client.id }).map(function (item) { return addServicePaymentSummary(normalizeService(item), payments) })
+    const clientServices = services.filter(function (item) { return item.client_id === client.id })
+    const clientPayments = hydrateClientPayments(client.id, clientServices, payments.filter(function (item) { return item.client_id === client.id }), false)
+    client.projects = clientServices.map(function (item) { return addServicePaymentSummary(normalizeService(item), clientPayments) })
     client.services = client.projects.map(function (item) { return item.service_type })
-    client.payment_total = client.projects.reduce(function (sum, item) { return sum + Number(item.paid_amount || 0) }, 0)
-    client.contract_total = client.projects.reduce(function (sum, item) { return sum + serviceContractAmount(item) }, 0)
+    client.payment_total = client.projects.filter(function (item) { return item.billing_type === "project" }).reduce(function (sum, item) { return sum + Number(item.paid_amount || 0) }, 0)
+    client.contract_total = client.projects.filter(function (item) { return item.billing_type === "project" }).reduce(function (sum, item) { return sum + serviceContractAmount(item) }, 0)
     client.pending_amount = Math.max(client.contract_total - client.payment_total, 0)
     return stripMeta(client)
   })
@@ -226,12 +228,13 @@ function getClient(id) {
   ensureClientPaymentStorage()
   const client = readObjects("clients").find(function (item) { return item.id === String(id) })
   if (!client) throw new Error("Client not found")
-  const rawPayments = readObjects("client_payments").filter(function (item) { return item.client_id === client.id })
-  client.projects = readObjects("services").filter(function (item) { return item.client_id === client.id }).map(function (item) { return addServicePaymentSummary(normalizeService(item), rawPayments) })
+  const clientServices = readObjects("services").filter(function (item) { return item.client_id === client.id })
+  const rawPayments = hydrateClientPayments(client.id, clientServices, readObjects("client_payments").filter(function (item) { return item.client_id === client.id }), true)
+  client.projects = clientServices.map(function (item) { return addServicePaymentSummary(normalizeService(item), rawPayments) })
   client.services = client.projects.map(function (item) { return item.service_type })
   client.payments = rawPayments.sort(function (a, b) { return new Date(b.paid_on) - new Date(a.paid_on) }).map(normalizeClientPayment)
-  client.payment_total = client.projects.reduce(function (sum, item) { return sum + Number(item.paid_amount || 0) }, 0)
-  client.contract_total = client.projects.reduce(function (sum, item) { return sum + serviceContractAmount(item) }, 0)
+  client.payment_total = client.projects.filter(function (item) { return item.billing_type === "project" }).reduce(function (sum, item) { return sum + Number(item.paid_amount || 0) }, 0)
+  client.contract_total = client.projects.filter(function (item) { return item.billing_type === "project" }).reduce(function (sum, item) { return sum + serviceContractAmount(item) }, 0)
   client.pending_amount = Math.max(client.contract_total - client.payment_total, 0)
   return stripMeta(client)
 }
@@ -346,6 +349,39 @@ function addServicePaymentSummary(service, payments) {
   service.paid_amount = relevant.reduce(function (sum, payment) { return sum + Number(payment.amount || 0) }, 0)
   service.balance_amount = Math.max(Math.round((total - service.paid_amount) * 100) / 100, 0)
   return service
+}
+
+function hydrateClientPayments(clientId, services, payments, persistChanges) {
+  const serviceById = {}
+  services.forEach(function (service) { serviceById[service.id] = service })
+  const ordered = payments.slice().sort(function (a, b) {
+    const dateDifference = new Date(a.paid_on) - new Date(b.paid_on)
+    return dateDifference || new Date(a.created_at) - new Date(b.created_at)
+  })
+  const runningPaid = {}
+  ordered.forEach(function (payment) {
+    let service = serviceById[payment.service_id]
+    if (!service && payment.service_name) service = services.find(function (item) { return item.service_type === payment.service_name })
+    if (!service && services.length === 1) service = services[0]
+    if (!service) return
+    const monthly = service.billing_type === "monthly"
+    const billingPeriod = monthly ? String(payment.billing_period || normalizeStoredDate(payment.paid_on).slice(0, 7)) : ""
+    const total = Number(monthly ? service.monthly_package : service.total_amount || 0)
+    const balanceKey = service.id + ":" + (billingPeriod || "project")
+    runningPaid[balanceKey] = Number(runningPaid[balanceKey] || 0) + Number(payment.amount || 0)
+    const updates = {
+      service_id: service.id, service_name: service.service_type, billing_period: billingPeriod,
+      service_total: total, balance_after: Math.max(Math.round((total - runningPaid[balanceKey]) * 100) / 100, 0)
+    }
+    const changed = String(payment.service_id || "") !== updates.service_id ||
+      String(payment.service_name || "") !== updates.service_name ||
+      String(payment.billing_period || "") !== updates.billing_period ||
+      Number(payment.service_total || 0) !== updates.service_total ||
+      Number(payment.balance_after || 0) !== updates.balance_after
+    Object.assign(payment, updates)
+    if (persistChanges && changed && payment._row) updateRow("client_payments", payment._row, updates)
+  })
+  return payments
 }
 
 function getEmployees() {

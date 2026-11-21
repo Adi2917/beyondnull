@@ -122,9 +122,9 @@ function ClientProfile() {
             <div className="info-item" key={field.name}><span>{field.label}</span>{editMode ? <input name={field.name} value={form[field.name] || ""} onChange={handleChange} /> : <p>{client[field.name] || field.empty}</p>}</div>
           ))}
           <div className="info-item"><span>Added on</span><p>{new Date(client.created_at).toLocaleDateString("en-IN")}</p></div>
-          <div className="info-item"><span>Service total</span><p>{money(client.contract_total)}</p></div>
-          <div className="info-item payment-total"><span>Paid toward current obligations</span><p>{money(client.payment_total)}</p></div>
-          <div className="info-item payment-pending"><span>Pending</span><p>{money(client.pending_amount)}</p></div>
+          <div className="info-item"><span>Website / app project total</span><p>{money(client.contract_total)}</p></div>
+          <div className="info-item payment-total"><span>Website / app paid</span><p>{money(client.payment_total)}</p></div>
+          <div className="info-item payment-pending"><span>Website / app pending</span><p>{money(client.pending_amount)}</p></div>
         </div>
 
         <section className="services">
