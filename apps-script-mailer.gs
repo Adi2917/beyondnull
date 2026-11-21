@@ -702,11 +702,16 @@ function saveClientPayment(payload, id) {
       data.proof_file_id = proofId || existing.proof_file_id
       data.proof_name = proofId ? String(payload.proof_name || "payment-proof") : existing.proof_name
       data.proof_type = proofId ? String(payload.proof_type || "application/octet-stream") : existing.proof_type
-      data.generated_receipt_file_id = ""
-      data.email_sent_at = ""
+      data.generated_receipt_file_id = existing.generated_receipt_file_id || ""
+      data.email_sent_at = existing.email_sent_at || ""
+      if (existing.generated_receipt_file_id || existing.email_sent_at) {
+        const refreshedReceipt = createClientPaymentReceipt(client, Object.assign({}, existing, data))
+        generatedReceiptId = refreshedReceipt.fileId
+        data.generated_receipt_file_id = generatedReceiptId
+      }
       updateRow("client_payments", existing._row, data)
       if (proofId && existing.proof_file_id) try { DriveApp.getFileById(existing.proof_file_id).setTrashed(true) } catch (error) { console.warn(error) }
-      if (existing.generated_receipt_file_id) try { DriveApp.getFileById(existing.generated_receipt_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+      if (generatedReceiptId && existing.generated_receipt_file_id) try { DriveApp.getFileById(existing.generated_receipt_file_id).setTrashed(true) } catch (error) { console.warn(error) }
       return normalizeClientPayment(Object.assign({}, existing, data))
     }
     data.id = Utilities.getUuid()
