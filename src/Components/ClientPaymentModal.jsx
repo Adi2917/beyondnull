@@ -60,7 +60,7 @@ function ClientPaymentModal({ client, payment, onClose, onSaved }) {
     const result = payment ? await updateClientPayment(payment.id, client.id, form) : await addClientPayment(client.id, form)
     setSaving(false)
     if (result.error) return alert(result.error.message || "Could not save client payment")
-    alert(payment ? "Payment updated. Send the refreshed receipt from payment history." : "Payment saved and receipt emailed to the client.")
+    alert(payment ? "Payment updated. Review the refreshed PDF before sending." : "Payment saved. Review the PDF, then send the receipt when ready.")
     await onSaved()
     onClose()
   }
