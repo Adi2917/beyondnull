@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { FaBookOpen, FaBriefcase, FaEdit, FaExternalLinkAlt, FaFileInvoiceDollar, FaHome, FaPlus, FaSignOutAlt, FaTrash, FaUsers, FaWallet } from "react-icons/fa"
+import { FaBookOpen, FaBriefcase, FaChartLine, FaEdit, FaExternalLinkAlt, FaFileInvoiceDollar, FaHome, FaPlus, FaSignOutAlt, FaTrash, FaUsers, FaWallet } from "react-icons/fa"
 import { checkAdminSession, deleteFinanceEntry, deleteResource, downloadClientPaymentProof, downloadEmployeeReceipt, downloadFinanceProof, getClients, getEmployees, getFinanceOverview, getPublishedResources, logoutAdmin } from "../services/authService"
 import ClientCard from "../Components/ClientCard"
 import SearchBar from "../Components/SearchBar"
@@ -10,6 +10,7 @@ import AddResourceModal from "../Components/AddResourceModal"
 import ConfirmDeleteModal from "../Components/ConfirmDeleteModal"
 import BrandLogo from "../Components/BrandLogo"
 import FinanceEntryModal from "../Components/FinanceEntryModal"
+import FinanceAnalyticsModal from "../Components/FinanceAnalyticsModal"
 import "./AdminDashboard.css"
 import { ACCESS_PATH, employeeProfilePath } from "../portalRoutes"
 
@@ -45,6 +46,7 @@ function AdminDashboard() {
   const [showAddEmployee, setShowAddEmployee] = useState(false)
   const [showAddResource, setShowAddResource] = useState(false)
   const [financeEntryType, setFinanceEntryType] = useState("")
+  const [showFinanceAnalytics, setShowFinanceAnalytics] = useState(false)
   const [editClient, setEditClient] = useState(null)
   const [editEmployee, setEditEmployee] = useState(null)
   const [editResource, setEditResource] = useState(null)
@@ -187,7 +189,7 @@ function AdminDashboard() {
           {activeTab === "finance" ? <div className="finance-toolbar">
             <div className="finance-mode-switch"><button className={financeMode === "month" ? "active" : ""} onClick={() => setFinanceMode("month")}>Monthly cycle</button><button className={financeMode === "custom" ? "active" : ""} onClick={() => setFinanceMode("custom")}>Custom dates</button></div>
             {financeMode === "month" ? <label><span>Finance month</span><select value={financeMonth} onChange={(event) => setFinanceMonth(event.target.value)}>{(finance?.available_months || [financeMonth]).map((month) => <option key={month} value={month}>{financeMonthLabel(month)}</option>)}</select></label> : <><label><span>From</span><input type="date" value={financeFrom} onChange={(event) => setFinanceFrom(event.target.value)} /></label><label><span>To</span><input type="date" value={financeTo} onChange={(event) => setFinanceTo(event.target.value)} /></label></>}
-            <button className="finance-income-btn" onClick={() => setFinanceEntryType("income")}><FaPlus /> Add funds</button><button className="finance-expense-btn" onClick={() => setFinanceEntryType("expense")}><FaPlus /> Add expense</button>
+            <button className="finance-analytics-btn" onClick={() => setShowFinanceAnalytics(true)}><FaChartLine /> Analyse</button><button className="finance-income-btn" onClick={() => setFinanceEntryType("income")}><FaPlus /> Add funds</button><button className="finance-expense-btn" onClick={() => setFinanceEntryType("expense")}><FaPlus /> Add expense</button>
           </div> : <><SearchBar search={search} setSearch={setSearch} /><button className="addClientBtn" onClick={openAddModal}><FaPlus /> {tabCopy.action}</button></>}
         </div>
 
@@ -237,6 +239,7 @@ function AdminDashboard() {
       {editEmployee && <AddEmployeeModal employee={editEmployee} onClose={() => setEditEmployee(null)} refreshEmployees={fetchRecords} />}
       {editResource && <AddResourceModal resource={editResource} onClose={() => setEditResource(null)} refreshResources={fetchRecords} />}
       {financeEntryType && <FinanceEntryModal entryType={financeEntryType} onClose={() => setFinanceEntryType("")} refreshFinance={fetchRecords} />}
+      {showFinanceAnalytics && <FinanceAnalyticsModal onClose={() => setShowFinanceAnalytics(false)} />}
       {deleteId && <ConfirmDeleteModal clientId={deleteId} close={() => setDeleteId(null)} refresh={fetchRecords} />}
     </main>
   )

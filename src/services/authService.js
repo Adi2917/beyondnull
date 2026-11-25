@@ -230,6 +230,11 @@ export async function updateEmployeePayout(payoutId, payout) {
   return apiRequest("updatePayout", { id: payoutId, ...payout, base_salary: Number(payout.base_salary || 0), extra_amount: Number(payout.extra_amount || 0) })
 }
 
+export async function sendEmployeePayoutReceipt(payoutId) {
+  if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
+  return apiRequest("sendPayoutReceipt", { payout_id: payoutId })
+}
+
 export async function downloadEmployeeReceipt(payoutId) {
   if (!getAdminToken()) return { data: null, error: makeError("Admin session expired. Login again.") }
   return apiRequest("getReceipt", { payout_id: payoutId })

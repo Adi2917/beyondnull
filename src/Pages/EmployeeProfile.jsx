@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { FaArrowLeft, FaCalendarCheck, FaDownload, FaEdit, FaEye, FaFileInvoice, FaTrash } from "react-icons/fa"
-import { addEmployeePayout, deleteEmployee, downloadEmployeeReceipt, downloadPayoutProof, getEmployeeById, updateEmployeePayout } from "../services/authService"
+import { FaArrowLeft, FaCalendarCheck, FaDownload, FaEdit, FaEnvelope, FaEye, FaFileInvoice, FaTrash } from "react-icons/fa"
+import { addEmployeePayout, deleteEmployee, downloadEmployeeReceipt, downloadPayoutProof, getEmployeeById, sendEmployeePayoutReceipt, updateEmployeePayout } from "../services/authService"
 import "./EmployeeProfile.css"
 import { WORKSPACE_PATH } from "../portalRoutes"
 import { formatDateValue, formatMonthValue, toDateInputValue } from "../utils/date"
@@ -25,6 +25,7 @@ function EmployeeProfile() {
   const [payout, setPayout] = useState(initialPayout)
   const [editingPayoutId, setEditingPayoutId] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [sendingReceipt, setSendingReceipt] = useState("")
 
   const loadEmployee = async () => {
     setLoading(true)
@@ -68,7 +69,6 @@ function EmployeeProfile() {
     const total = Number(payout.base_salary || 0) + Number(payout.extra_amount || 0)
     if (total <= 0) return alert("Salary or extra payment amount must be greater than zero")
     if (Number(payout.extra_amount || 0) > 0 && !payout.extra_label.trim()) return alert("Enter a name for the extra payment")
-    if (!employee.email) return alert("Add the employee email before creating a payout")
     setSaving(true)
     const payload = { ...payout, salary_month: `${payout.salary_month}-01` }
     const { error } = editingPayoutId
@@ -145,6 +145,16 @@ function EmployeeProfile() {
     link.remove()
   }
 
+  const emailReceipt = async (item) => {
+    if (!employee.email) return alert("Add the employee email before sending the receipt")
+    if (item.email_sent && !window.confirm(`Resend this salary receipt to ${employee.email}?`)) return
+    setSendingReceipt(item.id)
+    const { error } = await sendEmployeePayoutReceipt(item.id)
+    setSendingReceipt("")
+    if (error) return alert(error.message || "Could not send salary receipt")
+    await loadEmployee()
+  }
+
   if (loading) return <div className="profile-state">Loading employee profile...</div>
   if (!employee) return <div className="profile-state">Employee profile not found.</div>
 
@@ -177,14 +187,14 @@ function EmployeeProfile() {
             <div className="extra-payment-fields"><label><span>Extra payment name (optional)</span><input value={payout.extra_label} placeholder="Bonus, incentive, reimbursement..." onChange={(e) => setPayout({ ...payout, extra_label: e.target.value })} /></label><label><span>Extra amount (optional)</span><input type="number" min="0" value={payout.extra_amount} placeholder="0" onChange={(e) => setPayout({ ...payout, extra_amount: e.target.value })} /></label></div>
             <div className="payout-total"><span>Total payment</span><strong>Rs {(Number(payout.base_salary || 0) + Number(payout.extra_amount || 0)).toLocaleString("en-IN")}</strong></div>
             <label className="receipt-input"><span>{editingPayoutId ? "Replace payment proof (optional, image/PDF, max 3 MB)" : "Upload payment proof (optional, image/PDF, max 3 MB)"}</span><input key={editingPayoutId || "new"} type="file" accept="image/*,application/pdf,.pdf" onChange={uploadReceipt} /></label>
-            <div className="payout-form-actions"><button type="submit" disabled={saving}>{saving ? "Saving..." : editingPayoutId ? "Save payout changes" : "Submit payout"}</button>{editingPayoutId && <button type="button" className="cancel-payout-edit" onClick={cancelPayoutEdit}>Cancel edit</button>}</div>
+            <div className="payout-form-actions"><button type="submit" disabled={saving}>{saving ? "Saving..." : editingPayoutId ? "Save payout changes" : "Save payout & create receipt"}</button>{editingPayoutId && <button type="button" className="cancel-payout-edit" onClick={cancelPayoutEdit}>Cancel edit</button>}</div>
           </form>
         </section>
       </div>
 
       <section className="employee-panel payout-history">
         <div className="panel-heading"><FaFileInvoice /><div><h2>Payout history</h2><p>{employee.payouts?.length || 0} payment records</p></div></div>
-        {!employee.payouts?.length ? <div className="no-payouts">No payouts recorded yet.</div> : <div className="payout-table-wrap"><table><thead><tr><th>Salary month</th><th>Pay date</th><th>Salary</th><th>Extra</th><th>Total</th><th>Documents</th><th>Action</th></tr></thead><tbody>{employee.payouts.map((item) => <tr key={item.id}><td>{formatMonthValue(item.salary_month)}</td><td>{formatDateValue(item.paid_on)}</td><td>Rs {Number(item.base_salary || 0).toLocaleString("en-IN")}</td><td>{Number(item.extra_amount || 0) > 0 ? `${item.extra_label}: Rs ${Number(item.extra_amount).toLocaleString("en-IN")}` : "-"}</td><td><strong>Rs {Number(item.amount).toLocaleString("en-IN")}</strong></td><td><div className="payout-doc-actions">{item.has_receipt && <><button className="receipt-view" onClick={() => viewReceipt(item.id)}><FaEye /> View receipt</button><button className="receipt-download" onClick={() => downloadReceipt(item.id)}><FaDownload /> Download PDF</button></>}{item.has_payment_proof && <button className="proof-download" onClick={() => openProof(item.id)}>Payment proof</button>}</div></td><td><button className="payout-edit-button" onClick={() => editPayout(item)}><FaEdit /> Edit</button></td></tr>)}</tbody></table></div>}
+        {!employee.payouts?.length ? <div className="no-payouts">No payouts recorded yet.</div> : <div className="payout-table-wrap"><table><thead><tr><th>Salary month</th><th>Pay date</th><th>Salary</th><th>Extra</th><th>Total</th><th>Documents</th><th>Receipt email</th><th>Action</th></tr></thead><tbody>{employee.payouts.map((item) => <tr key={item.id}><td>{formatMonthValue(item.salary_month)}</td><td>{formatDateValue(item.paid_on)}</td><td>Rs {Number(item.base_salary || 0).toLocaleString("en-IN")}</td><td>{Number(item.extra_amount || 0) > 0 ? `${item.extra_label}: Rs ${Number(item.extra_amount).toLocaleString("en-IN")}` : "-"}</td><td><strong>Rs {Number(item.amount).toLocaleString("en-IN")}</strong></td><td><div className="payout-doc-actions">{item.has_receipt && <><button className="receipt-view" onClick={() => viewReceipt(item.id)}><FaEye /> View receipt</button><button className="receipt-download" onClick={() => downloadReceipt(item.id)}><FaDownload /> PDF</button></>}{item.has_payment_proof && <button className="proof-download" onClick={() => openProof(item.id)}>Payment proof</button>}</div></td><td><button className="receipt-email-button" disabled={sendingReceipt === item.id} onClick={() => emailReceipt(item)}><FaEnvelope /> {sendingReceipt === item.id ? "Sending..." : item.email_sent ? "Resend" : "Send"}</button></td><td><button className="payout-edit-button" onClick={() => editPayout(item)}><FaEdit /> Edit</button></td></tr>)}</tbody></table></div>}
       </section>
     </main>
   )

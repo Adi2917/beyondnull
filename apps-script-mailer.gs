@@ -107,6 +107,7 @@ function routeAction(action, payload, sessionToken) {
     deleteEmployee: function () { return deleteEmployee(payload.id) },
     addPayout: function () { return addPayout(payload) },
     updatePayout: function () { return updatePayout(payload) },
+    sendPayoutReceipt: function () { return sendExistingPayoutReceipt(payload.payout_id) },
     getReceipt: function () { return getReceipt(payload.payout_id) },
     getPayoutProof: function () { return getPayoutProof(payload.payout_id) },
     getFinanceOverview: function () { return getFinanceOverview(payload.month, payload.date_from, payload.date_to) },
@@ -462,7 +463,6 @@ function deleteEmployee(id) {
 function addPayout(payload) {
   const employee = getEmployee(payload.employee_id)
   if (!employee) throw new Error("Employee not found")
-  if (!employee.email) throw new Error("Employee email is required before creating a payout")
   const payout = normalizePayout(payload, Number(employee.salary || 0))
   const payoutId = Utilities.getUuid()
   let proofId = ""
@@ -471,7 +471,6 @@ function addPayout(payload) {
     if (payload.receipt_data) proofId = saveReceipt(payload.receipt_data, payload.receipt_name, payload.receipt_type)
     const generated = createSalaryReceipt(employee, payout, payoutId)
     generatedId = generated.fileId
-    sendSalaryReceiptEmail(employee, payout, generated.blob, generated.receiptNumber, false)
     const now = new Date()
     const data = {
       id: payoutId, employee_id: payload.employee_id, salary_month: payout.salary_month,
@@ -479,7 +478,7 @@ function addPayout(payload) {
       receipt_name: proofId ? String(payload.receipt_name || "payment-proof") : "",
       receipt_type: proofId ? String(payload.receipt_type || "application/octet-stream") : "", created_at: now,
       base_salary: payout.base_salary, extra_label: payout.extra_label, extra_amount: payout.extra_amount,
-      generated_receipt_file_id: generatedId, email_sent_at: now
+      generated_receipt_file_id: generatedId, email_sent_at: ""
     }
     appendObject("payouts", data)
     return payoutResponse(data)
@@ -493,7 +492,6 @@ function updatePayout(payload) {
   const existing = readObjects("payouts").find(function (item) { return item.id === String(payload.id) })
   if (!existing) throw new Error("Payout not found")
   const employee = getEmployee(existing.employee_id)
-  if (!employee.email) throw new Error("Employee email is required before updating a payout")
   const previousBase = existing.base_salary === "" ? Number(existing.amount || employee.salary || 0) : Number(existing.base_salary || 0)
   const payout = normalizePayout(payload, previousBase)
 
@@ -503,7 +501,6 @@ function updatePayout(payload) {
     if (payload.receipt_data) replacementReceiptId = saveReceipt(payload.receipt_data, payload.receipt_name, payload.receipt_type)
     const generated = createSalaryReceipt(employee, payout, existing.id)
     generatedReceiptId = generated.fileId
-    sendSalaryReceiptEmail(employee, payout, generated.blob, generated.receiptNumber, true)
     const updates = {
       salary_month: payout.salary_month,
       paid_on: payout.paid_on,
@@ -515,7 +512,7 @@ function updatePayout(payload) {
       extra_label: payout.extra_label,
       extra_amount: payout.extra_amount,
       generated_receipt_file_id: generatedReceiptId,
-      email_sent_at: new Date()
+      email_sent_at: ""
     }
     updateRow("payouts", existing._row, updates)
     if (replacementReceiptId && existing.receipt_file_id) {
@@ -526,6 +523,33 @@ function updatePayout(payload) {
   } catch (error) {
     if (replacementReceiptId) try { DriveApp.getFileById(replacementReceiptId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) }
     if (generatedReceiptId) try { DriveApp.getFileById(generatedReceiptId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) }
+    throw error
+  }
+}
+
+function sendExistingPayoutReceipt(payoutId) {
+  const payout = readObjects("payouts").find(function (item) { return item.id === String(payoutId) })
+  if (!payout) throw new Error("Payout not found")
+  const employee = getEmployee(payout.employee_id)
+  if (!employee.email) throw new Error("Employee email is required before sending the receipt")
+  const normalized = {
+    salary_month: normalizeStoredDate(payout.salary_month),
+    paid_on: normalizeStoredDate(payout.paid_on),
+    base_salary: Number(payout.base_salary === "" ? payout.amount : payout.base_salary || 0),
+    extra_label: payout.extra_label || "",
+    extra_amount: Number(payout.extra_amount || 0),
+    total_amount: Number(payout.amount || 0)
+  }
+  let generatedId = ""
+  try {
+    const generated = createSalaryReceipt(employee, normalized, payout.id)
+    generatedId = generated.fileId
+    sendSalaryReceiptEmail(employee, normalized, generated.blob, generated.receiptNumber, Boolean(payout.email_sent_at))
+    updateRow("payouts", payout._row, { generated_receipt_file_id: generatedId, email_sent_at: new Date() })
+    if (payout.generated_receipt_file_id) try { DriveApp.getFileById(payout.generated_receipt_file_id).setTrashed(true) } catch (error) { console.warn(error) }
+    return true
+  } catch (error) {
+    if (generatedId) try { DriveApp.getFileById(generatedId).setTrashed(true) } catch (cleanupError) { console.warn(cleanupError) }
     throw error
   }
 }
@@ -1095,6 +1119,8 @@ function ensureFinanceStorage() {
 
 function cleanupErroneousFinanceFunds() {
   if (!SHEET_NAMES.finance || !spreadsheet().getSheetByName(SHEET_NAMES.finance)) return 0
+  const properties = PropertiesService.getScriptProperties()
+  if (properties.getProperty("FINANCE_SEED_CLEANED_V3")) return 0
   const financeSheet = sheetFor("finance")
   const rows = readObjects("finance")
     .filter(function (item) {
@@ -1103,6 +1129,7 @@ function cleanupErroneousFinanceFunds() {
     })
     .sort(function (a, b) { return b._row - a._row })
   rows.forEach(function (item) { financeSheet.deleteRow(item._row) })
+  properties.setProperty("FINANCE_SEED_CLEANED_V3", new Date().toISOString())
   return rows.length
 }
 
