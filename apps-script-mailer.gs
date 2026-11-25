@@ -66,7 +66,7 @@ function setupBeyondNullDatabase() {
   if (!properties.getProperty("CLIENT_PAYMENT_FOLDER_ID")) {
     properties.setProperty("CLIENT_PAYMENT_FOLDER_ID", DriveApp.createFolder("BeyondNull Client Payment Proofs").getId())
   }
-  removeLegacyFinanceOpenings()
+  cleanupErroneousFinanceFunds()
   ensureClientPaymentStorage()
   return "BeyondNull Google Sheets database is ready. Initial PIN: 111111"
 }
@@ -1090,25 +1090,20 @@ function ensureFinanceStorage() {
   sheet.getRange(1, 1, 1, TABLES.finance.length).setBackground("#191717").setFontColor("#ffffff").setFontWeight("bold")
   const properties = PropertiesService.getScriptProperties()
   if (!properties.getProperty("FINANCE_FOLDER_ID")) properties.setProperty("FINANCE_FOLDER_ID", DriveApp.createFolder("BeyondNull Finance Proofs").getId())
-  removeLegacyFinanceOpenings()
+  cleanupErroneousFinanceFunds()
 }
 
-function removeLegacyFinanceOpenings() {
-  if (!SHEET_NAMES.finance || !spreadsheet().getSheetByName(SHEET_NAMES.finance)) return
+function cleanupErroneousFinanceFunds() {
+  if (!SHEET_NAMES.finance || !spreadsheet().getSheetByName(SHEET_NAMES.finance)) return 0
   const financeSheet = sheetFor("finance")
-  readObjects("finance")
+  const rows = readObjects("finance")
     .filter(function (item) {
-      const name = String(item.name || "").trim().toLowerCase()
-      const erroneousSeed = item.entry_type === "income" &&
-        Number(item.amount || 0) === 8000 &&
-        normalizeStoredDate(item.entry_date) === "2026-08-01" &&
-        (name === "from purnia" || name === "company opening balance")
-      return item.entry_type === "opening" || erroneousSeed
+      return item.entry_type === "opening" ||
+        (item.entry_type === "income" && Number(item.amount || 0) === 8000)
     })
     .sort(function (a, b) { return b._row - a._row })
-    .forEach(function (item) {
-      financeSheet.deleteRow(item._row)
-    })
+  rows.forEach(function (item) { financeSheet.deleteRow(item._row) })
+  return rows.length
 }
 
 function getResources() {
